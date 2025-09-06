@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande Cidrerie du Vulcain</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <div class="logo-container">
+                        <img src="logo-cidrerie-vulcain.png" alt="Cidrerie du Vulcain" class="logo">
+                    </div>
+                    <h1>Cidrerie du Vulcain</h1>
+                    <p class="subtitle">Commande en ligne 2025</p>
+                </div>
+                <button id="dark-mode-toggle" class="dark-mode-btn" title="Basculer le mode sombre">
+                    <span class="dark-mode-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Section Catalogue -->
+            <section id="catalogue" class="catalogue-section">
+                <h2>Notre Sélection</h2>
+                
+                <!-- Cidres -->
+                <div class="product-category">
+                    <h3>Cidres</h3>
+                    <div class="products-grid" id="cidres-grid">
+                        <!-- Les produits seront générés par JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Eaux de vie / Liqueurs -->
+                <div class="product-category">
+                    <h3>Eaux de vie / Liqueurs / Cidre de cuisine</h3>
+                    <div class="products-grid" id="eaux-de-vie-grid">
+                        <!-- Les produits seront générés par JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Panier -->
+            <section id="panier" class="panier-section">
+                <h2>Votre Commande</h2>
+                <div class="panier-content">
+                    <div class="panier-items" id="panier-items">
+                        <p class="empty-cart">Votre panier est vide</p>
+                    </div>
+                    <div class="panier-summary">
+                        <div class="summary-line">
+                            <span>Sous-total :</span>
+                            <span id="sous-total">0.00 CHF</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Livraison :</span>
+                            <span id="livraison">10.00 CHF</span>
+                        </div>
+                        <div class="summary-line total">
+                            <span>Total :</span>
+                            <span id="total">10.00 CHF</span>
+                        </div>
+                    </div>
+                    <div class="panier-warnings" id="panier-warnings">
+                        <!-- Les avertissements seront générés par JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Formulaire Client -->
+            <section id="formulaire" class="formulaire-section">
+                <h2>Vos Coordonnées</h2>
+                <form id="commande-form">
+                    <!-- Honeypot pour la protection anti-spam -->
+                    <input type="text" name="website" style="display: none;" tabindex="-1" autocomplete="off">
+                    
+                    <div class="form-group">
+                        <label for="nom">Nom *</label>
+                        <input type="text" id="nom" name="nom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prenom">Prénom *</label>
+                        <input type="text" id="prenom" name="prenom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adresse">Adresse *</label>
+                        <input type="text" id="adresse" name="adresse" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="npa">NPA *</label>
+                            <input type="text" id="npa" name="npa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lieu">Lieu *</label>
+                            <input type="text" id="lieu" name="lieu" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telephone">Téléphone *</label>
+                        <input type="tel" id="telephone" name="telephone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remarques">Remarques pour la livraison</label>
+                        <textarea id="remarques" name="remarques" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="confirmation" name="confirmation" required>
+                            <span class="checkmark"></span>
+                            Je confirme ma commande et j'accepte les conditions générales *
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="btn-submit">
+                        <span class="btn-text">Passer la commande</span>
+                        <span class="btn-loading" style="display: none;">Envoi en cours...</span>
+                    </button>
+                </form>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Cidrerie du Vulcain - Commande en ligne</p>
+        </footer>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div id="modal-confirmation" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✅ Commande confirmée !</h2>
+            <p>Votre commande a été envoyée avec succès.</p>
+            <p>Vous recevrez un e-mail de confirmation dans quelques minutes.</p>
+            <button class="btn-modal" onclick="closeModal()">Fermer</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Gestion du mode sombre
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const darkModeIcon = darkModeToggle.querySelector('.dark-mode-icon');
+            
+            // Vérifier le mode sauvegardé
+            const savedMode = localStorage.getItem('darkMode');
+            if (savedMode === 'dark') {
+                document.body.classList.add('dark-mode');
+                darkModeIcon.textContent = '☀️';
+            }
+            
+            // Basculer le mode
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                if (document.body.classList.contains('dark-mode')) {
+                    darkModeIcon.textContent = '☀️';
+                    localStorage.setItem('darkMode', 'dark');
+                } else {
+                    darkModeIcon.textContent = '🌙';
+                    localStorage.setItem('darkMode', 'light');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
