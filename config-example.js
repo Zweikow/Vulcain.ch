@@ -3,13 +3,13 @@
 
 const EMAILJS_CONFIG = {
     // ID du service email configuré dans EmailJS
-    serviceId: 'service_xxxxxxxxx',
+    serviceId: 'service_34s048c',
     
     // ID du template email créé dans EmailJS
-    templateId: 'template_xxxxxxxxx',
+    templateId: 'template_3406zs1',
     
     // Clé publique de votre compte EmailJS
-    publicKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+    publicKey: 'R1vNuVN_Jxvmti6eDIjdW'
 };
 
 // Instructions pour obtenir ces valeurs :
