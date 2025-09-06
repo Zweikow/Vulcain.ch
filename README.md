@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🍎 Formulaire de Commande - Cidrerie du Vulcain
 
 Site web responsive pour la commande en ligne des produits de la Cidrerie du Vulcain.
@@ -211,3 +212,7 @@ Ce projet est développé pour la Cidrerie du Vulcain. Tous droits réservés.
 ---
 
 **Développé avec ❤️ pour la Cidrerie du Vulcain**
+=======
+# Vulcain.ch
+Ce site a pour but d'un formulaire de commande automatisé pour la Cidrerie du Vulcain
+>>>>>>> 3a5b2babe00e0cd9417c977e586d1d9e703c13bf
