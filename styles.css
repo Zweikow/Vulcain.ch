@@ -61,8 +61,8 @@ header {
 }
 
 .logo {
-    max-height: 120px;
-    max-width: 200px;
+    max-height: 150px;
+    max-width: 250px;
     height: auto;
     width: auto;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
@@ -497,8 +497,8 @@ footer {
     }
     
     .logo {
-        max-height: 100px;
-        max-width: 160px;
+        max-height: 120px;
+        max-width: 200px;
     }
     
     header h1 {
@@ -538,8 +538,8 @@ footer {
     }
     
     .logo {
-        max-height: 80px;
-        max-width: 140px;
+        max-height: 100px;
+        max-width: 180px;
     }
     
     header h1 {
