@@ -292,18 +292,19 @@ function modifierQuantite(id, delta, valeurDirecte) {
 
 // Modification de l'envoi d'email pour solution 1 (client + préparateur)
 async function envoyerCommande(formData) {
-    // Créer le tableau HTML du panier
+    // Créer les pillules HTML pour chaque produit
     const panierHtml = Object.entries(panier)
         .map(([id, quantite]) => {
             const produit = produitsData[id];
             if (!produit) return '';
             const sousTotal = (produit.prix * quantite).toFixed(2);
-            return `<tr>
-                <td>${produit.nom}</td>
-                <td>${quantite}</td>
-                <td>${produit.prix.toFixed(2)} CHF</td>
-                <td><strong>${sousTotal} CHF</strong></td>
-            </tr>`;
+            return `<div class="product-pillule">
+                <div class="product-info">
+                    <div class="product-name">${produit.nom}</div>
+                    <div class="product-quantity">${quantite}x à ${produit.prix.toFixed(2)} CHF</div>
+                </div>
+                <div class="product-total">${sousTotal} CHF</div>
+            </div>`;
         })
         .filter(ligne => ligne !== '')
         .join('');
@@ -359,17 +360,11 @@ async function envoyerCommande(formData) {
         nom: formData.get('nom')
     });
 
-    // Envoi au client
+    // Envoi au client avec copie Bcc au préparateur
     await emailjs.send(
         EMAILJS_CONFIG.serviceId,
         EMAILJS_CONFIG.templateId,
         { ...templateParams }
-    );
-    // Envoi au préparateur avec copie (on garde l'email du client pour l'affichage)
-    await emailjs.send(
-        EMAILJS_CONFIG.serviceId,
-        EMAILJS_CONFIG.templateId,
-        { ...templateParams, to_email: ADMIN_EMAIL }
     );
 }
 
