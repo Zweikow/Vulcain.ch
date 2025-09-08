@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🍎 Formulaire de Commande - Cidrerie du Vulcain
 
 Site web responsive pour la commande en ligne des produits de la Cidrerie du Vulcain.
@@ -11,15 +10,46 @@ Site web responsive pour la commande en ligne des produits de la Cidrerie du Vul
 - **Envoi automatique d'emails** : Confirmation client et bon de commande
 - **Design responsive** : Optimisé pour desktop, tablette et mobile
 - **Protection anti-spam** : Honeypot intégré
+- **Mode sombre/clair** : Basculement dynamique avec sauvegarde des préférences
+- **Favicon personnalisé** : Icône pomme 🍎 thématique pour la cidrerie
+- **Logo optimisé** : Logo de la cidrerie redimensionné pour tous les appareils
+
+## 🎨 Design et Interface
+
+### Favicon et Identité Visuelle
+- **Favicon pomme** : Icône SVG 🍎 qui s'affiche dans l'onglet du navigateur
+- **Logo agrandi** : Logo de la cidrerie plus visible sur tous les appareils
+  - Desktop : 150px × 250px
+  - Tablette : 120px × 200px  
+  - Mobile : 100px × 180px
+
+### Mode Sombre/Clair
+- Bouton de basculement dans le header
+- Sauvegarde automatique des préférences utilisateur
+- Design adapté pour les deux modes
 
 ## 🚀 Installation et Configuration
 
-### 1. Hébergement sur GitHub Pages
+### 1. Hébergement Infomaniak
 
-1. Créez un nouveau repository GitHub
-2. Uploadez tous les fichiers du projet
-3. Activez GitHub Pages dans les paramètres du repository
-4. Votre site sera accessible à l'adresse : `https://votre-username.github.io/nom-du-repo`
+Le site est hébergé chez **Infomaniak** avec une formule de base de web hosting :
+
+- **Hébergeur** : [Infomaniak.com](https://www.infomaniak.com)
+- **Formule** : Web hosting de base
+- **Domaine** : `cidrerie-vulcain.ch`
+- **Email personnalisé** : `commandes@cidrerie-vulcain.ch`
+
+#### Configuration de l'hébergement
+1. Le site est déployé directement sur le serveur Infomaniak
+2. Les fichiers HTML, CSS et JavaScript sont uploadés via FTP/SFTP
+3. L'adresse email personnalisée `commandes@cidrerie-vulcain.ch` est configurée
+4. L'administrateur du site a accès à cette boîte email pour récupérer toutes les commandes
+
+#### Avantages de cette configuration
+- **Email professionnel** : Les commandes arrivent sur `commandes@cidrerie-vulcain.ch`
+- **Hébergement suisse** : Serveurs locaux pour de meilleures performances
+- **Support technique** : Assistance Infomaniak disponible
+- **Sauvegarde automatique** : Protection des données incluse
 
 ### 2. Configuration EmailJS
 
@@ -138,14 +168,22 @@ Les couleurs sont définies dans `styles.css` avec des variables CSS :
 ## 📊 Gestion des commandes
 
 ### Réception des commandes
-- **Client** : Email de confirmation automatique
-- **Cidrerie** : Email avec bon de commande complet
-- **Format** : HTML lisible avec tableau des articles
+- **Client** : Email de confirmation automatique envoyé à l'adresse fournie
+- **Cidrerie** : Toutes les commandes arrivent sur `commandes@cidrerie-vulcain.ch`
+- **Format** : Email HTML lisible avec tableau détaillé des articles commandés
+- **Accès** : L'administrateur du site consulte la boîte email pour traiter les commandes
 
 ### Suivi des commandes
-- Pas de base de données intégrée
-- Toutes les commandes arrivent par email
-- Recommandation : Utiliser un gestionnaire d'emails
+- **Centralisation** : Toutes les commandes dans une seule boîte email professionnelle
+- **Organisation** : Possibilité de créer des dossiers/labels pour trier les commandes
+- **Archivage** : Conservation automatique de l'historique des commandes
+- **Notifications** : Alerte email immédiate à chaque nouvelle commande
+
+### Processus de traitement
+1. **Réception** : Commande reçue sur `commandes@cidrerie-vulcain.ch`
+2. **Traitement** : L'administrateur traite la commande manuellement
+3. **Confirmation** : Contact direct avec le client si nécessaire
+4. **Livraison** : Organisation selon les informations fournies
 
 ## 🔧 Maintenance
 
@@ -212,7 +250,11 @@ Ce projet est développé pour la Cidrerie du Vulcain. Tous droits réservés.
 ---
 
 **Développé avec ❤️ pour la Cidrerie du Vulcain**
-=======
-# Vulcain.ch
-Ce site a pour but d'un formulaire de commande automatisé pour la Cidrerie du Vulcain
->>>>>>> 3a5b2babe00e0cd9417c977e586d1d9e703c13bf
+
+## 📝 Changelog Récent
+
+### Version actuelle - Septembre 2025
+- ✅ Ajout du favicon pomme 🍎 en SVG
+- ✅ Agrandissement du logo cidrerie pour meilleure visibilité
+- ✅ Optimisation responsive du logo (desktop/tablette/mobile)
+- ✅ Nettoyage du titre de page (suppression des emojis superflus)
