@@ -1,4 +1,15 @@
-# 🍎 Formulaire de Commande - Cidrerie du Vulcain
+# 🍎## 📋 Fonctionnalités
+
+- **Catalogue complet** : Cidres et eaux de vie avec prix et descriptions
+- **Panier intelligent** : Calcul automatique des totaux et frais de livraison
+- **Formulaire client** : Saisie des coordonnées avec validation
+- **Envoi automatique d'emails** : Confirmation client et bon de commande
+- **Design responsive** : Optimisé pour desktop, tablette et mobile
+- **Protection anti-spam** : Honeypot intégré
+- **Mode sombre/clair** : Basculement dynamique avec sauvegarde des préférences
+- **Favicon personnalisé** : Icône pomme 🍎 thématique pour la cidrerie
+- **Logo optimisé** : Logo de la cidrerie redimensionné pour tous les appareils
+- **Information livraison** : Warning permanent "Livraison Uniquement en Suisse" 🇨🇭 de Commande - Cidrerie du Vulcain
 
 Site web responsive pour la commande en ligne des produits de la Cidrerie du Vulcain.
 
@@ -22,6 +33,13 @@ Site web responsive pour la commande en ligne des produits de la Cidrerie du Vul
   - Desktop : 150px × 250px
   - Tablette : 120px × 200px  
   - Mobile : 100px × 180px
+
+### Informations de Livraison
+- **Warning permanent** : "Livraison Uniquement en Suisse 🇨🇭" affiché de manière bien visible
+- **Emplacement stratégique** : Dans le header du site avec design attractif  
+- **Section panier** : Warning permanent type "minimum bouteilles" pour rappel constant
+- **Email de confirmation** : Information clairement visible dans l'email client
+- **Style cohérent** : Design rouge/orange avec icône ⚠️ pour maximum de visibilité
 
 ### Mode Sombre/Clair
 - Bouton de basculement dans le header
@@ -52,6 +70,18 @@ Le site est hébergé chez **Infomaniak** avec une formule de base de web hostin
 - **Sauvegarde automatique** : Protection des données incluse
 
 ### 2. Configuration EmailJS
+
+#### Configuration des Emails de Commande
+Le système d'emails utilise **EmailJS** avec une approche optimisée :
+
+- **Email client** : Confirmation automatique envoyée au client
+- **Email administrateur** : Copie de la commande envoyée via **Bcc** à `commandes@cidrerie-vulcain.ch`
+- **Une seule transmission** : Évite la duplication et optimise les quotas EmailJS
+
+#### Configuration Bcc dans EmailJS
+1. Dans votre template EmailJS, ajoutez le champ **Bcc**
+2. Définissez la valeur : `commandes@cidrerie-vulcain.ch`
+3. Cette adresse recevra automatiquement une copie de chaque commande
 
 #### Étape 1 : Créer un compte EmailJS
 1. Rendez-vous sur [EmailJS.com](https://www.emailjs.com/)
@@ -253,8 +283,46 @@ Ce projet est développé pour la Cidrerie du Vulcain. Tous droits réservés.
 
 ## 📝 Changelog Récent
 
-### Version actuelle - Septembre 2025
-- ✅ Ajout du favicon pomme 🍎 en SVG
-- ✅ Agrandissement du logo cidrerie pour meilleure visibilité
-- ✅ Optimisation responsive du logo (desktop/tablette/mobile)
-- ✅ Nettoyage du titre de page (suppression des emojis superflus)
+### Version Septembre 8, 2025 - Améliorations Visuelles et Fonctionnelles
+
+#### ✅ Améliorations Visuelles Terminées
+- **Favicon pomme 🍎** : Icône SVG personnalisée dans les onglets navigateur
+- **Logo agrandi** : Redimensionnement optimal pour tous les appareils (150x250px desktop)
+- **Correction DOCTYPE** : Fix de la syntaxe HTML corrompue
+- **Nettoyage titre** : Suppression des emojis superflus du titre de page
+
+#### ✅ Système de Livraison Optimisé
+- **Warning permanent** : "Livraison Uniquement en Suisse 🇨🇭" visible partout
+- **Header du site** : Information avec drapeau suisse et design attractif
+- **Section panier** : Warning type "minimum bouteilles" permanent et visible
+- **Email template** : Warning intégré dans l'email de confirmation client
+- **Design cohérent** : Style rouge/orange avec animation pour maximum de visibilité
+
+#### ✅ Optimisations Email Système
+- **Configuration Bcc** : Solution unique pour notification administrateur
+- **Template simplifié** : Format texte simple compatible tous clients email
+- **Variables nettoyées** : Suppression des éléments complexes causant des erreurs
+- **Header épuré** : Retrait ligne "De: Cidrerie du Vulcain" dans les emails
+
+#### ✅ Gestion de Version
+- **Commits organisés** : Messages descriptifs pour chaque modification
+- **Repository synchronisé** : Toutes les modifications pushées sur GitHub
+- **Documentation à jour** : README.md enrichi avec toutes les modifications
+
+#### 🔧 Configurations Techniques Appliquées
+- **EmailJS Bcc** : `commandes@cidrerie-vulcain.ch` configuré pour réception copies
+- **CSS responsive** : Styles adaptés mobile/tablette/desktop pour tous les éléments
+- **Mode sombre** : Support maintenu pour tous les nouveaux éléments
+- **Performance** : Suppression du CSS inutilisé (ancien bandeau complexe)
+
+#### 📊 Résultats Obtenus
+- **Visibilité maximale** : Information livraison impossible à manquer
+- **Professionnalisme** : Design cohérent et épuré sur site et emails
+- **Compatibilité email** : Format simple fonctionnel sur tous les clients
+- **UX améliorée** : Favicon et logo plus visibles, information claire
+- **Maintenance simplifiée** : Code nettoyé et optimisé
+
+### Prochaines Évolutions Possibles
+- **Tests utilisateurs** : Validation du nouveau système d'avertissement
+- **Statistiques commandes** : Suivi de l'impact des modifications
+- **Optimisations supplémentaires** : Selon retours d'expérience
