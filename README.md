@@ -1,4 +1,4 @@
-# 🍎## 📋 Fonctionnalités
+# 📋 Fonctionnalités
 
 - **Catalogue complet** : Cidres et eaux de vie avec prix et descriptions
 - **Panier intelligent** : Calcul automatique des totaux et frais de livraison
