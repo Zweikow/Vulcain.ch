@@ -423,9 +423,12 @@ textarea:focus {
 }
 
 .checkbox-label input[type="checkbox"] {
-    width: auto;
-    margin-right: 10px;
-    transform: scale(1.2);
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    transform: scale(1.5);
+    accent-color: var(--vert-naturel);
+    cursor: pointer;
 }
 
 .btn-submit {
@@ -611,6 +614,20 @@ footer {
     
     .item-total {
         align-self: flex-end;
+    }
+    
+    /* Checkbox plus grande sur mobile */
+    .checkbox-label input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        transform: scale(1.8);
+        margin-right: 20px;
+    }
+    
+    .checkbox-label {
+        padding: 15px 0;
+        font-size: 1rem;
+        line-height: 1.4;
     }
 }
 
