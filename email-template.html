@@ -96,52 +96,6 @@
         .info-value {
             color: #333;
         }
-        .products-pillules {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .product-pillule {
-            background: #f5f5dc;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #6b8e6b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .product-info {
-            flex: 1;
-        }
-        .product-name {
-            font-weight: bold;
-            color: #4a7c59;
-            margin-bottom: 5px;
-        }
-        .product-quantity {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        .product-total {
-            font-weight: bold;
-            color: #8b4513;
-            font-size: 1.1rem;
-        }
-        /* Responsive pour les pillules produits */
-        @media only screen and (max-width: 600px) {
-            .products-pillules {
-                gap: 12px;
-            }
-            .product-pillule {
-                padding: 12px;
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            .product-total {
-                font-size: 1rem;
-            }
-        }
         .products-table {
             width: 100%;
             border-collapse: collapse;
@@ -292,7 +246,6 @@
         <div class="header">
             <h1>🍎 Cidrerie du Vulcain</h1>
             <p>Confirmation de commande</p>
-            <p><small>De : {{from_name}} &lt;{{from_email}}&gt;</small></p>
         </div>
         
         <div class="content">
@@ -334,9 +287,7 @@
 
             <div class="section">
                 <h2>🛒 Articles commandés</h2>
-                <div class="products-pillules">
-                    {{panier}}
-                </div>
+                <div style="background: #f5f5dc; padding: 20px; border-radius: 8px; border-left: 4px solid #6b8e6b; white-space: pre-line; font-family: inherit; line-height: 1.8;">{{panier}}</div>
                 
                 <div class="total-section">
                     <div class="total-line">
@@ -362,6 +313,15 @@
 
             <div class="section">
                 <h2>📦 Informations de livraison</h2>
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #4a7c59; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: #2c5530; font-size: 1.1rem; margin-bottom: 8px;">
+                        <span style="font-size: 1.2rem;">🇨🇭</span>
+                        <span>Livraison Uniquement en Suisse</span>
+                    </div>
+                    <div style="color: #4a7c59; font-size: 0.9rem;">
+                        Zone de livraison limitée au territoire suisse
+                    </div>
+                </div>
                 <p>Votre commande sera préparée et livrée dans les plus brefs délais. Vous serez contacté par téléphone pour convenir d'un créneau de livraison.</p>
                 <p><strong>Merci pour votre confiance !</strong></p>
             </div>
@@ -373,7 +333,6 @@
             <p>Pour toute question :</p>
             <p><strong>📧 {{from_email}}</strong></p>
             <p><strong>📞 076 830 62 15</strong></p>
-            <p><em>Cet email a été envoyé depuis {{from_email}}</em></p>
         </div>
     </div>
 </body>

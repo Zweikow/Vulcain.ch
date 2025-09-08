@@ -84,6 +84,29 @@ header h1 {
     opacity: 0.9;
 }
 
+.livraison-info {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #2c5530;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 2px solid #4a7c59;
+}
+
+.livraison-flag {
+    font-size: 1.1rem;
+}
+
+.livraison-text {
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
 .dark-mode-btn {
     position: fixed;
     top: 20px;
@@ -242,6 +265,32 @@ section h2 {
 }
 
 /* Panier */
+.livraison-warning {
+    background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+    border: 2px solid #4a7c59;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    color: #2c5530;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(74, 124, 89, 0.2);
+    animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.livraison-warning .livraison-flag {
+    font-size: 1.2rem;
+}
+
 .panier-content {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -550,6 +599,30 @@ footer {
         font-size: 1rem;
     }
     
+    .livraison-info {
+        margin-top: 12px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .livraison-flag {
+        font-size: 1rem;
+    }
+    
+    .livraison-text {
+        font-size: 0.8rem;
+    }
+    
+    .livraison-warning {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .livraison-warning .livraison-flag {
+        font-size: 1.1rem;
+    }
+    
     section h2 {
         font-size: 1.5rem;
     }
@@ -623,6 +696,18 @@ body.dark-mode .panier-item {
 body.dark-mode .panier-summary {
     background: #2A2825;
     border-color: #3A3835;
+}
+
+body.dark-mode .livraison-info {
+    background: rgba(45, 53, 48, 0.9);
+    border-color: #838E83;
+    color: #a8d4a8;
+}
+
+body.dark-mode .livraison-warning {
+    background: linear-gradient(135deg, #2d352f, #3a453c);
+    border-color: #838E83;
+    color: #a8d4a8;
 }
 
 body.dark-mode .info-item {
