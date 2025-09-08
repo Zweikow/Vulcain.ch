@@ -122,6 +122,21 @@
         .products-table tr:hover {
             background: #e8f5e8;
         }
+        .products-table tbody tr td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #d2b48c;
+            text-align: left;
+        }
+        .products-table tbody tr:nth-child(even) {
+            background: #f5f5dc;
+        }
+        .products-table tbody tr:hover {
+            background: #e8f5e8;
+        }
+        .products-table tbody tr td:last-child {
+            font-weight: bold;
+            color: #4a7c59;
+        }
         
         /* Responsive table */
         @media only screen and (max-width: 600px) {
@@ -231,6 +246,7 @@
         <div class="header">
             <h1>🍎 Cidrerie du Vulcain</h1>
             <p>Confirmation de commande</p>
+            <p><small>De : {{from_name}} &lt;{{from_email}}&gt;</small></p>
         </div>
         
         <div class="content">
@@ -276,49 +292,35 @@
                     <thead>
                         <tr>
                             <th>Produit</th>
-                            <th>Année</th>
-                            <th>Prix unitaire</th>
                             <th>Quantité</th>
+                            <th>Prix unit.</th>
                             <th>Total</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {{#each articles}}
-                        <tr>
-                            <td>{{nom}}</td>
-                            <td>{{annee}}</td>
-                            <td>{{prix}} CHF</td>
-                            <td>{{quantite}}</td>
-                            <td>{{total}} CHF</td>
-                        </tr>
-                        {{/each}}
-                    </tbody>
+                    <tbody style="white-space: pre-line;">{{panier}}</tbody>
                 </table>
                 
                 <div class="total-section">
                     <div class="total-line">
-                        <span>Sous-total ({{totalBouteilles}} bouteilles) :</span>
-                        <span>{{totalProduits}} CHF</span>
-                    </div>
-                    <div class="total-line">
                         <span>Frais de livraison :</span>
-                        <span>{{#if fraisLivraison}}{{fraisLivraison}} CHF{{else}}Gratuit{{/if}}</span>
+                        <span>10.00 CHF</span>
                     </div>
                     <div class="total-line final">
                         <span>Total général :</span>
-                        <span>{{totalGeneral}} CHF</span>
+                        <span>{{total}} CHF</span>
                     </div>
                 </div>
             </div>
 
-            {{#if remarques}}
             <div class="section">
                 <h2>📝 Remarques</h2>
                 <div class="remarques">
-                    {{remarques}}
+                    <div class="info-label">Remarques du client :</div>
+                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; border: 1px solid #ddd;">
+                        {{remarques}}
+                    </div>
                 </div>
             </div>
-            {{/if}}
 
             <div class="section">
                 <h2>📦 Informations de livraison</h2>
@@ -330,8 +332,10 @@
         <div class="footer">
             <p><strong>Cidrerie du Vulcain</strong></p>
             <p>Commande en ligne 2025</p>
-            <p>Pour toute question : contactez-nous par téléphone</p>
+            <p>Pour toute question :</p>
+            <p><strong>📧 {{from_email}}</strong></p>
             <p><strong>📞 076 830 62 15</strong></p>
+            <p><em>Cet email a été envoyé depuis {{from_email}}</em></p>
         </div>
     </div>
 </body>
