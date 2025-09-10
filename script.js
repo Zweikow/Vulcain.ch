@@ -8,6 +8,15 @@ const EMAILJS_CONFIG = {
 // Adresse e-mail du préparateur de commande
 const ADMIN_EMAIL = 'commandes@cidrerie-vulcain.ch';
 
+// Configuration pour génération PDF factures
+const INVOICE_CONFIG = {
+    companyName: 'Cidrerie du Vulcain',
+    companyAddress: 'Adresse de la cidrerie\n1234 Lieu, Suisse',
+    companyPhone: '076 830 62 15',
+    companyEmail: 'commandes@cidrerie-vulcain.ch',
+    taxRate: 0.077 // TVA Suisse 7.7%
+};
+
 // Catalogue des produits
 const PRODUITS = {
     cidres: [
@@ -292,75 +301,104 @@ function modifierQuantite(id, delta, valeurDirecte) {
 
 // Modification de l'envoi d'email pour solution 1 (client + préparateur)
 async function envoyerCommande(formData) {
-    // Format simple et fiable - texte structuré
-    const panierTexte = Object.entries(panier)
-        .map(([id, quantite]) => {
+    try {
+        // Préparer les données de commande
+        const donneesCommande = {
+            prenom: formData.get('prenom'),
+            nom: formData.get('nom'),
+            email: formData.get('email'),
+            telephone: formData.get('telephone'),
+            adresse: formData.get('adresse'),
+            npa: formData.get('npa'),
+            lieu: formData.get('lieu'),
+            remarques: formData.get('remarques') || '',
+            panier: {}
+        };
+
+        // Convertir le panier en format structuré
+        Object.entries(panier).forEach(([id, quantite]) => {
             const produit = produitsData[id];
-            if (!produit) return '';
-            const sousTotal = (produit.prix * quantite).toFixed(2);
-            return `• ${produit.nom}
+            if (produit) {
+                donneesCommande.panier[id] = {
+                    nom: produit.nom,
+                    prix: produit.prix,
+                    quantite: quantite
+                };
+            }
+        });
+
+        // Générer la facture PDF
+        console.log('Génération de la facture PDF...');
+        const resultPDF = await genererFacturePDF(donneesCommande);
+        const pdfBlob = resultPDF.pdf.output('blob');
+        const pdfBase64 = resultPDF.pdf.output('datauristring').split(',')[1];
+
+        // Format texte simple pour l'email
+        const panierTexte = Object.entries(panier)
+            .map(([id, quantite]) => {
+                const produit = produitsData[id];
+                if (!produit) return '';
+                const sousTotal = (produit.prix * quantite).toFixed(2);
+                return `• ${produit.nom}
   ${quantite}x à ${produit.prix.toFixed(2)} CHF = ${sousTotal} CHF`;
-        })
-        .filter(ligne => ligne !== '')
-        .join('\n\n');
+            })
+            .filter(ligne => ligne !== '')
+            .join('\n\n');
 
-    // Générer un ID de commande unique
-    const generateOrderId = () => {
-        const date = new Date();
-        const year = date.getFullYear().toString().slice(-2);
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        return `${year}${month}${day}-${random}`;
-    };
+        // Générer date et heure actuelles
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-CH');
+        const heureStr = now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+        
+        const templateParams = {
+            // Informations client
+            prenom: donneesCommande.prenom,
+            nom: donneesCommande.nom,
+            email: donneesCommande.email,
+            telephone: donneesCommande.telephone,
+            adresse: donneesCommande.adresse,
+            npa: donneesCommande.npa,
+            lieu: donneesCommande.lieu,
+            remarques: donneesCommande.remarques || 'Aucune remarque',
+            
+            // Informations commande
+            panier: panierTexte,
+            total: calculerTotal().toFixed(2),
+            order_id: resultPDF.numeroFacture,
+            subject: `Commande Cidrerie du Vulcain #${resultPDF.numeroFacture}`,
+            
+            // Date et heure
+            date: dateStr,
+            heure: heureStr,
+            timestamp: resultPDF.numeroFacture,
+            
+            // Informations expéditeur pour le template
+            from_name: "Cidrerie du Vulcain",
+            from_email: "commandes@cidrerie-vulcain.ch",
+            reply_to: "commandes@cidrerie-vulcain.ch",
+            
+            // PDF en pièce jointe (pour l'admin)
+            attachment: {
+                name: `Facture_${resultPDF.numeroFacture}.pdf`,
+                content: pdfBase64,
+                type: 'application/pdf'
+            }
+        };
 
-    const orderId = generateOrderId();
-    
-    // Générer date et heure actuelles
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('fr-CH');
-    const heureStr = now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
-    
-    const templateParams = {
-        // Informations client
-        prenom: formData.get('prenom'),
-        nom: formData.get('nom'),
-        email: formData.get('email'),
-        telephone: formData.get('telephone'),
-        adresse: formData.get('adresse'),
-        npa: formData.get('npa'),
-        lieu: formData.get('lieu'),
-        remarques: formData.get('remarques') || 'Aucune remarque',
-        
-        // Informations commande
-        panier: panierTexte,
-        total: calculerTotal().toFixed(2),
-        order_id: orderId,
-        subject: `Confirmation de commande Cidrerie du Vulcain #${orderId}`,
-        
-        // Date et heure
-        date: dateStr,
-        heure: heureStr,
-        timestamp: orderId,
-        
-        // Informations expéditeur pour le template
-        from_name: "Cidrerie du Vulcain",
-        from_email: "commandes@cidrerie-vulcain.ch",
-        reply_to: "commandes@cidrerie-vulcain.ch"
-    };
-    
-    // Debug: Afficher les valeurs avant l'envoi
-    console.log('Valeurs envoyées:', {
-        prenom: formData.get('prenom'),
-        nom: formData.get('nom')
-    });
+        // Envoi de l'email avec facture PDF en pièce jointe
+        console.log('Envoi de l\'email avec facture PDF...');
+        await emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            EMAILJS_CONFIG.templateId,
+            templateParams
+        );
 
-    // Envoi au client avec copie Bcc au préparateur
-    await emailjs.send(
-        EMAILJS_CONFIG.serviceId,
-        EMAILJS_CONFIG.templateId,
-        { ...templateParams }
-    );
+        console.log(`Commande envoyée avec succès! Facture: ${resultPDF.numeroFacture}`);
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi de la commande:', error);
+        throw error;
+    }
 }
 
 function afficherModalConfirmation() {
@@ -431,3 +469,169 @@ window.addEventListener('DOMContentLoaded', function() {
     info.textContent = 'Panachage possible – minimum 6 bouteilles\nlivraison 10.- CHF, gratuit dès 24 bouteilles';
     document.body.prepend(info);
 });
+
+// ============= SYSTÈME DE GÉNÉRATION PDF FACTURE =============
+
+/**
+ * Génère un numéro de facture unique basé sur la date et l'heure
+ */
+function genererNumeroFacture() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    return `F${year}${month}${day}-${hours}${minutes}${seconds}`;
+}
+
+/**
+ * Génère et retourne un PDF de facture
+ */
+async function genererFacturePDF(donneesCommande) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configuration des couleurs et polices
+    const couleurPrimaire = [74, 124, 89]; // Vert cidrerie
+    const couleurSecondaire = [139, 69, 19]; // Brun terre
+    
+    // En-tête de la facture
+    doc.setFontSize(20);
+    doc.setTextColor(...couleurPrimaire);
+    doc.text('🍎 CIDRERIE DU VULCAIN', 20, 20);
+    
+    // Informations entreprise
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(INVOICE_CONFIG.companyAddress, 20, 30);
+    doc.text(`Tél: ${INVOICE_CONFIG.companyPhone}`, 20, 40);
+    doc.text(`Email: ${INVOICE_CONFIG.companyEmail}`, 20, 45);
+    
+    // Numéro et date facture
+    const numeroFacture = genererNumeroFacture();
+    doc.setFontSize(14);
+    doc.setTextColor(...couleurSecondaire);
+    doc.text(`FACTURE N° ${numeroFacture}`, 120, 20);
+    
+    const dateFacture = new Date().toLocaleDateString('fr-CH');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Date: ${dateFacture}`, 120, 30);
+    
+    // Informations client
+    doc.setFontSize(12);
+    doc.setTextColor(...couleurPrimaire);
+    doc.text('FACTURÉ À:', 20, 65);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${donneesCommande.prenom} ${donneesCommande.nom}`, 20, 75);
+    doc.text(donneesCommande.adresse, 20, 82);
+    doc.text(`${donneesCommande.npa} ${donneesCommande.lieu}`, 20, 89);
+    doc.text(`Tél: ${donneesCommande.telephone}`, 20, 96);
+    doc.text(`Email: ${donneesCommande.email}`, 20, 103);
+    
+    // Ligne de séparation
+    doc.setDrawColor(...couleurPrimaire);
+    doc.line(20, 115, 190, 115);
+    
+    // Tableau des produits
+    const produitsTableau = [];
+    let sousTotal = 0;
+    
+    Object.entries(donneesCommande.panier).forEach(([id, item]) => {
+        const total = item.prix * item.quantite;
+        sousTotal += total;
+        
+        produitsTableau.push([
+            item.nom,
+            item.quantite.toString(),
+            `${item.prix.toFixed(2)} CHF`,
+            `${total.toFixed(2)} CHF`
+        ]);
+    });
+    
+    // Configuration du tableau
+    doc.autoTable({
+        startY: 125,
+        head: [['Produit', 'Qté', 'Prix unit.', 'Total']],
+        body: produitsTableau,
+        theme: 'grid',
+        headStyles: {
+            fillColor: couleurPrimaire,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+        },
+        bodyStyles: {
+            textColor: [0, 0, 0]
+        },
+        alternateRowStyles: {
+            fillColor: [245, 245, 220] // Beige clair
+        },
+        columnStyles: {
+            0: { cellWidth: 80 },
+            1: { cellWidth: 20, halign: 'center' },
+            2: { cellWidth: 35, halign: 'right' },
+            3: { cellWidth: 35, halign: 'right' }
+        }
+    });
+    
+    // Calculs finaux
+    const fraisLivraison = 10.00;
+    const totalHT = sousTotal + fraisLivraison;
+    const tva = totalHT * INVOICE_CONFIG.taxRate;
+    const totalTTC = totalHT + tva;
+    
+    // Totaux
+    const tableauY = doc.lastAutoTable.finalY + 10;
+    
+    doc.setFontSize(10);
+    doc.text('Sous-total produits:', 130, tableauY);
+    doc.text(`${sousTotal.toFixed(2)} CHF`, 175, tableauY);
+    
+    doc.text('Frais de livraison:', 130, tableauY + 7);
+    doc.text(`${fraisLivraison.toFixed(2)} CHF`, 175, tableauY + 7);
+    
+    doc.text('Total HT:', 130, tableauY + 14);
+    doc.text(`${totalHT.toFixed(2)} CHF`, 175, tableauY + 14);
+    
+    doc.text(`TVA (${(INVOICE_CONFIG.taxRate * 100).toFixed(1)}%):`, 130, tableauY + 21);
+    doc.text(`${tva.toFixed(2)} CHF`, 175, tableauY + 21);
+    
+    // Total final
+    doc.setFontSize(12);
+    doc.setTextColor(...couleurSecondaire);
+    doc.text('TOTAL TTC:', 130, tableauY + 32);
+    doc.text(`${totalTTC.toFixed(2)} CHF`, 175, tableauY + 32);
+    
+    // Informations de paiement
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Conditions de paiement: À réception', 20, tableauY + 50);
+    doc.text('Livraison uniquement en Suisse 🇨🇭', 20, tableauY + 57);
+    
+    // Remarques client si présentes
+    if (donneesCommande.remarques && donneesCommande.remarques.trim()) {
+        doc.setFontSize(10);
+        doc.setTextColor(...couleurPrimaire);
+        doc.text('Remarques client:', 20, tableauY + 70);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        const remarques = doc.splitTextToSize(donneesCommande.remarques, 170);
+        doc.text(remarques, 20, tableauY + 77);
+    }
+    
+    // Pied de page
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Merci pour votre confiance ! - Cidrerie du Vulcain', 20, 280);
+    
+    return {
+        pdf: doc,
+        numeroFacture: numeroFacture,
+        totalTTC: totalTTC.toFixed(2)
+    };
+}
