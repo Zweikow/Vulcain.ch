@@ -20,19 +20,19 @@ const INVOICE_CONFIG = {
 // Catalogue des produits
 const PRODUITS = {
     cidres: [
+        { id: 'poire-la-premoudiere', nom: 'Poiré La Prémoudière', prix: 20, description: 'juteux, sec' },
+        { id: '3-pepins-23', nom: '3 Pépins 2023', prix: 18, description: 'Extra brut, vineux' },
+        { id: 'lande-foy-22', nom: 'Lande Foy 2022', prix: 12, description: 'Brut, fruité' },
         { id: 'belle-brutale-17', nom: 'Belle Brutale 2017', prix: 18, description: 'Sec, fruité, acidulée' },
         { id: 'brute-bestiale-17', nom: 'Brute Bestiale 2017', prix: 18, description: 'Sec, épicé et amertume' },
         { id: 'turgowy-19', nom: 'Turgowy 2019', prix: 15, description: 'Sec, fruité et acidulé' },
         { id: 'turgowy-20', nom: 'Turgowy 2020', prix: 15, description: 'Sec plus rond – florale' },
         { id: 'brute-de-rue-20', nom: 'Brute de Rue 2020', prix: 16, description: 'Sec, belles amertumes – épicée' },
         { id: 'fer-20', nom: 'Fer 2020', prix: 15, description: 'Acidulée, florale – fruité évoluée' },
-        { id: 'fer-21', nom: 'Fer 2021', prix: 15, description: 'Sec, vineux, dense et profond' },
         { id: 'fribourgeoise-21', nom: 'Fribourgeoise 2021', prix: 15, description: 'Demi-sec, fruité et notes safranées' },
-        { id: 'ginger-guyot-21', nom: 'Ginger Guyot 2021', prix: 15, description: 'Très sec, typé Kombucha de gingembre et poires' },
         { id: 'premiers-emois-21', nom: 'Premiers Emois 2021', prix: 16, description: 'Demi-sec, très fruité, long en bouche et dense' },
         { id: 'brute-de-rue-21', nom: 'Brute de Rue 2021', prix: 16, description: 'Sec, dense, beaux amers' },
         { id: 'a-propos-dailes-21', nom: 'A propos d’Ailes 2021', prix: 19, description: 'Demi-sec, très fruité, notes épices - safran' },
-        { id: 'louisa-21', nom: 'Louisa 2021', prix: 22, description: 'Demi-sec, notes volatiles – raisins et poires muscatés' },
         { id: '4-pepins-22', nom: '4 Pépins 2022', prix: 22, description: 'Sec – belle rondeur sur le fruit – complexité grâce aux coings' },
         { id: 'brute-de-rue-22', nom: 'Brute de Rue 2022', prix: 16, description: 'Sec, plus rond que 20 et 21, riche et belle matière, amer souple' },
         { id: 'turgowy-23', nom: 'Turgowy 2023', prix: 15, description: 'Très sec, désaltérant, acidité – florale – sapide' },
@@ -43,7 +43,6 @@ const PRODUITS = {
     eauxDeVie: [
         { id: 'cidre-glace-12', nom: 'Cidre Glace 2012', prix: 50, description: 'Liquoreux sur l’acidité, tourbé et notes de tabac' },
         { id: 'botsi-glace-17', nom: 'Botsi de glace 2017', prix: 28, description: 'Liquoreux de poires à Botsi, fumé et notes de beurre et noisettes, légère oxydation' },
-        { id: 'poire-fondue', nom: 'Poiré Fondue', prix: 12, description: 'Sec, 2018, pour la cuisine' },
         { id: 'poire-fondue-non-etiq', nom: 'Poiré Fondue – non étiq.', prix: 10, description: 'Sec, 2018, pour la cuisine' }
     ]
 };
@@ -299,7 +298,7 @@ function modifierQuantite(id, delta, valeurDirecte) {
     mettreAJourPanier();
 }
 
-// Modification de l'envoi d'email pour solution 1 (client + préparateur)
+// Solution HYBRIDE : FormSubmit (admin avec PDF) + EmailJS (client avec template)
 async function envoyerCommande(formData) {
     try {
         // Préparer les données de commande
@@ -349,7 +348,88 @@ async function envoyerCommande(formData) {
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-CH');
         const heureStr = now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
+
+        // === SOLUTION HYBRIDE ===
         
+        // 📧 ÉTAPE 1: Envoyer à L'ADMIN via FormSubmit (avec PDF en pièce jointe)
+        console.log('📧 Envoi à l\'admin via FormSubmit avec PDF...');
+        await envoyerViaFormSubmit(donneesCommande, panierTexte, resultPDF.numeroFacture, pdfBlob);
+        
+        // 📧 ÉTAPE 2: Envoyer confirmation au CLIENT via EmailJS (beau template HTML)
+        console.log('📧 Envoi confirmation client via EmailJS...');
+        await envoyerConfirmationClient(donneesCommande, panierTexte, resultPDF.numeroFacture, dateStr, heureStr);
+
+        console.log(`✅ SUCCÈS! Commande ${resultPDF.numeroFacture} traitée:
+        → Admin: FormSubmit (PDF joint) ✅ 
+        → Client: EmailJS (template HTML) ✅`);
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi de la commande:', error);
+        throw error;
+    }
+}
+
+// 📧 FONCTION 1: Envoyer à l'admin via FormSubmit (avec PDF)
+async function envoyerViaFormSubmit(donneesCommande, panierTexte, numeroFacture, pdfBlob) {
+    try {
+        const formData = new FormData();
+        
+        // Configuration FormSubmit
+        formData.append('access_key', 'YOUR_FORMSUBMIT_KEY'); // À remplacer par ta clé
+        formData.append('subject', `🍎 Nouvelle commande Cidrerie du Vulcain #${numeroFacture}`);
+        formData.append('from_name', `${donneesCommande.prenom} ${donneesCommande.nom}`);
+        formData.append('reply_to', donneesCommande.email);
+        
+        // Contenu de l'email pour l'admin
+        const messageAdmin = `
+📋 NOUVELLE COMMANDE #${numeroFacture}
+
+👤 CLIENT:
+${donneesCommande.prenom} ${donneesCommande.nom}
+📧 ${donneesCommande.email}
+📞 ${donneesCommande.telephone}
+🏠 ${donneesCommande.adresse}, ${donneesCommande.npa} ${donneesCommande.lieu}
+
+🛒 COMMANDE:
+${panierTexte}
+
+💬 REMARQUES:
+${donneesCommande.remarques || 'Aucune remarque'}
+
+📎 La facture PDF détaillée est jointe à cet email.
+        `;
+        
+        formData.append('message', messageAdmin);
+        
+        // Joindre le PDF
+        formData.append('attachment', pdfBlob, `Facture_${numeroFacture}.pdf`);
+        
+        // Options FormSubmit pour éviter la redirection
+        formData.append('_next', 'https://formsubmit.co/thanks.html');
+        formData.append('_captcha', 'false');
+        formData.append('_template', 'table');
+        
+        // Envoyer à FormSubmit
+        const response = await fetch('https://formsubmit.co/commandes@cidrerie-vulcain.ch', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`FormSubmit error: ${response.status}`);
+        }
+        
+        console.log('✅ Email admin envoyé via FormSubmit');
+        
+    } catch (error) {
+        console.error('❌ Erreur FormSubmit:', error);
+        throw error;
+    }
+}
+
+// 📧 FONCTION 2: Envoyer confirmation client via EmailJS (template HTML)
+async function envoyerConfirmationClient(donneesCommande, panierTexte, numeroFacture, dateStr, heureStr) {
+    try {
         const templateParams = {
             // Informations client
             prenom: donneesCommande.prenom,
@@ -364,39 +444,31 @@ async function envoyerCommande(formData) {
             // Informations commande
             panier: panierTexte,
             total: calculerTotal().toFixed(2),
-            order_id: resultPDF.numeroFacture,
-            subject: `Commande Cidrerie du Vulcain #${resultPDF.numeroFacture}`,
+            order_id: numeroFacture,
+            subject: `Confirmation de commande #${numeroFacture} - Cidrerie du Vulcain`,
             
             // Date et heure
             date: dateStr,
             heure: heureStr,
-            timestamp: resultPDF.numeroFacture,
+            timestamp: numeroFacture,
             
-            // Informations expéditeur pour le template
+            // Informations expéditeur
             from_name: "Cidrerie du Vulcain",
             from_email: "commandes@cidrerie-vulcain.ch",
-            reply_to: "commandes@cidrerie-vulcain.ch",
-            
-            // PDF en pièce jointe (pour l'admin)
-            attachment: {
-                name: `Facture_${resultPDF.numeroFacture}.pdf`,
-                content: pdfBase64,
-                type: 'application/pdf'
-            }
+            reply_to: "commandes@cidrerie-vulcain.ch"
         };
 
-        // Envoi de l'email avec facture PDF en pièce jointe
-        console.log('Envoi de l\'email avec facture PDF...');
+        // Envoyer via EmailJS (sans pièce jointe)
         await emailjs.send(
             EMAILJS_CONFIG.serviceId,
             EMAILJS_CONFIG.templateId,
             templateParams
         );
-
-        console.log(`Commande envoyée avec succès! Facture: ${resultPDF.numeroFacture}`);
+        
+        console.log('✅ Confirmation client envoyée via EmailJS');
         
     } catch (error) {
-        console.error('Erreur lors de l\'envoi de la commande:', error);
+        console.error('❌ Erreur EmailJS:', error);
         throw error;
     }
 }
