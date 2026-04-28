@@ -1,0 +1,19 @@
+import type { Metadata } from 'next'
+import './globals.css'
+
+export const metadata: Metadata = {
+  title: 'Cidrerie de Vulcain',
+  description: 'Commandez en ligne nos cidres artisanaux',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="fr" suppressHydrationWarning>
+      <body>{children}</body>
+    </html>
+  )
+}

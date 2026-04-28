@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-secondary {
+    @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-danger {
+    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .input-field {
+    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border dark:border-border-dark rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+  }
+  .card {
+    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
+  }
+}
