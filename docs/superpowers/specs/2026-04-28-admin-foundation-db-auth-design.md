@@ -164,10 +164,29 @@ prisma/seed.ts                         ← premier compte admin au déploiement
 ```
 1. Admin soumet email + mot de passe → /admin/login
 2. NextAuth Credentials provider → Prisma → bcrypt.compare()
-3. Si OK → JWT signé (NEXTAUTH_SECRET), 15 min
+3. Si OK → JWT signé (NEXTAUTH_SECRET), 30 min
 4. JWT stocké en cookie httpOnly + Secure + SameSite=lax
-5. NextAuth gère le renouvellement silencieux avant expiration
-6. Chaque requête /admin/* → middleware vérifie JWT → redirige /admin/login si invalide
+5. À 2 min avant expiration → modale côté client propose de prolonger ou déconnecter
+6. Si prolongation → appel NextAuth update() → JWT réinitialisé à 30 min
+7. Si refus ou timeout → expiration naturelle → redirection /admin/login
+8. Chaque requête /admin/* → middleware vérifie JWT → redirige /admin/login si invalide
+```
+
+### Gestion expiration session (30 min + avertissement 2 min)
+
+**Durée JWT :** 30 minutes (maxAge: 1800)
+
+**Avertissement d'expiration :**
+- Composant client `SessionWatcher` monté dans `app/admin/layout.tsx`
+- Lit `session.expires` via `useSession()` de NextAuth
+- Timer JavaScript recalculé à chaque renouvellement
+- À T-2 min : affiche une modale avec countdown :
+  - Bouton **"Prolonger la session"** → appelle `update()` de NextAuth → JWT réinitialisé à 30 min → modale fermée
+  - Bouton **"Se déconnecter"** → `signOut()` → redirection `/admin/login`
+  - Si aucune action dans les 2 min → expiration naturelle → redirection automatique
+
+```
+Fichier : components/admin/SessionWatcher.tsx (composant client)
 ```
 
 ### Sécurité incluse par NextAuth.js v5
@@ -225,6 +244,11 @@ lib/
   auth.ts                       ← config NextAuth (providers, callbacks, JWT options)
   prisma.ts                     ← singleton Prisma client
   validations.ts                ← schémas Zod partagés
+  turnstile.ts                  ← helper vérification token Cloudflare
+
+components/
+  admin/
+    SessionWatcher.tsx          ← watcher expiration session (modale 2 min)
 
 prisma/
   schema.prisma                 ← schéma complet
@@ -241,11 +265,55 @@ prisma/
 
 ---
 
-## 5. Ce qui n'est pas dans ce scope
+## 5. Protection anti-bots (boutique publique)
+
+La boutique publique (formulaire de commande) est exposée aux faux ordres automatisés. Deux couches de protection sont mises en place.
+
+### Cloudflare Turnstile (CAPTCHA invisible)
+
+**Pourquoi Turnstile :** gratuit, sans friction utilisateur (invisible dans 90% des cas), respectueux de la vie privée (pas de tracking Google), intégration native Next.js.
+
+**Flux :**
+```
+1. Client charge le widget Turnstile sur la page boutique (invisible)
+2. Turnstile génère un token côté client
+3. Le token est inclus dans le payload de soumission de commande
+4. Server Action appelle l'API Cloudflare pour vérifier le token
+5. Si token invalide → commande rejetée avec message d'erreur
+6. Si token valide → commande traitée normalement
+```
+
+**Variables d'environnement à ajouter :**
+```
+NEXT_PUBLIC_TURNSTILE_SITE_KEY   ← clé publique Cloudflare (côté client)
+TURNSTILE_SECRET_KEY             ← clé secrète Cloudflare (côté serveur)
+```
+
+**Fichiers concernés :**
+```
+components/TurnstileWidget.tsx   ← widget côté client
+app/api/commandes/route.ts       ← vérification token dans Server Action
+lib/turnstile.ts                 ← helper de vérification API Cloudflare
+```
+
+### Honeypot (défense secondaire)
+
+Champ caché dans le formulaire de commande, invisible pour les humains, rempli automatiquement par les bots. Si le champ est rempli à la soumission → commande rejetée silencieusement (pas d'erreur visible pour ne pas aider le bot).
+
+```
+<input type="text" name="website" style="display:none" tabIndex={-1} autoComplete="off" />
+```
+
+### Rate limiting
+
+Maximum 5 tentatives de soumission de commande par IP sur 10 minutes, via middleware Next.js. Implémenté avec `@upstash/ratelimit` + Redis (Railway).
+
+---
+
+## 6. Ce qui n'est pas dans ce scope
 
 - Interface UI des pages admin (sous-projets 2, 3, 4, 5)
 - Upload d'images produits (sous-projet 2)
 - Logique métier commandes (sous-projet 3)
 - Dashboard statistiques (sous-projet 4)
-- Rate limiting sur `/admin/login` (à ajouter si besoin en production)
 - Déploiement Railway et Vercel (décision d'hébergement non finalisée)
