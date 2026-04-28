@@ -110,7 +110,7 @@ export default function AdminPage() {
             className="flex items-center gap-3 px-3 py-2 rounded-md text-sm opacity-70 hover:opacity-100 hover:bg-white/10 transition-all"
           >
             <span>📦</span>
-            <span>Commandes reçues</span>
+            <span>Commandes</span>
           </Link>
         </nav>
 
