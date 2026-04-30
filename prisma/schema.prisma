@@ -25,7 +25,7 @@ model Product {
   id          String      @id @default(cuid())
   name        String
   description String?
-  price       Float
+  price       Decimal  @db.Decimal(10, 2)
   stock       Int         @default(0)
   stockSeuil  Int         @default(5)
   active      Boolean     @default(true)
@@ -48,7 +48,7 @@ model Order {
   address     String
   npa         String
   city        String
-  total       Float
+  total       Decimal  @db.Decimal(10, 2)
   shippedAt   DateTime?
   items       OrderItem[]
   createdAt   DateTime    @default(now())
@@ -57,12 +57,12 @@ model Order {
 
 model OrderItem {
   id        String  @id @default(cuid())
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
   product   Product @relation(fields: [productId], references: [id])
   productId String
   quantity  Int
-  unitPrice Float
+  unitPrice Decimal  @db.Decimal(10, 2)
 }
 
 model Setting {
