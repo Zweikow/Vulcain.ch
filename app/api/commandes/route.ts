@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTurnstileToken } from '@/lib/turnstile'
-import { orderRatelimit } from '@/lib/ratelimit'
+import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   // 1. Rate limiting by IP
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
-  const { success: withinLimit } = await orderRatelimit.limit(ip)
+  const { success: withinLimit } = await getOrderRatelimit().limit(ip)
   if (!withinLimit) {
     return NextResponse.json(
       { error: 'Trop de tentatives. Réessayez dans 10 minutes.' },
