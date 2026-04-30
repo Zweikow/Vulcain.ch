@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { CustomerInfo, CartItem } from '@/types'
+import { TurnstileWidget } from '@/components/TurnstileWidget'
 
 interface OrderFormProps {
   items: CartItem[]
@@ -22,6 +23,12 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
   })
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerInfo, string>>>({})
 
+  const turnstileToken = useRef<string>('')
+
+  const handleTurnstileToken = useCallback((token: string) => {
+    turnstileToken.current = token
+  }, [])
+
   const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + (items.length > 0 ? 10 : 0)
 
   const validate = () => {
@@ -37,14 +44,43 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
     return Object.keys(e).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
     if (items.length === 0) {
       alert('Votre panier est vide')
       return
     }
-    const orderId = `#${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`
+
+    const payload = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      address: form.address,
+      npa: form.npa,
+      city: form.lieu,
+      total,
+      items: items.map((i) => ({
+        productId: i.product.id,
+        quantity: i.quantity,
+        unitPrice: i.product.price,
+      })),
+      turnstileToken: turnstileToken.current,
+      website: '',  // honeypot field — always empty for real users
+    }
+
+    const res = await fetch('/api/commandes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+      alert('Une erreur est survenue. Veuillez réessayer.')
+      return
+    }
+
+    const { orderId } = await res.json()
     onSubmit(form, orderId, total)
   }
 
@@ -208,6 +244,19 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
           J&apos;accepte de recevoir des informations promotionnelles de la Cidrerie de Vulcain
         </span>
       </label>
+
+      {/* Honeypot — invisible pour les humains */}
+      <input
+        type="text"
+        name="website"
+        style={{ display: 'none' }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+
+      {/* Turnstile invisible */}
+      <TurnstileWidget onToken={handleTurnstileToken} />
 
       <button type="submit" className="btn-primary w-full mt-2">
         Passer la commande

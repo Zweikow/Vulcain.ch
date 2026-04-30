@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int         @default(0)
+  stockSeuil  Int         @default(5)
+  active      Boolean     @default(true)
+  imageUrl    String?
+  year        Int?
+  category    Category    @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  numero      String      @unique
+  status      OrderStatus @default(A_TRAITER)
+  clientName  String
+  clientEmail String
+  clientPhone String?
+  address     String
+  npa         String
+  city        String
+  total       Decimal  @db.Decimal(10, 2)
+  shippedAt   DateTime?
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+enum OrderStatus {
+  A_TRAITER
+  EN_PREPARATION
+  EXPEDIEE
+}
