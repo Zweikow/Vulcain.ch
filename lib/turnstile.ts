@@ -1,5 +1,9 @@
 export async function verifyTurnstileToken(token: string): Promise<boolean> {
   if (!token) return false
+  if (!process.env.TURNSTILE_SECRET_KEY) {
+    console.error('TURNSTILE_SECRET_KEY is not set')
+    return false
+  }
 
   const response = await fetch(
     'https://challenges.cloudflare.com/turnstile/v0/siteverify',

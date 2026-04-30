@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 const WARNING_BEFORE_MS = 2 * 60 * 1000 // 2 minutes
 
@@ -9,11 +9,13 @@ export function SessionWatcher() {
   const { data: session, update } = useSession()
   const [showModal, setShowModal] = useState(false)
   const [countdown, setCountdown] = useState(120)
+  const isExtending = useRef(false)
 
   useEffect(() => {
     if (!session?.expires) return
 
     const check = () => {
+      if (isExtending.current) return
       const remaining = new Date(session.expires).getTime() - Date.now()
       if (remaining > 0 && remaining <= WARNING_BEFORE_MS) {
         setShowModal(true)
@@ -28,21 +30,25 @@ export function SessionWatcher() {
 
   useEffect(() => {
     if (!showModal) return
-    const timer = setInterval(() => {
+    const timerId = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
+          clearInterval(timerId)
           signOut({ callbackUrl: '/admin/login' })
           return 0
         }
         return c - 1
       })
     }, 1000)
-    return () => clearInterval(timer)
+    return () => clearInterval(timerId)
   }, [showModal])
 
   const handleExtend = useCallback(async () => {
-    await update()
+    isExtending.current = true
     setShowModal(false)
+    setCountdown(120)
+    await update()
+    isExtending.current = false
   }, [update])
 
   if (!showModal) return null
