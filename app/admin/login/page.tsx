@@ -38,7 +38,7 @@ export default async function LoginPage({
         </div>
 
         {error === 'credentials' && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <div role="alert" className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <p className="text-sm text-red-600 dark:text-red-400">
               Email ou mot de passe incorrect.
             </p>
@@ -47,10 +47,11 @@ export default async function LoginPage({
 
         <form action={login} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
             <input
+              id="email"
               name="email"
               type="email"
               required
@@ -60,10 +61,11 @@ export default async function LoginPage({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Mot de passe
             </label>
             <input
+              id="password"
               name="password"
               type="password"
               required
