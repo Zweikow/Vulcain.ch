@@ -13,14 +13,13 @@ const PERIODES: { label: string; value: Periode }[] = [
 ]
 
 function getPeriodStart(periode: Periode): Date {
-  const d = new Date()
+  const now = new Date()
   switch (periode) {
-    case '4M': d.setMonth(d.getMonth() - 4); break
-    case '6M': d.setMonth(d.getMonth() - 6); break
-    case '1A': d.setFullYear(d.getFullYear() - 1); break
-    default:   d.setMonth(d.getMonth() - 1); break
+    case '4M': return new Date(now.getFullYear(), now.getMonth() - 4, now.getDate())
+    case '6M': return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())
+    case '1A': return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+    default:   return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
   }
-  return d
 }
 
 export default async function DashboardPage({
@@ -76,7 +75,7 @@ export default async function DashboardPage({
             Tableau de bord
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-            Vue d'ensemble de la cidrerie
+            Vue d&apos;ensemble de la cidrerie
           </p>
         </div>
 
@@ -126,7 +125,7 @@ export default async function DashboardPage({
         </div>
         <div className="card p-5">
           <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
-            Chiffre d'affaires
+            Chiffre d&apos;affaires
           </div>
           <div className="text-3xl font-bold text-text-primary dark:text-text-primary-dark">
             CHF {caTotal.toFixed(2)}
