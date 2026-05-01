@@ -1,16 +1,7 @@
-export interface Category {
-  id: string
-  name: string
-  slug: string
-  order: number
-  products?: { id: string }[]
-}
-
 export interface Product {
   id: string
   name: string
   category: 'Cidre' | 'Eau-de-vie' | 'Liqueur' | 'Cuisine'
-  categoryId?: string
   year?: number
   price: number
   stock: number
