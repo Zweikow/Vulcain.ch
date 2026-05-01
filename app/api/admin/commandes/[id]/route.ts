@@ -63,14 +63,27 @@ export async function PATCH(
   const shippedAt =
     newStatus === OrderStatus.EXPEDIEE ? new Date() : null
 
-  const order = await prisma.order.update({
-    where: { id },
-    data: {
-      status: newStatus,
-      ...(shippedAt !== null ? { shippedAt } : {}),
-    },
-    select: { id: true, status: true, shippedAt: true },
-  })
+  let order
+  try {
+    order = await prisma.order.update({
+      where: { id },
+      data: {
+        status: newStatus,
+        ...(shippedAt !== null ? { shippedAt } : {}),
+      },
+      select: { id: true, status: true, shippedAt: true },
+    })
+  } catch (e: unknown) {
+    if (
+      typeof e === 'object' &&
+      e !== null &&
+      'code' in e &&
+      (e as { code: string }).code === 'P2025'
+    ) {
+      return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
+    }
+    throw e
+  }
 
   return NextResponse.json(order)
 }
