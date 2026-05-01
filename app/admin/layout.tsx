@@ -1,6 +1,7 @@
 import { SessionProvider } from 'next-auth/react'
 import { auth } from '@/lib/auth'
 import { SessionWatcher } from '@/components/admin/SessionWatcher'
+import { AdminSidebar } from '@/components/admin/AdminSidebar'
 
 export default async function AdminLayout({
   children,
@@ -12,7 +13,12 @@ export default async function AdminLayout({
   return (
     <SessionProvider session={session}>
       <SessionWatcher />
-      {children}
+      <div className="min-h-screen flex bg-bg-page dark:bg-bg-page-dark">
+        <AdminSidebar />
+        <main className="flex-1 p-8 overflow-auto">
+          {children}
+        </main>
+      </div>
     </SessionProvider>
   )
 }
