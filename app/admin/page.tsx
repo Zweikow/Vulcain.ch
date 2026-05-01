@@ -1,197 +1,209 @@
-'use client'
+import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+import { StatusBadge } from '@/components/admin/StatusBadge'
+import { OrderStatus } from '@prisma/client'
 
-import { useState } from 'react'
-import { Product } from '@/types'
-import { PRODUCTS } from '@/lib/data'
-import AdminProductModal from '@/components/AdminProductModal'
+type Periode = '1M' | '4M' | '6M' | '1A'
 
-type BadgeVariant = 'success' | 'warning' | 'info'
+const PERIODES: { label: string; value: Periode }[] = [
+  { label: '1 mois', value: '1M' },
+  { label: '4 mois', value: '4M' },
+  { label: '6 mois', value: '6M' },
+  { label: '1 an', value: '1A' },
+]
 
-function Badge({ children, variant }: { children: React.ReactNode; variant: BadgeVariant }) {
-  const styles: Record<BadgeVariant, string> = {
-    success:
-      'bg-[#E8F5E9] dark:bg-[#1e3326] text-text-success dark:text-[#81C784]',
-    warning:
-      'bg-[#FFF8E1] dark:bg-[#3d2a0a] text-text-warning dark:text-[#FF9800]',
-    info: 'bg-[#E3F2FD] dark:bg-[#1a2a3d] text-[#1565C0] dark:text-[#64B5F6]',
+function getPeriodStart(periode: Periode): Date {
+  const d = new Date()
+  switch (periode) {
+    case '4M': d.setMonth(d.getMonth() - 4); break
+    case '6M': d.setMonth(d.getMonth() - 6); break
+    case '1A': d.setFullYear(d.getFullYear() - 1); break
+    default:   d.setMonth(d.getMonth() - 1); break
   }
-  return (
-    <span
-      className={`text-xs font-medium px-2 py-0.5 rounded-pill ${styles[variant]}`}
-    >
-      {children}
-    </span>
-  )
+  return d
 }
 
-function Toggle({
-  checked,
-  onChange,
+export default async function DashboardPage({
+  searchParams,
 }: {
-  checked: boolean
-  onChange: (v: boolean) => void
+  searchParams: Promise<{ periode?: string }>
 }) {
-  return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 items-center rounded-pill transition-colors ${
-        checked ? 'bg-primary' : 'bg-border dark:bg-border-dark'
-      }`}
-    >
-      <span
-        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-          checked ? 'translate-x-5' : 'translate-x-0.5'
-        }`}
-      />
-    </button>
-  )
-}
+  const { periode: rawPeriode } = await searchParams
+  const periode: Periode = (['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '')
+    ? rawPeriode
+    : '1M') as Periode
 
-export default function AdminPage() {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS)
-  const [editProduct, setEditProduct] = useState<Product | null | 'new'>(null)
+  const since = getPeriodStart(periode)
 
-  const toggleActive = (id: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, active: !p.active } : p))
-    )
-  }
+  const [aTraiter, enPreparation, expediee, caResult, recentOrders] =
+    await Promise.all([
+      prisma.order.count({
+        where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
+      }),
+      prisma.order.aggregate({
+        where: { createdAt: { gte: since } },
+        _sum: { total: true },
+      }),
+      prisma.order.findMany({
+        where: { createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          numero: true,
+          clientName: true,
+          total: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+    ])
 
-  const deleteProduct = (id: string) => {
-    if (confirm('Supprimer ce produit ?')) {
-      setProducts((prev) => prev.filter((p) => p.id !== id))
-    }
-  }
-
-  const saveProduct = (data: Omit<Product, 'id'> & { id?: string }) => {
-    if (data.id) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === data.id ? { ...p, ...data, id: p.id } : p))
-      )
-    } else {
-      const newProduct: Product = {
-        ...data,
-        id: String(Date.now()),
-      }
-      setProducts((prev) => [...prev, newProduct])
-    }
-    setEditProduct(null)
-  }
+  const caTotal = Number(caResult._sum.total ?? 0)
 
   return (
-    <>
-      <div className="flex items-start justify-between mb-6">
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
-            Produits
+            Tableau de bord
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-            Gérez le catalogue de vos produits
+            Vue d'ensemble de la cidrerie
           </p>
         </div>
-        <button
-          onClick={() => setEditProduct('new')}
-          className="btn-primary flex items-center gap-2"
-        >
-          <span>+</span>
-          Ajouter un produit
-        </button>
+
+        {/* Filtres période */}
+        <div className="flex gap-2">
+          {PERIODES.map(({ label, value }) => (
+            <Link
+              key={value}
+              href={`/admin?periode=${value}`}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                periode === value
+                  ? 'bg-primary text-white'
+                  : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Table */}
+      {/* Stat cards */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="card p-5">
+          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
+            À traiter
+          </div>
+          <div className="text-3xl font-bold text-text-warning dark:text-[#FF9800]">
+            {aTraiter}
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
+            En préparation
+          </div>
+          <div className="text-3xl font-bold text-[#1565C0] dark:text-[#64B5F6]">
+            {enPreparation}
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
+            Expédiées
+          </div>
+          <div className="text-3xl font-bold text-text-success dark:text-[#81C784]">
+            {expediee}
+          </div>
+        </div>
+        <div className="card p-5">
+          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
+            Chiffre d'affaires
+          </div>
+          <div className="text-3xl font-bold text-text-primary dark:text-text-primary-dark">
+            CHF {caTotal.toFixed(2)}
+          </div>
+        </div>
+      </div>
+
+      {/* Commandes récentes */}
       <div className="card overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border dark:border-border-dark">
+          <h2 className="font-medium text-text-primary dark:text-text-primary-dark">
+            Commandes récentes
+          </h2>
+          <Link
+            href="/admin/commandes"
+            className="text-sm text-primary hover:text-primary-hover"
+          >
+            Voir toutes →
+          </Link>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark">
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Nom
+                N°
               </th>
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Catégorie
+                Client
               </th>
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Prix
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Stock
+                Total
               </th>
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
                 Statut
               </th>
-              <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Actions
+              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
+                Date
               </th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr
-                key={product.id}
-                className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50 transition-colors"
-              >
-                <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
-                  {product.name}
-                </td>
-                <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
-                  {product.category}
-                </td>
-                <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                  CHF {product.price.toFixed(2)}
-                </td>
-                <td className="px-4 py-3">
-                  {product.stock === 0 ? (
-                    <Badge variant="warning">{product.stock}</Badge>
-                  ) : product.stock < 10 ? (
-                    <Badge variant="info">{product.stock}</Badge>
-                  ) : (
-                    <span className="text-text-primary dark:text-text-primary-dark">
-                      {product.stock}
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  {product.active ? (
-                    <Badge variant="success">Actif</Badge>
-                  ) : (
-                    <Badge variant="warning">Inactif</Badge>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setEditProduct(product)}
-                      className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-primary dark:hover:text-text-primary-dark p-1 transition-colors"
-                      title="Modifier"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => deleteProduct(product.id)}
-                      className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-error dark:hover:text-[#EF5350] p-1 transition-colors"
-                      title="Supprimer"
-                    >
-                      🗑️
-                    </button>
-                    <Toggle
-                      checked={product.active}
-                      onChange={() => toggleActive(product.id)}
-                    />
-                  </div>
+            {recentOrders.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-4 py-8 text-center text-text-tertiary dark:text-text-tertiary-dark"
+                >
+                  Aucune commande sur cette période
                 </td>
               </tr>
-            ))}
+            ) : (
+              recentOrders.map((order) => (
+                <tr
+                  key={order.id}
+                  className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50"
+                >
+                  <td className="px-4 py-3 font-mono text-xs text-text-primary dark:text-text-primary-dark">
+                    {order.numero}
+                  </td>
+                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
+                    {order.clientName}
+                  </td>
+                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
+                    CHF {Number(order.total).toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={order.status} />
+                  </td>
+                  <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
+                    {new Date(order.createdAt).toLocaleDateString('fr-CH')}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* Modal */}
-      {editProduct !== null && (
-        <AdminProductModal
-          product={editProduct === 'new' ? undefined : editProduct}
-          onSave={saveProduct}
-          onClose={() => setEditProduct(null)}
-        />
-      )}
-    </>
+    </div>
   )
 }
