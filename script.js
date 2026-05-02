@@ -19,6 +19,17 @@ const INVOICE_CONFIG = {
 
 // Catalogue des produits
 const PRODUITS = {
+
+    offreSpecial: [
+        {
+            id: 'cidre-effervescence',
+            nom: 'Cidre Effervescence 2022',
+            prix: 3.60,
+            description: 'Bouteille de 27.5cl, carton de 24 bouteilles, 3 cartons achetés 2 payés.',
+            uniteCommande: 24,
+            promo: { type: 'xPourY', achat: 3, paie: 2 }
+        }
+    ],
     cidres: [
         { id: 'poire-la-premoudiere', nom: 'Poiré La Prémoudière', prix: 20, description: 'Juteux, sec' },
         { id: '3-pepins-23', nom: '3 Pépins 2023', prix: 18, description: 'Extra brut, vineux' },
@@ -81,6 +92,7 @@ function initialiserEmailJS() {
 
 // Génération du catalogue
 function genererCatalogue() {
+    genererCategorieProduits('offreSpecial', PRODUITS.offreSpecial);
     genererCategorieProduits('cidres', PRODUITS.cidres);
     genererCategorieProduits('eaux-de-vie', PRODUITS.eauxDeVie);
 }
