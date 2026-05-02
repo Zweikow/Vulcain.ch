@@ -83,6 +83,13 @@ function initialiserProduits() {
     });
 }
 
+// Calculer la remise pour les promotions xPourY
+function calculerRemisePromo(produit, qteCartons) {
+    if (!produit.promo || produit.promo.type !== 'xPourY') return 0;
+    const cartonsGratuits = Math.floor(qteCartons / produit.promo.achat) * (produit.promo.achat - produit.promo.paie);
+    return cartonsGratuits * (produit.uniteCommande || 1) * produit.prix;
+}
+
 // Initialisation EmailJS
 function initialiserEmailJS() {
     if (EMAILJS_CONFIG.publicKey !== 'YOUR_PUBLIC_KEY') {
