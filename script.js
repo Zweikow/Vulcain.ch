@@ -117,17 +117,24 @@ function genererCategorieProduits(containerId, produits) {
 function creerElementProduit(produit) {
     const div = document.createElement('div');
     div.className = 'product-card';
+    const prixLabel = produit.uniteCommande
+        ? `${produit.prix.toFixed(2)} CHF / bouteille`
+        : `${produit.prix.toFixed(2)} CHF`;
+    const badgeCarton = produit.uniteCommande
+        ? `<div class="carton-badge">1 carton = ${produit.uniteCommande} bouteilles</div>`
+        : '';
     div.innerHTML = `
         <div class="product-info">
             <h4 class="product-name">${produit.nom}</h4>
             ${produit.annee ? `<span class="product-year">${produit.annee}</span>` : ''}
             <p class="product-description">${produit.description}</p>
-            <div class="product-price">${produit.prix.toFixed(2)} CHF</div>
+            <div class="product-price">${prixLabel}</div>
         </div>
         <div class="product-controls">
             <button class="btn-quantity" onclick="modifierQuantite('${produit.id}', -1)">-</button>
             <input type="number" id="qty-${produit.id}" class="quantity-input" value="0" min="0" onchange="modifierQuantite('${produit.id}', 0, this.value)">
             <button class="btn-quantity" onclick="modifierQuantite('${produit.id}', 1)">+</button>
+            ${badgeCarton}
         </div>
     `;
     return div;
