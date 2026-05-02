@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig: NextAuthConfig = {
+  secret: process.env.AUTH_SECRET ?? 'vulcain-admin-secret-dev-2026',
   pages: {
     signIn: '/admin/login',
   },
