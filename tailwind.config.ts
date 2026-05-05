@@ -1,5 +1,12 @@
 import type { Config } from 'tailwindcss'
 
+// Palette Cidrerie du Vulcain — Sprint 1
+// #153243 Deep Space Blue  → sidebar, header
+// #284B63 Yale Blue        → éléments secondaires nav
+// #E5C1BD Cotton Rose      → accent chaud, cartes stat
+// #80ED99 Light Green      → couleur principale, succès
+// #977390 Dusty Mauve      → accent secondaire, cartes stat
+
 const config: Config = {
   darkMode: 'class',
   content: [
@@ -11,45 +18,53 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#4a7c59',
-          hover: '#3d6b4a',
-          light: '#E8F5E9',
-          'light-dark': '#4a7c5940',
+          DEFAULT: '#80ED99',
+          hover: '#5ed97f',
+          light: '#80ED9925',
+          'light-dark': '#80ED9915',
         },
         secondary: {
-          DEFAULT: '#8b4513',
-          hover: '#a0592a',
-          light: '#8b451320',
+          DEFAULT: '#284B63',
+          hover: '#1e3a4f',
+          light: '#284B6315',
+        },
+        accent: {
+          rose: '#E5C1BD',
+          'rose-dark': '#c9a09b',
+          mauve: '#977390',
+          'mauve-dark': '#7a5c73',
+          navy: '#153243',
+          blue: '#284B63',
         },
         bg: {
-          page: '#F8FAF5',
-          'page-dark': '#1a1a14',
+          page: '#F4F6F8',
+          'page-dark': '#0f1923',
           card: '#FFFFFF',
-          'card-dark': '#2a2a1e',
-          header: '#4a7c59',
-          'header-dark': '#2d4a35',
-          sidebar: '#3d6b4a',
-          'sidebar-dark': '#1e3326',
+          'card-dark': '#1a2633',
+          header: '#153243',
+          'header-dark': '#0d1f2d',
+          sidebar: '#153243',
+          'sidebar-dark': '#0d1f2d',
           input: '#FFFFFF',
-          'input-dark': '#222218',
+          'input-dark': '#1a2633',
         },
         border: {
-          DEFAULT: '#D8E4D0',
-          dark: '#3d3d2e',
-          light: '#E8F0E4',
-          'light-dark': '#333328',
+          DEFAULT: '#E2E8EF',
+          dark: '#1e3045',
+          light: '#EEF1F5',
+          'light-dark': '#182838',
         },
         text: {
-          primary: '#1A2E1A',
-          'primary-dark': '#F5F5DC',
-          secondary: '#5A6E5A',
-          'secondary-dark': '#B8B8A0',
-          tertiary: '#8A9A8A',
-          'tertiary-dark': '#8E8E80',
-          'on-primary': '#FFFFFF',
+          primary: '#153243',
+          'primary-dark': '#E8F0F7',
+          secondary: '#4A6278',
+          'secondary-dark': '#8AABB8',
+          tertiary: '#7A95A5',
+          'tertiary-dark': '#5C7A8A',
+          'on-primary': '#153243',
           'on-header': '#FFFFFF',
-          success: '#2E7D32',
-          'success-dark': '#81C784',
+          success: '#28a745',
+          'success-dark': '#80ED99',
           error: '#C62828',
           'error-dark': '#EF5350',
           warning: '#E65100',
