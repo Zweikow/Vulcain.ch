@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const NAV_LINKS = [
   { href: '/admin', label: 'Tableau de bord', icon: '📊', exact: true },
@@ -40,7 +41,8 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 flex flex-col gap-1">
+        <ThemeToggle />
         <button
           onClick={() => signOut({ callbackUrl: '/admin/login' })}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm opacity-70 hover:opacity-100 hover:bg-white/10 transition-all"
