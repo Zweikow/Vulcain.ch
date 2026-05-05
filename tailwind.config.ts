@@ -37,7 +37,7 @@ const config: Config = {
           blue: '#284B63',
         },
         bg: {
-          page: '#F4F6F8',
+          page: '#F7F6F0',
           'page-dark': '#0D1B2A',
           card: '#FFFFFF',
           'card-dark': '#152232',
