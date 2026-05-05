@@ -314,6 +314,15 @@ section h2 {
     font-size: 1.1rem;
 }
 
+.carton-badge {
+    font-size: 0.75rem;
+    color: var(--vert-naturel);
+    margin-top: 4px;
+    width: 100%;
+    text-align: center;
+    font-style: italic;
+}
+
 .panier-remise {
     border-left-color: #4a7c59;
     background: rgba(74, 124, 89, 0.08);
