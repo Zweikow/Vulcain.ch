@@ -36,5 +36,5 @@ App-Cidrerie-Vulcain/.next/
 App-Cidrerie-Vulcain/.env.local
 App-Cidrerie-Vulcain/next-env.d.ts
 
-# Worktrees Claude
-.claude/worktrees/
+# Claude (worktrees, mémoire, config locale)
+.claude/
