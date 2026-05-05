@@ -229,18 +229,21 @@ function afficherAvertissements(totalBouteilles, fraisLivraison) {
 // Calculer le total (fonction nécessaire pour EmailJS)
 function calculerTotal() {
     let totalProduits = 0;
+    let totalRemise = 0;
     let totalBouteilles = 0;
 
     Object.entries(panier).forEach(([id, quantite]) => {
         const produit = produitsData[id];
         if (produit) {
-            totalProduits += produit.prix * quantite;
-            totalBouteilles += quantite;
+            const unite = produit.uniteCommande || 1;
+            totalProduits += produit.prix * quantite * unite;
+            totalBouteilles += quantite * unite;
+            totalRemise += calculerRemisePromo(produit, quantite);
         }
     });
 
     const fraisLivraison = totalBouteilles >= 24 ? 0 : (totalBouteilles > 0 ? 10 : 0);
-    return totalProduits + fraisLivraison;
+    return totalProduits - totalRemise + fraisLivraison;
 }
 
 // Initialisation du panier
