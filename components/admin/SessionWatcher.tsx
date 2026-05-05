@@ -60,8 +60,7 @@ export function SessionWatcher() {
           Session bientôt expirée
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
-          Votre session expire dans{' '}
-          <span className="font-bold text-orange-500">{countdown}s</span>.
+          Votre session expire dans <span className="font-bold text-orange-500">{countdown}s</span>.
           Souhaitez-vous la prolonger ?
         </p>
         <div className="flex gap-3">

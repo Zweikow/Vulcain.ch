@@ -4,11 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 
-export default async function TicketPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
   const order = await prisma.order.findUnique({
@@ -42,17 +38,22 @@ export default async function TicketPage({
             {order.numero}
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-            Passée le {new Date(order.createdAt).toLocaleDateString('fr-CH', {
+            Passée le{' '}
+            {new Date(order.createdAt).toLocaleDateString('fr-CH', {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
             })}
             {order.shippedAt && (
-              <> · Expédiée le {new Date(order.shippedAt).toLocaleDateString('fr-CH', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}</>
+              <>
+                {' '}
+                · Expédiée le{' '}
+                {new Date(order.shippedAt).toLocaleDateString('fr-CH', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </>
             )}
           </p>
         </div>
@@ -66,9 +67,7 @@ export default async function TicketPage({
 
       {/* Infos client */}
       <div className="card p-5 mb-4">
-        <h2 className="font-medium text-text-primary dark:text-text-primary-dark mb-3">
-          Client
-        </h2>
+        <h2 className="font-medium text-text-primary dark:text-text-primary-dark mb-3">Client</h2>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <dt className="text-text-secondary dark:text-text-secondary-dark">Nom</dt>
           <dd className="text-text-primary dark:text-text-primary-dark">{order.clientName}</dd>

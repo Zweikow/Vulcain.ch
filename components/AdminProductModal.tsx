@@ -12,7 +12,7 @@ interface AdminProductModalProps {
 export default function AdminProductModal({ product, onSave, onClose }: AdminProductModalProps) {
   const [form, setForm] = useState({
     name: product?.name ?? '',
-    category: product?.category ?? 'Cidre' as Product['category'],
+    category: product?.category ?? ('Cidre' as Product['category']),
     year: product?.year ?? new Date().getFullYear(),
     price: product?.price ?? 0,
     stock: product?.stock ?? 0,
@@ -21,7 +21,7 @@ export default function AdminProductModal({ product, onSave, onClose }: AdminPro
     active: product?.active ?? true,
   })
 
-  const update = <K extends keyof typeof form>(key: K, value: typeof form[K]) => {
+  const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 

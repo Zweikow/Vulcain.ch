@@ -6,8 +6,7 @@ import { orderSchema } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   // 1. Rate limiting by IP
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
   const { success: withinLimit } = await getOrderRatelimit().limit(ip)
   if (!withinLimit) {
     return NextResponse.json(
@@ -45,10 +44,7 @@ export async function POST(request: NextRequest) {
   // 4. Turnstile verification
   const tokenValid = await verifyTurnstileToken(result.data.turnstileToken)
   if (!tokenValid) {
-    return NextResponse.json(
-      { error: 'Vérification de sécurité échouée' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: 'Vérification de sécurité échouée' }, { status: 403 })
   }
 
   // 5. Server-side price recalculation — never trust client total

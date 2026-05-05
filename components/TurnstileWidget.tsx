@@ -38,8 +38,7 @@ export function TurnstileWidget({ onToken }: TurnstileWidgetProps) {
 
     window.onTurnstileLoad = renderWidget
     const script = document.createElement('script')
-    script.src =
-      'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'
     script.async = true
     document.head.appendChild(script)
 

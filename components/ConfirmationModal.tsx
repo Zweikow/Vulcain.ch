@@ -18,7 +18,12 @@ export default function ConfirmationModal({ orderId, total, onClose }: Confirmat
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
 
@@ -27,14 +32,16 @@ export default function ConfirmationModal({ orderId, total, onClose }: Confirmat
             Commande confirmée !
           </h2>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark leading-relaxed">
-            Merci pour votre commande ! Un email de confirmation a été envoyé à votre adresse.
-            Nous vous contacterons pour les détails et délais.
+            Merci pour votre commande ! Un email de confirmation a été envoyé à votre adresse. Nous
+            vous contacterons pour les détails et délais.
           </p>
         </div>
 
         <div className="w-full bg-bg-page dark:bg-bg-page-dark rounded-md p-3 flex flex-col gap-1.5">
           <div className="flex justify-between text-sm">
-            <span className="text-text-secondary dark:text-text-secondary-dark">N° de commande</span>
+            <span className="text-text-secondary dark:text-text-secondary-dark">
+              N° de commande
+            </span>
             <span className="font-semibold text-primary">{orderId}</span>
           </div>
           <div className="flex justify-between text-sm">

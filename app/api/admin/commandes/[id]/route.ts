@@ -8,10 +8,7 @@ const patchSchema = z.object({
   status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']),
 })
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
@@ -38,10 +35,7 @@ export async function GET(
   })
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
@@ -60,8 +54,7 @@ export async function PATCH(
   }
 
   const newStatus = result.data.status as OrderStatus
-  const shippedAt =
-    newStatus === OrderStatus.EXPEDIEE ? new Date() : null
+  const shippedAt = newStatus === OrderStatus.EXPEDIEE ? new Date() : null
 
   let order
   try {

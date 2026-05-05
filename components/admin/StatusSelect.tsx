@@ -10,11 +10,7 @@ interface StatusSelectProps {
   currentStatus: OrderStatus
 }
 
-const STATUS_ORDER: OrderStatus[] = [
-  'A_TRAITER',
-  'EN_PREPARATION',
-  'EXPEDIEE',
-]
+const STATUS_ORDER: OrderStatus[] = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']
 
 export function StatusSelect({ orderId, currentStatus }: StatusSelectProps) {
   const router = useRouter()
@@ -60,9 +56,7 @@ export function StatusSelect({ orderId, currentStatus }: StatusSelectProps) {
           </button>
         ))}
       </div>
-      {error && (
-        <p className="text-xs text-text-error dark:text-[#EF5350] mt-1">{error}</p>
-      )}
+      {error && <p className="text-xs text-text-error dark:text-[#EF5350] mt-1">{error}</p>}
     </div>
   )
 }

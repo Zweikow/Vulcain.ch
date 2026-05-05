@@ -29,7 +29,9 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
     turnstileToken.current = token
   }, [])
 
-  const total = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) + (items.length > 0 ? 10 : 0)
+  const total =
+    items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) +
+    (items.length > 0 ? 10 : 0)
 
   const validate = () => {
     const e: typeof errors = {}
@@ -66,7 +68,7 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
         unitPrice: i.product.price,
       })),
       turnstileToken: turnstileToken.current,
-      website: '',  // honeypot field — always empty for real users
+      website: '', // honeypot field — always empty for real users
     }
 
     const res = await fetch('/api/commandes', {
@@ -110,9 +112,7 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
             value={form.firstName}
             onChange={(e) => update('firstName', e.target.value)}
           />
-          {errors.firstName && (
-            <span className="text-xs text-text-error">{errors.firstName}</span>
-          )}
+          {errors.firstName && <span className="text-xs text-text-error">{errors.firstName}</span>}
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
@@ -124,9 +124,7 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
             value={form.lastName}
             onChange={(e) => update('lastName', e.target.value)}
           />
-          {errors.lastName && (
-            <span className="text-xs text-text-error">{errors.lastName}</span>
-          )}
+          {errors.lastName && <span className="text-xs text-text-error">{errors.lastName}</span>}
         </div>
       </div>
 
@@ -234,8 +232,18 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
             }`}
           >
             {form.acceptsMarketing && (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             )}
           </div>

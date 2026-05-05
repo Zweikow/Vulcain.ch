@@ -36,7 +36,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '4',
-    name: "Eau-de-vie de pomme",
+    name: 'Eau-de-vie de pomme',
     category: 'Eau-de-vie',
     price: 35.0,
     stock: 30,

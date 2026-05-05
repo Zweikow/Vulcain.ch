@@ -16,9 +16,7 @@ export function AdminSidebar() {
   return (
     <aside className="w-56 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white flex flex-col shrink-0">
       <div className="p-5 border-b border-white/10">
-        <div className="font-display font-semibold text-sm leading-tight">
-          Cidrerie du Vulcain
-        </div>
+        <div className="font-display font-semibold text-sm leading-tight">Cidrerie du Vulcain</div>
         <div className="text-xs opacity-60 mt-0.5">Administration</div>
       </div>
 

@@ -48,9 +48,7 @@ export default function Home() {
   const removeFromCart = (productId: string) => {
     setCart((prev) =>
       prev
-        .map((i) =>
-          i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i
-        )
+        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i))
         .filter((i) => i.quantity > 0)
     )
   }

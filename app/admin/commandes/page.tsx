@@ -19,11 +19,11 @@ export default async function CommandesPage({
 }) {
   const { statut: rawStatut } = await searchParams
   const validStatuts = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']
-  const statut: StatusFilter =
-    validStatuts.includes(rawStatut ?? '') ? (rawStatut as OrderStatus) : 'TOUTES'
+  const statut: StatusFilter = validStatuts.includes(rawStatut ?? '')
+    ? (rawStatut as OrderStatus)
+    : 'TOUTES'
 
-  const whereClause =
-    statut === 'TOUTES' ? {} : { status: statut as OrderStatus }
+  const whereClause = statut === 'TOUTES' ? {} : { status: statut as OrderStatus }
 
   const [commandes, counts] = await Promise.all([
     prisma.order.findMany({
@@ -40,8 +40,8 @@ export default async function CommandesPage({
       },
     }),
     Promise.all(
-      [OrderStatus.A_TRAITER, OrderStatus.EN_PREPARATION, OrderStatus.EXPEDIEE].map(
-        (s) => prisma.order.count({ where: { status: s } })
+      [OrderStatus.A_TRAITER, OrderStatus.EN_PREPARATION, OrderStatus.EXPEDIEE].map((s) =>
+        prisma.order.count({ where: { status: s } })
       )
     ),
   ])
@@ -67,8 +67,7 @@ export default async function CommandesPage({
       {/* Filtres */}
       <div className="flex gap-2 mb-6">
         {FILTERS.map(({ label, value }) => {
-          const count =
-            value === 'TOUTES' ? totalCount : countMap[value as OrderStatus]
+          const count = value === 'TOUTES' ? totalCount : countMap[value as OrderStatus]
           const isActive = statut === value
           return (
             <Link
@@ -83,9 +82,7 @@ export default async function CommandesPage({
               {label}
               <span
                 className={`text-xs font-semibold px-1.5 py-0.5 rounded-pill ${
-                  isActive
-                    ? 'bg-white/20'
-                    : 'bg-border dark:bg-border-dark'
+                  isActive ? 'bg-white/20' : 'bg-border dark:bg-border-dark'
                 }`}
               >
                 {count}

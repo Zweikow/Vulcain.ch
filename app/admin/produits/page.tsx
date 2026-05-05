@@ -6,9 +6,7 @@ export default async function ProduitsPage() {
     orderBy: { name: 'asc' },
   })
 
-  const stockBasCount = produits.filter(
-    (p) => p.active && p.stock <= p.stockSeuil
-  ).length
+  const stockBasCount = produits.filter((p) => p.active && p.stock <= p.stockSeuil).length
 
   return (
     <div>
@@ -21,7 +19,11 @@ export default async function ProduitsPage() {
             Gérez le catalogue de la cidrerie
           </p>
         </div>
-        <button className="btn-primary flex items-center gap-2 opacity-50 cursor-not-allowed" disabled title="Bientôt disponible">
+        <button
+          className="btn-primary flex items-center gap-2 opacity-50 cursor-not-allowed"
+          disabled
+          title="Bientôt disponible"
+        >
           + Ajouter un produit
         </button>
       </div>
@@ -31,7 +33,9 @@ export default async function ProduitsPage() {
         <div className="flex items-center gap-3 bg-[#FFF8E1] dark:bg-[#3d2a0a] border border-[#FFB300] dark:border-[#FF9800]/40 rounded-lg px-4 py-3 mb-6 text-sm text-text-warning dark:text-[#FF9800]">
           <span>⚠️</span>
           <span>
-            <span className="font-semibold">{stockBasCount} produit{stockBasCount > 1 ? 's' : ''}</span>{' '}
+            <span className="font-semibold">
+              {stockBasCount} produit{stockBasCount > 1 ? 's' : ''}
+            </span>{' '}
             {stockBasCount > 1 ? 'ont' : 'a'} un stock en dessous du seuil d&apos;alerte.
           </span>
         </div>

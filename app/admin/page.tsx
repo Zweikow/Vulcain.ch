@@ -15,10 +15,14 @@ const PERIODES: { label: string; value: Periode }[] = [
 function getPeriodStart(periode: Periode): Date {
   const now = new Date()
   switch (periode) {
-    case '4M': return new Date(now.getFullYear(), now.getMonth() - 4, now.getDate())
-    case '6M': return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())
-    case '1A': return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-    default:   return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+    case '4M':
+      return new Date(now.getFullYear(), now.getMonth() - 4, now.getDate())
+    case '6M':
+      return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())
+    case '1A':
+      return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+    default:
+      return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
   }
 }
 
@@ -28,41 +32,40 @@ export default async function DashboardPage({
   searchParams: Promise<{ periode?: string }>
 }) {
   const { periode: rawPeriode } = await searchParams
-  const periode: Periode = (['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '')
-    ? rawPeriode
-    : '1M') as Periode
+  const periode: Periode = (
+    ['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'
+  ) as Periode
 
   const since = getPeriodStart(periode)
 
-  const [aTraiter, enPreparation, expediee, caResult, recentOrders] =
-    await Promise.all([
-      prisma.order.count({
-        where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
-      }),
-      prisma.order.count({
-        where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
-      }),
-      prisma.order.count({
-        where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
-      }),
-      prisma.order.aggregate({
-        where: { createdAt: { gte: since } },
-        _sum: { total: true },
-      }),
-      prisma.order.findMany({
-        where: { createdAt: { gte: since } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          numero: true,
-          clientName: true,
-          total: true,
-          status: true,
-          createdAt: true,
-        },
-      }),
-    ])
+  const [aTraiter, enPreparation, expediee, caResult, recentOrders] = await Promise.all([
+    prisma.order.count({
+      where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
+    }),
+    prisma.order.count({
+      where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
+    }),
+    prisma.order.count({
+      where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
+    }),
+    prisma.order.aggregate({
+      where: { createdAt: { gte: since } },
+      _sum: { total: true },
+    }),
+    prisma.order.findMany({
+      where: { createdAt: { gte: since } },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        numero: true,
+        clientName: true,
+        total: true,
+        status: true,
+        createdAt: true,
+      },
+    }),
+  ])
 
   const caTotal = Number(caResult._sum.total ?? 0)
 
@@ -103,9 +106,7 @@ export default async function DashboardPage({
           <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
             À traiter
           </div>
-          <div className="text-3xl font-bold text-text-warning dark:text-[#FF9800]">
-            {aTraiter}
-          </div>
+          <div className="text-3xl font-bold text-text-warning dark:text-[#FF9800]">{aTraiter}</div>
         </div>
         <div className="card p-5">
           <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
@@ -119,9 +120,7 @@ export default async function DashboardPage({
           <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
             Expédiées
           </div>
-          <div className="text-3xl font-bold text-text-success dark:text-[#81C784]">
-            {expediee}
-          </div>
+          <div className="text-3xl font-bold text-text-success dark:text-[#81C784]">{expediee}</div>
         </div>
         <div className="card p-5">
           <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
@@ -139,10 +138,7 @@ export default async function DashboardPage({
           <h2 className="font-medium text-text-primary dark:text-text-primary-dark">
             Commandes récentes
           </h2>
-          <Link
-            href="/admin/commandes"
-            className="text-sm text-primary hover:text-primary-hover"
-          >
+          <Link href="/admin/commandes" className="text-sm text-primary hover:text-primary-hover">
             Voir toutes →
           </Link>
         </div>

@@ -44,9 +44,7 @@ export default function ProductCard({ product, quantity, onAdd, onRemove }: Prod
 
       {/* Price + quantity */}
       <div className="flex items-center justify-between mt-auto pt-1">
-        <span className="font-semibold text-sm text-primary">
-          CHF {product.price.toFixed(2)}
-        </span>
+        <span className="font-semibold text-sm text-primary">CHF {product.price.toFixed(2)}</span>
 
         {isOutOfStock ? (
           <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
