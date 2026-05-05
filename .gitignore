@@ -30,3 +30,11 @@ next-env.d.ts
 *.tmp
 *.temp
 tsconfig.tsbuildinfo
+
+# Sous-dossiers Next.js
+App-Cidrerie-Vulcain/.next/
+App-Cidrerie-Vulcain/.env.local
+App-Cidrerie-Vulcain/next-env.d.ts
+
+# Worktrees Claude
+.claude/worktrees/
