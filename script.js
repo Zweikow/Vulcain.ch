@@ -151,13 +151,16 @@ function mettreAJourPanier() {
 
     // Calculer le total
     let totalProduits = 0;
+    let totalRemise = 0;
     let totalBouteilles = 0;
 
     Object.entries(panier).forEach(([id, quantite]) => {
         const produit = produitsData[id];
         if (produit) {
-            totalProduits += produit.prix * quantite;
-            totalBouteilles += quantite;
+            const unite = produit.uniteCommande || 1;
+            totalProduits += produit.prix * quantite * unite;
+            totalBouteilles += quantite * unite;
+            totalRemise += calculerRemisePromo(produit, quantite);
         }
     });
 
@@ -166,10 +169,12 @@ function mettreAJourPanier() {
     if (totalBouteilles > 0) {
         fraisLivraison = totalBouteilles >= 24 ? 0 : 10;
     }
-    const totalGeneral = totalProduits + fraisLivraison;
+    const totalGeneral = totalProduits - totalRemise + fraisLivraison;
 
     // Mettre à jour l'affichage
-    sousTotal.textContent = `${totalProduits.toFixed(2)} CHF`;
+    sousTotal.textContent = totalRemise > 0
+        ? `${totalProduits.toFixed(2)} CHF − ${totalRemise.toFixed(2)} CHF = ${(totalProduits - totalRemise).toFixed(2)} CHF`
+        : `${totalProduits.toFixed(2)} CHF`;
     livraison.textContent = fraisLivraison === 0 && totalBouteilles > 0 ? 'Gratuit' : `${fraisLivraison.toFixed(2)} CHF`;
     total.textContent = `${totalGeneral.toFixed(2)} CHF`;
 
@@ -180,15 +185,19 @@ function mettreAJourPanier() {
         panierItems.innerHTML = Object.entries(panier).map(([id, quantite]) => {
             const produit = produitsData[id];
             if (!produit) return '';
-            return `
-                <div class="panier-item">
-                    <div class="item-info">
-                        <span class="item-name">${produit.nom} ${produit.annee ? `(${produit.annee})` : ''}</span>
-                        <span class="item-price">${produit.prix.toFixed(2)} CHF × ${quantite}</span>
-                    </div>
-                    <div class="item-total">${(produit.prix * quantite).toFixed(2)} CHF</div>
-                </div>
-            `;
+            const unite = produit.uniteCommande || 1;
+            const sousTotalItem = produit.prix * quantite * unite;
+            const remiseItem = calculerRemisePromo(produit, quantite);
+            const cartonsGratuits = remiseItem > 0
+                ? Math.floor(quantite / produit.promo.achat) * (produit.promo.achat - produit.promo.paie)
+                : 0;
+            const ligneRemise = remiseItem > 0
+                ? '<div class="panier-item panier-remise"><div class="item-info"><span class="item-name">Promo ete (' + cartonsGratuits + ' carton' + (cartonsGratuits > 1 ? 's' : '') + ' offert' + (cartonsGratuits > 1 ? 's' : '') + ')</span></div><div class="item-total">- ' + remiseItem.toFixed(2) + ' CHF</div></div>'
+                : '';
+            const labelQuantite = produit.uniteCommande
+                ? `${quantite} carton${quantite > 1 ? 's' : ''} (${quantite * unite} bouteilles) x ${(produit.prix * unite).toFixed(2)} CHF`
+                : `${produit.prix.toFixed(2)} CHF x ${quantite}`;
+            return '<div class="panier-item"><div class="item-info"><span class="item-name">' + produit.nom + (produit.annee ? ' (' + produit.annee + ')' : '') + '</span><span class="item-price">' + labelQuantite + '</span></div><div class="item-total">' + sousTotalItem.toFixed(2) + ' CHF</div></div>' + ligneRemise;
         }).join('');
     }
 
