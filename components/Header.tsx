@@ -1,24 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useTheme } from '@/components/ThemeProvider'
 
 export default function Header() {
-  const [darkMode, setDarkMode] = useState(false)
-
-  useEffect(() => {
-    const stored = localStorage.getItem('darkMode')
-    if (stored === 'true') {
-      setDarkMode(true)
-      document.documentElement.classList.add('dark')
-    }
-  }, [])
-
-  const toggleDarkMode = () => {
-    const next = !darkMode
-    setDarkMode(next)
-    localStorage.setItem('darkMode', String(next))
-    document.documentElement.classList.toggle('dark', next)
-  }
+  const { theme, toggle } = useTheme()
+  const isDark = theme === 'dark'
 
   return (
     <header className="bg-bg-header dark:bg-bg-header-dark text-white px-4 py-3 flex items-center justify-between">
@@ -41,15 +27,16 @@ export default function Header() {
         </span>
         {/* Dark mode toggle */}
         <button
-          onClick={toggleDarkMode}
+          onClick={toggle}
           className={`relative inline-flex h-6 w-11 items-center rounded-pill transition-colors focus:outline-none ${
-            darkMode ? 'bg-primary' : 'bg-white/30'
+            isDark ? 'bg-primary' : 'bg-white/30'
           }`}
-          aria-label="Toggle dark mode"
+          aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-              darkMode ? 'translate-x-6' : 'translate-x-1'
+              isDark ? 'translate-x-6' : 'translate-x-1'
             }`}
           />
         </button>

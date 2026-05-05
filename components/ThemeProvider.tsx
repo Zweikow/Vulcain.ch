@@ -22,6 +22,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
+    // Migration depuis l'ancienne clé 'darkMode' (Header storefront)
+    const legacy = localStorage.getItem('darkMode')
+    if (legacy !== null) {
+      localStorage.setItem('theme', legacy === 'true' ? 'dark' : 'light')
+      localStorage.removeItem('darkMode')
+    }
     const stored = localStorage.getItem('theme') as Theme | null
     const preferred = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     const initial = stored ?? preferred
