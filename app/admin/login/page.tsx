@@ -26,7 +26,7 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-bg-page dark:bg-bg-page-dark">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-sm">
         <div className="mb-6">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
