@@ -665,15 +665,28 @@ async function genererFacturePDF(donneesCommande) {
     let sousTotal = 0;
     
     Object.entries(donneesCommande.panier).forEach(([id, item]) => {
-        const total = item.prix * item.quantite;
+        const unite = item.uniteCommande || 1;
+        const total = item.prix * item.quantite * unite;
         sousTotal += total;
-        
-        produitsTableau.push([
-            item.nom,
-            item.quantite.toString(),
-            `${item.prix.toFixed(2)} CHF`,
-            `${total.toFixed(2)} CHF`
-        ]);
+
+        const qteLabel = unite > 1
+            ? `${item.quantite} crt (${item.quantite * unite} btl)`
+            : item.quantite.toString();
+        const prixUnitLabel = unite > 1
+            ? `${(item.prix * unite).toFixed(2)} CHF/crt`
+            : `${item.prix.toFixed(2)} CHF`;
+
+        produitsTableau.push([item.nom, qteLabel, prixUnitLabel, `${total.toFixed(2)} CHF`]);
+
+        if (item.promo && item.promo.type === 'xPourY') {
+            const cartonsGratuits = Math.floor(item.quantite / item.promo.achat) * (item.promo.achat - item.promo.paie);
+            const remise = cartonsGratuits * unite * item.prix;
+            if (remise > 0) {
+                sousTotal -= remise;
+                const labelRemise = `Promo été (${cartonsGratuits} carton${cartonsGratuits > 1 ? 's' : ''} offert${cartonsGratuits > 1 ? 's' : ''})`;
+                produitsTableau.push([labelRemise, '', '', `- ${remise.toFixed(2)} CHF`]);
+            }
+        }
     });
     
     // Configuration du tableau
