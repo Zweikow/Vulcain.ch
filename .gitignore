@@ -38,3 +38,9 @@ App-Cidrerie-Vulcain/next-env.d.ts
 
 # Claude (worktrees, mémoire, config locale)
 .claude/
+
+# Auto-généré par Next.js
+next-env.d.ts
+
+# Plans et specs internes Claude (non critiques pour l'app)
+docs/superpowers/
