@@ -359,7 +359,9 @@ async function envoyerCommande(formData) {
                 donneesCommande.panier[id] = {
                     nom: produit.nom,
                     prix: produit.prix,
-                    quantite: quantite
+                    quantite: quantite,
+                    uniteCommande: produit.uniteCommande || 1,
+                    promo: produit.promo || null
                 };
             }
         });
@@ -375,9 +377,19 @@ async function envoyerCommande(formData) {
             .map(([id, quantite]) => {
                 const produit = produitsData[id];
                 if (!produit) return '';
-                const sousTotal = (produit.prix * quantite).toFixed(2);
-                return `• ${produit.nom}
-  ${quantite}x à ${produit.prix.toFixed(2)} CHF = ${sousTotal} CHF`;
+                const unite = produit.uniteCommande || 1;
+                const sousTotalItem = (produit.prix * quantite * unite).toFixed(2);
+                const remiseItem = calculerRemisePromo(produit, quantite);
+                const cartonsGratuits = remiseItem > 0
+                    ? Math.floor(quantite / produit.promo.achat) * (produit.promo.achat - produit.promo.paie)
+                    : 0;
+                const ligneBase = produit.uniteCommande
+                    ? `• ${produit.nom}\n  ${quantite} carton${quantite > 1 ? 's' : ''} (${quantite * unite} bouteilles) x ${(produit.prix * unite).toFixed(2)} CHF = ${sousTotalItem} CHF`
+                    : `• ${produit.nom}\n  ${quantite}x à ${produit.prix.toFixed(2)} CHF = ${sousTotalItem} CHF`;
+                const ligneRemise = remiseItem > 0
+                    ? `\n  Promo été (${cartonsGratuits} carton${cartonsGratuits > 1 ? 's' : ''} offert${cartonsGratuits > 1 ? 's' : ''}) : - ${remiseItem.toFixed(2)} CHF`
+                    : '';
+                return ligneBase + ligneRemise;
             })
             .filter(ligne => ligne !== '')
             .join('\n\n');
