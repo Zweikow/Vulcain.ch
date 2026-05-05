@@ -192,7 +192,7 @@ function mettreAJourPanier() {
                 ? Math.floor(quantite / produit.promo.achat) * (produit.promo.achat - produit.promo.paie)
                 : 0;
             const ligneRemise = remiseItem > 0
-                ? '<div class="panier-item panier-remise"><div class="item-info"><span class="item-name">Promo ete (' + cartonsGratuits + ' carton' + (cartonsGratuits > 1 ? 's' : '') + ' offert' + (cartonsGratuits > 1 ? 's' : '') + ')</span></div><div class="item-total">- ' + remiseItem.toFixed(2) + ' CHF</div></div>'
+                ? '<div class="panier-item panier-remise"><div class="item-info"><span class="item-name">Promo été (' + cartonsGratuits + ' carton' + (cartonsGratuits > 1 ? 's' : '') + ' offert' + (cartonsGratuits > 1 ? 's' : '') + ')</span></div><div class="item-total">- ' + remiseItem.toFixed(2) + ' CHF</div></div>'
                 : '';
             const labelQuantite = produit.uniteCommande
                 ? `${quantite} carton${quantite > 1 ? 's' : ''} (${quantite * unite} bouteilles) x ${(produit.prix * unite).toFixed(2)} CHF`

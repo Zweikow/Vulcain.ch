@@ -314,6 +314,20 @@ section h2 {
     font-size: 1.1rem;
 }
 
+.panier-remise {
+    border-left-color: #4a7c59;
+    background: rgba(74, 124, 89, 0.08);
+    font-style: italic;
+}
+
+.panier-remise .item-name {
+    color: #4a7c59;
+}
+
+.panier-remise .item-total {
+    color: #4a7c59;
+}
+
 .panier-summary {
     background: var(--beige-chaud);
     padding: 20px;
