@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ClientType, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
+import { notifyOrderPlaced } from '@/lib/notifications'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
@@ -169,6 +170,11 @@ export async function POST(request: NextRequest) {
 
       return created
     })
+
+    // Confirmation au client et notification à la cidrerie. N'échoue jamais :
+    // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
+    // est indisponible.
+    await notifyOrderPlaced(order.id)
 
     return NextResponse.json(
       { orderId: order.numero, totalCents: order.totalCents },

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
 import { issueInvoice } from '@/lib/invoices'
+import { notifyOrderShipped } from '@/lib/notifications'
 
 const patchSchema = z.object({
   status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']),
@@ -73,8 +74,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     throw e
   }
 
-  // Une commande expédiée a forcément une facture émise (idempotent).
-  if (newStatus === OrderStatus.EXPEDIEE) await issueInvoice(id)
+  // Une commande expédiée a forcément une facture émise (idempotent), et le
+  // client reçoit l'avis avec ses informations de paiement.
+  if (newStatus === OrderStatus.EXPEDIEE) {
+    await issueInvoice(id)
+    await notifyOrderShipped(id)
+  }
 
   return NextResponse.json(order)
 }
