@@ -91,6 +91,8 @@ model Order {
   deliveryDate   DateTime?
   message        String?
   shippedAt      DateTime?
+  cancelledAt    DateTime?
+  cancelReason   String? // motif consigné : le client rappelle souvent des mois après
   items          OrderItem[]
   stockMovements StockMovement[]
   createdAt      DateTime        @default(now())
@@ -113,10 +115,12 @@ enum OrderStatus {
   A_TRAITER
   EN_PREPARATION
   EXPEDIEE
+  ANNULEE
 }
 
 enum StockMovementReason {
   COMMANDE
+  ANNULATION
   AJUSTEMENT
   REASSORT
 }

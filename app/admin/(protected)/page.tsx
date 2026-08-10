@@ -63,8 +63,9 @@ export default async function DashboardPage({
       prisma.order.count({
         where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
       }),
+      // Une commande annulée n'a jamais produit de chiffre d'affaires.
       prisma.order.aggregate({
-        where: { createdAt: { gte: since } },
+        where: { createdAt: { gte: since }, status: { not: OrderStatus.ANNULEE } },
         _sum: { totalCents: true },
       }),
       prisma.order.findMany({

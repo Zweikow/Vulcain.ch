@@ -173,6 +173,45 @@ ${adminUrl ? `\nBack-office : ${adminUrl}` : ''}`
   }
 }
 
+/** 4. Confirmation d'annulation — trace écrite de ce qui a été convenu au téléphone. */
+export function orderCancellation(order: MailOrder, settings: MailSettings): MailMessage {
+  const invoiced = order.invoiceNumber !== null
+
+  const body = `
+    <p style="margin:0 0 12px;">Bonjour ${escapeHtml(order.clientName)},</p>
+    <p style="margin:0 0 12px;">Votre commande <strong style="font-family:monospace;color:#153243;">${order.numero}</strong> a bien été annulée. Elle ne sera pas préparée et rien ne vous sera facturé.</p>
+    ${
+      invoiced
+        ? `<p style="margin:0 0 12px;">La facture <strong style="font-family:monospace;">${order.invoiceNumber}</strong> ayant déjà été émise, un avoir vous sera adressé pour l'annuler. Si vous l'avez déjà réglée, le montant vous sera remboursé.</p>`
+        : ''
+    }
+    <p style="margin:12px 0 0;">Si cette annulation ne vient pas de vous, répondez à ce message : nous rétablirons la commande.</p>
+    <p style="margin:16px 0 0;">Cidricolement,<br>${escapeHtml(settings.contactName)}</p>`
+
+  const text = `Bonjour ${order.clientName},
+
+Votre commande ${order.numero} a bien été annulée. Elle ne sera pas préparée et
+rien ne vous sera facturé.
+${
+  invoiced
+    ? `\nLa facture ${order.invoiceNumber} ayant déjà été émise, un avoir vous sera adressé\npour l'annuler. Si vous l'avez déjà réglée, le montant vous sera remboursé.\n`
+    : ''
+}
+Si cette annulation ne vient pas de vous, répondez à ce message : nous
+rétablirons la commande.
+
+Cidricolement,
+${settings.contactName}`
+
+  return {
+    to: order.clientEmail,
+    replyTo: settings.contactEmail,
+    subject: `Annulation de votre commande ${order.numero}`,
+    html: shell('Annulation de commande', body, settings),
+    text,
+  }
+}
+
 /** 3. Avis d'expédition, avec tout ce qu'il faut au client pour payer. */
 export function shippingNotice(order: MailOrder, settings: MailSettings): MailMessage {
   const due = new Date()

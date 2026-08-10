@@ -13,6 +13,10 @@ const CONFIG: Record<OrderStatus, { label: string; className: string }> = {
     label: 'Expédiée',
     className: 'bg-[#E8F5E9] dark:bg-[#1e3326] text-text-success dark:text-[#81C784]',
   },
+  ANNULEE: {
+    label: 'Annulée',
+    className: 'bg-[#FDF2F2] dark:bg-[#3a1f1f] text-[#C62828] dark:text-[#EF5350]',
+  },
 }
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
@@ -26,4 +30,5 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   A_TRAITER: 'À traiter',
   EN_PREPARATION: 'En préparation',
   EXPEDIEE: 'Expédiée',
+  ANNULEE: 'Annulée',
 }

@@ -11,6 +11,7 @@ const FILTERS: { label: string; value: StatusFilter }[] = [
   { label: 'À traiter', value: 'A_TRAITER' },
   { label: 'En préparation', value: 'EN_PREPARATION' },
   { label: 'Expédiées', value: 'EXPEDIEE' },
+  { label: 'Annulées', value: 'ANNULEE' },
 ]
 
 export default async function CommandesPage({
@@ -19,7 +20,7 @@ export default async function CommandesPage({
   searchParams: Promise<{ statut?: string }>
 }) {
   const { statut: rawStatut } = await searchParams
-  const validStatuts = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']
+  const validStatuts = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE', 'ANNULEE']
   const statut: StatusFilter = validStatuts.includes(rawStatut ?? '')
     ? (rawStatut as OrderStatus)
     : 'TOUTES'
@@ -41,9 +42,12 @@ export default async function CommandesPage({
       },
     }),
     Promise.all(
-      [OrderStatus.A_TRAITER, OrderStatus.EN_PREPARATION, OrderStatus.EXPEDIEE].map((s) =>
-        prisma.order.count({ where: { status: s } })
-      )
+      [
+        OrderStatus.A_TRAITER,
+        OrderStatus.EN_PREPARATION,
+        OrderStatus.EXPEDIEE,
+        OrderStatus.ANNULEE,
+      ].map((s) => prisma.order.count({ where: { status: s } }))
     ),
   ])
 
@@ -51,6 +55,7 @@ export default async function CommandesPage({
     A_TRAITER: counts[0],
     EN_PREPARATION: counts[1],
     EXPEDIEE: counts[2],
+    ANNULEE: counts[3],
   }
   const totalCount = counts.reduce((a, b) => a + b, 0)
 

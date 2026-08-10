@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
+import { OrderCancel } from '@/components/admin/OrderCancel'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -64,10 +65,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Statut */}
-      <div className="card p-5 mb-4">
-        <StatusSelect orderId={order.id} currentStatus={order.status} />
-      </div>
+      {/* Statut — masqué sur une commande annulée, qui ne progresse plus */}
+      {order.status !== 'ANNULEE' && (
+        <div className="card p-5 mb-4">
+          <StatusSelect orderId={order.id} currentStatus={order.status} />
+        </div>
+      )}
 
       {/* Infos client */}
       <div className="card p-5 mb-4">
@@ -208,6 +211,15 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           </tfoot>
         </table>
       </div>
+
+      <OrderCancel
+        orderId={order.id}
+        numero={order.numero}
+        status={order.status}
+        invoiceNumber={order.invoiceNumber}
+        cancelledAt={order.cancelledAt}
+        cancelReason={order.cancelReason}
+      />
     </div>
   )
 }

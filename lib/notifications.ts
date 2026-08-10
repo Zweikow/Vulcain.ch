@@ -5,6 +5,7 @@ import {
   orderConfirmation,
   shopNotification,
   shippingNotice,
+  orderCancellation,
   type MailOrder,
   type MailSettings,
 } from '@/lib/mail-templates'
@@ -83,5 +84,16 @@ export async function notifyOrderShipped(orderId: string): Promise<void> {
     await sendMail(shippingNotice(order, mailSettings(settings)))
   } catch (error) {
     console.error("Avis d'expédition impossible", { orderId, error })
+  }
+}
+
+/** Confirmation d'annulation au client. */
+export async function notifyOrderCancelled(orderId: string): Promise<void> {
+  try {
+    const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])
+    if (!order) return
+    await sendMail(orderCancellation(order, mailSettings(settings)))
+  } catch (error) {
+    console.error("Confirmation d'annulation impossible", { orderId, error })
   }
 }
