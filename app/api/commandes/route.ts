@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma, ClientType, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
+import { getSettings } from '@/lib/settings'
+import { proUnitPriceCents, shippingCentsFor, vatIncludedCents } from '@/lib/money'
+
+class OrderConflictError extends Error {}
 
 export async function POST(request: NextRequest) {
   // 1. Rate limiting by IP
@@ -47,54 +52,140 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Vérification de sécurité échouée' }, { status: 403 })
   }
 
-  // 5. Server-side price recalculation — never trust client total
-  const productIds = result.data.items.map((i) => i.productId)
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, active: true },
-    select: { id: true, price: true },
-  })
+  // 5. Création en transaction : recalcul intégral côté serveur (prix depuis la
+  // base, tarif pro depuis la fiche client, port depuis Setting), décrément de
+  // stock conditionnel, numérotation atomique par année.
+  const data = result.data
+  const settings = await getSettings()
 
-  const priceMap = new Map(products.map((p) => [p.id, p.price]))
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      // Le tarif pro appartient au client : lu en base, jamais dans la requête.
+      const customer = await tx.customer.upsert({
+        where: { email: data.email },
+        update: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone ?? null,
+          address: data.address,
+          npa: data.npa,
+          city: data.city,
+          ...(data.acceptsMarketing ? { acceptsMarketing: true } : {}),
+        },
+        create: {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone ?? null,
+          address: data.address,
+          npa: data.npa,
+          city: data.city,
+          acceptsMarketing: data.acceptsMarketing,
+        },
+      })
+      const isPro = customer.isPro
 
-  // Verify all products exist and are active
-  const missingProduct = result.data.items.find((i) => !priceMap.has(i.productId))
-  if (missingProduct) {
+      const products = await tx.product.findMany({
+        where: {
+          id: { in: data.items.map((i) => i.productId) },
+          active: true,
+          archived: false,
+        },
+        select: { id: true, name: true, priceCents: true, stock: true },
+      })
+      const byId = new Map(products.map((p) => [p.id, p]))
+
+      let subtotalCents = 0
+      let discountCents = 0
+      const lines = data.items.map((item) => {
+        const product = byId.get(item.productId)
+        if (!product) throw new OrderConflictError('Un ou plusieurs produits sont indisponibles')
+        if (product.stock < item.quantity)
+          throw new OrderConflictError(`Stock insuffisant pour ${product.name}`)
+        const unitPriceCents = isPro
+          ? proUnitPriceCents(product.priceCents, settings.proRatePercent)
+          : product.priceCents
+        subtotalCents += unitPriceCents * item.quantity
+        discountCents += (product.priceCents - unitPriceCents) * item.quantity
+        return {
+          productId: product.id,
+          productName: product.name,
+          listPriceCents: product.priceCents,
+          unitPriceCents,
+          quantity: item.quantity,
+        }
+      })
+
+      const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
+      const totalCents = subtotalCents + shippingCents
+      const vatCents = vatIncludedCents(totalCents, settings.vatRatePermille)
+
+      // Décrément conditionnel : échoue si une commande concurrente a vidé le stock.
+      for (const line of lines) {
+        const updated = await tx.product.updateMany({
+          where: { id: line.productId, stock: { gte: line.quantity } },
+          data: { stock: { decrement: line.quantity } },
+        })
+        if (updated.count === 0)
+          throw new OrderConflictError(`Stock insuffisant pour ${line.productName}`)
+      }
+
+      // Numérotation CMD-AAAA-NNNN — atomique, remplace order.count()
+      const year = new Date().getFullYear()
+      const [counter] = await tx.$queryRaw<{ value: number }[]>(
+        Prisma.sql`INSERT INTO "OrderCounter" ("year", "value") VALUES (${year}, 1)
+                   ON CONFLICT ("year") DO UPDATE SET "value" = "OrderCounter"."value" + 1
+                   RETURNING "value"`
+      )
+      const numero = `CMD-${year}-${String(counter.value).padStart(4, '0')}`
+
+      const created = await tx.order.create({
+        data: {
+          numero,
+          customerId: customer.id,
+          clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
+          clientName: `${data.firstName} ${data.lastName}`,
+          clientEmail: data.email,
+          clientPhone: data.phone ?? null,
+          address: data.address,
+          npa: data.npa,
+          city: data.city,
+          subtotalCents,
+          discountCents,
+          shippingCents,
+          totalCents,
+          vatCents,
+          deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
+          message: data.message || null,
+          items: { create: lines },
+        },
+        select: { id: true, numero: true, totalCents: true },
+      })
+
+      await tx.stockMovement.createMany({
+        data: lines.map((l) => ({
+          productId: l.productId,
+          orderId: created.id,
+          delta: -l.quantity,
+          reason: StockMovementReason.COMMANDE,
+        })),
+      })
+
+      return created
+    })
+
     return NextResponse.json(
-      { error: 'Un ou plusieurs produits sont indisponibles' },
-      { status: 422 }
+      { orderId: order.numero, totalCents: order.totalCents },
+      { status: 201 }
+    )
+  } catch (e) {
+    if (e instanceof OrderConflictError) {
+      return NextResponse.json({ error: e.message }, { status: 409 })
+    }
+    console.error('POST /api/commandes', e)
+    return NextResponse.json(
+      { error: "La commande n'a pas pu être enregistrée. Réessayez." },
+      { status: 500 }
     )
   }
-
-  const serverTotal = result.data.items.reduce((sum, item) => {
-    const price = priceMap.get(item.productId)!
-    return sum + Number(price) * item.quantity
-  }, 0)
-
-  // 6. Generate order number
-  const count = await prisma.order.count()
-  const numero = `CMD-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`
-
-  // 7. Create order in DB
-  const order = await prisma.order.create({
-    data: {
-      numero,
-      clientName: `${result.data.firstName} ${result.data.lastName}`,
-      clientEmail: result.data.email,
-      clientPhone: result.data.phone ?? null,
-      address: result.data.address,
-      npa: result.data.npa,
-      city: result.data.city,
-      total: serverTotal,
-      items: {
-        create: result.data.items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: priceMap.get(item.productId)!,
-        })),
-      },
-    },
-    select: { numero: true },
-  })
-
-  return NextResponse.json({ orderId: order.numero }, { status: 201 })
 }

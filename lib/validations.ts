@@ -7,10 +7,11 @@ export const loginSchema = z.object({
 
 export const orderItemSchema = z.object({
   productId: z.string().min(1),
-  quantity: z.number().int().positive(),
-  unitPrice: z.number().positive(),
+  quantity: z.number().int().positive().max(999),
 })
 
+// Le client n'envoie ni prix ni total : tout est recalculé côté serveur
+// depuis la base (prix, tarif pro, port depuis Setting).
 export const orderSchema = z.object({
   firstName: z.string().min(1, 'Requis'),
   lastName: z.string().min(1, 'Requis'),
@@ -19,7 +20,12 @@ export const orderSchema = z.object({
   address: z.string().min(1, 'Requis'),
   npa: z.string().length(4, 'NPA invalide'),
   city: z.string().min(1, 'Requis'),
-  total: z.number().positive(),
+  deliveryDate: z.string().optional(),
+  message: z.string().max(500).optional(),
+  acceptsMarketing: z.boolean().default(false),
+  ageConfirmed: z.literal(true, {
+    message: 'Vous devez confirmer avoir 18 ans révolus',
+  }),
   items: z.array(orderItemSchema).min(1, 'Panier vide'),
   turnstileToken: z.string().min(1, 'Vérification requise'),
   website: z.string().max(0).optional(),
