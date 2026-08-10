@@ -16,17 +16,23 @@ export default async function Home() {
     getPublicSettings(),
   ])
 
-  const products: Product[] = dbProducts.map((p) => ({
-    id: p.id,
-    name: p.name,
-    category: p.category.name as Product['category'],
-    year: p.year ?? undefined,
-    priceCents: p.priceCents,
-    stock: p.stock,
-    description: p.description ?? '',
-    image: p.imageUrl ?? undefined,
-    active: p.active,
-  }))
+  const newSince = Date.now() - 60 * 24 * 3600 * 1000
+  const products: Product[] = dbProducts.map((p) => {
+    const isLastUnits = p.stock > 0 && p.stock <= p.stockSeuil
+    return {
+      id: p.id,
+      name: p.name,
+      category: p.category.name as Product['category'],
+      year: p.year ?? undefined,
+      priceCents: p.priceCents,
+      stock: p.stock,
+      description: p.description ?? '',
+      image: p.imageUrl ?? undefined,
+      active: p.active,
+      isLastUnits,
+      isNew: !isLastUnits && p.createdAt.getTime() > newSince,
+    }
+  })
 
   return <BoutiqueClient products={products} settings={settings} />
 }

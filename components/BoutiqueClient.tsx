@@ -62,14 +62,36 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
       <DeliveryWarning />
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Bandeau d'accueil (DESIGN.md §4) */}
+        <section className="card p-8 mb-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
+            Récolte 2026
+          </p>
+          <h1 className="mt-2 max-w-2xl font-display font-semibold text-4xl md:text-[46px] leading-tight text-text-primary dark:text-text-primary-dark">
+            L&apos;expression pure du terroir.
+          </h1>
+          <p className="mt-4 max-w-lg text-text-secondary dark:text-text-secondary-dark">
+            Cidres et poirés artisanaux, fermentés lentement sur levures indigènes.{' '}
+            {products.length} références disponibles à la cave.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href="#catalogue" className="btn-primary">
+              Découvrir la cave
+            </a>
+            <a href="#commande" className="btn-secondary">
+              Passer la commande
+            </a>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
           {/* Left: products + form */}
-          <div className="flex flex-col gap-8">
+          <div id="catalogue" className="flex flex-col gap-8">
             {/* Cidres category */}
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-primary">🍎</span>
-                <h2 className="font-display font-semibold text-text-primary dark:text-text-primary-dark">
+                <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
                   Cidres
                 </h2>
               </div>
@@ -91,7 +113,7 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-primary">🍶</span>
-                  <h2 className="font-display font-semibold text-text-primary dark:text-text-primary-dark">
+                  <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
                     Eaux de vie / Liqueurs / Cidre de cuisine
                   </h2>
                 </div>
@@ -110,7 +132,9 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
             )}
 
             {/* Order form */}
-            <OrderForm items={cart} settings={settings} onSubmit={handleOrder} />
+            <div id="commande">
+              <OrderForm items={cart} settings={settings} onSubmit={handleOrder} />
+            </div>
           </div>
 
           {/* Right: cart (sticky on desktop) */}
@@ -127,8 +151,17 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
         </div>
       </div>
 
-      <footer className="text-center py-6 text-xs text-text-tertiary dark:text-text-tertiary-dark border-t border-border dark:border-border-dark mt-8">
-        © 2026 Cidrerie de Vulcain — Aubonne, Suisse
+      {/* Pied de page sombre avec mention légale (DESIGN.md §4) */}
+      <footer className="mt-8 bg-bg-header dark:bg-bg-header-dark px-4 py-8 text-sm text-white/80">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-display font-semibold text-base text-white">Cidrerie du Vulcain</p>
+            <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain — Aubonne, Suisse</p>
+          </div>
+          <p className="rounded-md bg-[#FDF2F2] px-4 py-2 text-xs font-medium text-[#C62828]">
+            La vente d&apos;alcool est interdite aux mineurs.
+          </p>
+        </div>
       </footer>
 
       {confirmation && (

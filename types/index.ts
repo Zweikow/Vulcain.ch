@@ -8,6 +8,9 @@ export interface Product {
   description: string
   image?: string
   active: boolean
+  // Badges calculés côté serveur — « Nouveau » ou « Derniers exemplaires », jamais les deux
+  isNew?: boolean
+  isLastUnits?: boolean
 }
 
 export interface CartItem {

@@ -16,8 +16,8 @@ export default function ProductCard({ product, quantity, onAdd, onRemove }: Prod
 
   return (
     <div className="card p-3 flex flex-col gap-2">
-      {/* Product image */}
-      <div className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-bg-page dark:bg-bg-page-dark">
+      {/* Photo produit — carré 1:1, trame diagonale en attendant la vraie photo (DESIGN.md §1) */}
+      <div className="relative w-full aspect-square rounded-md overflow-hidden bg-bg-page dark:bg-bg-page-dark">
         {product.image ? (
           <Image
             src={product.image}
@@ -27,9 +27,26 @@ export default function ProductCard({ product, quantity, onAdd, onRemove }: Prod
             sizes="(max-width: 768px) 100vw, 200px"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-tertiary dark:text-text-tertiary-dark text-4xl">
-            🍎
+          <div
+            className="w-full h-full flex items-center justify-center font-mono text-[11px] text-text-tertiary dark:text-text-tertiary-dark"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(45deg, rgba(122,149,165,.12) 0 12px, transparent 12px 24px)',
+            }}
+          >
+            photo bouteille 1:1
           </div>
+        )}
+        {/* Badge « Nouveau » ou « Derniers exemplaires » — jamais les deux */}
+        {product.isNew && (
+          <span className="absolute left-2 top-2 rounded-pill bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-on-primary">
+            Nouveau
+          </span>
+        )}
+        {product.isLastUnits && (
+          <span className="absolute left-2 top-2 rounded-pill bg-[#FFF8E1] px-2.5 py-0.5 text-[11px] font-semibold text-text-warning">
+            Derniers exemplaires
+          </span>
         )}
       </div>
 
@@ -66,7 +83,7 @@ export default function ProductCard({ product, quantity, onAdd, onRemove }: Prod
             <button
               onClick={onAdd}
               disabled={quantity >= product.stock}
-              className="w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors text-sm font-semibold"
+              className="w-7 h-7 rounded-md bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors text-sm font-semibold"
             >
               +
             </button>

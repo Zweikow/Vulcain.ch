@@ -8,11 +8,18 @@
   body {
     @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
   }
+
+  /* Focus visible sur tous les éléments interactifs (DESIGN.md §6) */
+  :focus-visible {
+    outline: 2px solid #5ed97f;
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
+  /* Texte sombre sur fond vert — jamais de blanc (DESIGN.md, correctif contraste) */
   .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
   }
   .btn-secondary {
     @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
@@ -25,5 +32,12 @@
   }
   .card {
     @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
+  }
+}
+
+@layer utilities {
+  /* Montants alignés en colonne (DESIGN.md §1) */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
