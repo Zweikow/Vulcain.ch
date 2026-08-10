@@ -57,7 +57,7 @@ export default async function CommandesPage({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+        <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
           Commandes
         </h1>
         <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">

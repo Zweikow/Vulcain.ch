@@ -96,7 +96,7 @@ export default async function DashboardPage({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+          <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
             Tableau de bord
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">

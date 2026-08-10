@@ -7,8 +7,10 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 
 const NAV_LINKS = [
   { href: '/admin', label: 'Tableau de bord', icon: '📊', exact: true },
-  { href: '/admin/commandes', label: 'Commandes', icon: '📦', exact: false },
+  { href: '/admin/preparation', label: 'Préparation', icon: '📦', exact: false },
+  { href: '/admin/commandes', label: 'Commandes', icon: '🧾', exact: false },
   { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false },
+  { href: '/admin/parametres', label: 'Paramètres', icon: '⚙️', exact: false },
 ]
 
 export function AdminSidebar() {

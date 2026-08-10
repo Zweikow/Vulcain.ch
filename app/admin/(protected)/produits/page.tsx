@@ -13,7 +13,7 @@ export default async function ProduitsPage() {
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+          <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
             Produits
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
