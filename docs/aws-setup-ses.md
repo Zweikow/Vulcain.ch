@@ -94,11 +94,38 @@ c'est le seul délai incompressible de la mise en place.
 En attendant, vérifier une ou deux adresses de test (_Identities_ → Create
 identity → Email address) pour pouvoir essayer de bout en bout.
 
-## 3. Créer l'utilisateur d'envoi (dev uniquement)
+## 3. Donner à l'application de quoi s'authentifier (dev uniquement)
 
-En production, l'application utilisera le **rôle IAM d'exécution** et aucune clé
-ne traînera. Pour le développement local, il faut en revanche une clé — à limiter
-au strict nécessaire, jamais l'utilisateur administrateur :
+En production, l'application utilise le **rôle IAM d'exécution** : aucune clé
+n'existe nulle part. La question ne se pose donc que pour le poste de dev.
+
+### Option recommandée : identifiants temporaires via Identity Center
+
+Pas de secret sur le disque, et c'est la pratique courante en entreprise.
+
+```bash
+winget install -e --id Amazon.AWSCLI
+aws configure sso --profile vulcain    # URL du portail, région eu-central-2
+```
+
+Puis, dans `.env`, une seule ligne remplace les clés :
+
+```
+AWS_PROFILE="vulcain"
+```
+
+Le SDK lit les identifiants temporaires du cache SSO. À l'expiration (8 à 12 h),
+`aws sso login --profile vulcain` renouvelle la session par le navigateur.
+
+Réserve : l'ensemble d'autorisations `AdministratorAccess` donne à l'application
+locale plus de droits que nécessaire. Un ensemble dédié limité à SES serait plus
+rigoureux si le projet se durcit.
+
+### Option rapide : utilisateur IAM et clé statique
+
+Défendable ici — la politique est limitée à `ses:SendEmail` sur une seule région
+et `.env` est ignoré par git — mais la clé est longue durée : **la supprimer une
+fois le déploiement en place**, elle ne sert alors plus à rien.
 
 IAM → Users → Create user (`vulcain-ses-dev`) → attacher une politique en ligne :
 
