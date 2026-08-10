@@ -1,0 +1,69 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { ClientType } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
+import { getSettings } from '@/lib/settings'
+import { proUnitPriceCents, shippingCentsFor, vatIncludedCents } from '@/lib/money'
+
+/**
+ * Bascule privé / professionnel depuis la facture — un rattrapage, pas le mode
+ * nominal (DESIGN.md §2). Les lignes sont recalculées depuis le prix public figé
+ * à la commande, jamais depuis le prix appliqué : rebasculer deux fois retombe
+ * exactement sur les montants d'origine.
+ *
+ * Le statut est aussi porté sur la fiche client, puisque le tarif pro lui
+ * appartient et doit se réappliquer aux commandes suivantes.
+ */
+export async function toggleClientType(orderId: string) {
+  const session = await auth()
+  if (!session) return
+
+  const settings = await getSettings()
+
+  await prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    })
+    if (!order) return
+
+    const isPro = order.clientType !== ClientType.PRO
+
+    let subtotalCents = 0
+    let discountCents = 0
+    for (const item of order.items) {
+      const unitPriceCents = isPro
+        ? proUnitPriceCents(item.listPriceCents, settings.proRatePercent)
+        : item.listPriceCents
+      subtotalCents += unitPriceCents * item.quantity
+      discountCents += (item.listPriceCents - unitPriceCents) * item.quantity
+      await tx.orderItem.update({ where: { id: item.id }, data: { unitPriceCents } })
+    }
+
+    const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
+    const totalCents = subtotalCents + shippingCents
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: {
+        clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
+        subtotalCents,
+        discountCents,
+        shippingCents,
+        totalCents,
+        vatCents: vatIncludedCents(totalCents, settings.vatRatePermille),
+      },
+    })
+
+    if (order.customerId) {
+      await tx.customer.update({ where: { id: order.customerId }, data: { isPro } })
+    }
+  })
+
+  revalidatePath(`/admin/commandes/${orderId}/facture`)
+  revalidatePath(`/admin/commandes/${orderId}`)
+  revalidatePath('/admin/preparation')
+  revalidatePath('/admin')
+}

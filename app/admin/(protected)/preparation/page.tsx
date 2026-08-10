@@ -125,8 +125,11 @@ export default async function PreparationPage() {
                 )}
 
                 <div className="mt-4 flex justify-end gap-2">
-                  <Link href={`/admin/commandes/${order.id}`} className="btn-secondary text-sm">
-                    Voir le détail
+                  <Link
+                    href={`/admin/commandes/${order.id}/facture`}
+                    className="btn-secondary text-sm"
+                  >
+                    Voir la facture
                   </Link>
                   <form action={advanceStatus.bind(null, order.id)}>
                     <button className="btn-primary text-sm">{NEXT_ACTION[order.status]}</button>

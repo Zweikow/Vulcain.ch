@@ -56,7 +56,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             )}
           </p>
         </div>
-        <PrintButton />
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/commandes/${order.id}/facture`} className="btn-primary text-sm">
+            Voir la facture
+          </Link>
+          <PrintButton />
+        </div>
       </div>
 
       {/* Statut */}

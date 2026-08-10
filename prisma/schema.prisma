@@ -137,12 +137,19 @@ model Setting {
   francoCents     Int    @default(12000) // seuil de livraison offerte (bandeau actuel : 120 CHF)
   prepDays        Int    @default(3) // jours de préparation annoncés
   companyName     String @default("Cidrerie du Vulcain")
-  companyAddress  String @default("Chemin du Vulcain, Aubonne, Suisse")
+  companyAddress  String @default("Ch. des Moilles 16")
   contactEmail    String @default("commandes@cidrerie-vulcain.ch")
   contactPhone    String @default("")
   vatNumber       String @default("") // ex. CHE-123.456.789 TVA
   vatRatePermille Int    @default(81) // TVA 8.1% incluse dans les prix affichés
-  iban            String @default("")
+  iban            String @default("CH57 0900 0000 1703 3189 6")
+  // En-tête et pied de la facture papier (modèle Facture_Base.docx)
+  contactName      String @default("Bertrand Baeriswyl") // signataire de la facture
+  companyTagline   String @default("Distribution Cidrerie du Vulcain CH")
+  companyZipCity   String @default("1619 Les Paccots")
+  invoicePlace     String @default("Les Paccots") // « Les Paccots, le … »
+  bankName         String @default("PostFinance AG")
+  paymentTermsDays Int    @default(30) // « Facture payable à 30 jours net »
 }
 
 // Compteur de numérotation par année — incrément atomique en transaction.

@@ -89,7 +89,53 @@ export default async function ParametresPage() {
           <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
             Facturation
           </h2>
+          <p className="mt-1 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+            Ces informations composent l&apos;en-tête et le pied de la facture imprimée.
+          </p>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Nom du signataire
+              <input name="contactName" defaultValue={s.contactName} className="input-field mt-1" />
+            </label>
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Ligne d&apos;activité
+              <input
+                name="companyTagline"
+                defaultValue={s.companyTagline}
+                className="input-field mt-1"
+              />
+            </label>
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              NPA et localité
+              <input
+                name="companyZipCity"
+                defaultValue={s.companyZipCity}
+                className="input-field mt-1"
+              />
+            </label>
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Lieu d&apos;émission
+              <input
+                name="invoicePlace"
+                defaultValue={s.invoicePlace}
+                className="input-field mt-1"
+              />
+            </label>
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Banque
+              <input name="bankName" defaultValue={s.bankName} className="input-field mt-1" />
+            </label>
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Délai de paiement (jours)
+              <input
+                name="paymentTermsDays"
+                type="number"
+                min={0}
+                max={180}
+                defaultValue={s.paymentTermsDays}
+                className="input-field mt-1 tabular"
+              />
+            </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Raison sociale
               <input name="companyName" defaultValue={s.companyName} className="input-field mt-1" />

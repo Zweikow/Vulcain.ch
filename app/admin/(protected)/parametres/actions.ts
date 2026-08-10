@@ -17,6 +17,13 @@ const settingsSchema = z.object({
   vatNumber: z.string().max(50),
   vatRatePermille: z.coerce.number().int().min(0).max(999),
   iban: z.string().max(40),
+  // En-tête et pied de la facture papier
+  contactName: z.string().max(120),
+  companyTagline: z.string().max(200),
+  companyZipCity: z.string().max(120),
+  invoicePlace: z.string().max(120),
+  bankName: z.string().max(120),
+  paymentTermsDays: z.coerce.number().int().min(0).max(180),
 })
 
 export async function saveSettings(formData: FormData) {

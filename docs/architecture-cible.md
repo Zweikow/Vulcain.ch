@@ -94,7 +94,30 @@ cache que du statique sans donnée personnelle. Le calcul (Lambda) se place en
 7. Plus tard, si envie : Cognito pour l'auth admin (NextAuth credentials fait
    le travail d'ici là).
 
-## 4. Décisions notables (rappel)
+## 4. QR-facture suisse (prochaine étape sur la facture)
+
+La facture réserve déjà un carré de 104 px en bas à droite. Passer à la vraie
+**QR-facture** (norme SIX, obligatoire depuis octobre 2022 pour remplacer les
+bulletins rouges et oranges) demande trois choses :
+
+1. **Le payload Swiss QR Code** — un texte structuré à ~31 lignes : en-tête
+   `SPC/0200/1`, IBAN sans espaces, créancier (adresse structurée ou combinée),
+   montant et devise, débiteur, type de référence (`NON` sans référence, `QRR`
+   avec QR-IBAN et référence structurée), message, `EPD`.
+2. **Le rendu** — QR code version 25, correction d'erreur M, avec la **croix
+   suisse de 7 mm** obligatoire au centre. Une bibliothèque comme `swissqrbill`
+   fait le payload et le dessin en une fois (SVG ou PDF).
+3. **La section paiement** — bloc de 210 × 105 mm en bas de page avec récépissé
+   de 62 mm, polices et tailles imposées. C'est une mise en page à part entière,
+   pas une simple image ajoutée.
+
+Point à trancher avant : l'IBAN actuel (`CH57 0900 …`, PostFinance) est un IBAN
+classique → référence `NON`, le client paie sans numéro de référence. Pour un
+rapprochement automatique des paiements avec le numéro de commande, il faut
+demander un **QR-IBAN** à PostFinance et utiliser une référence `QRR` — c'est ce
+qui permettrait de pointer `CMD-2026-0002` avec le virement reçu.
+
+## 5. Décisions notables (rappel)
 
 - **Montants en `Int` centimes partout** — `lib/money.ts` est l'unique endroit
   qui calcule.

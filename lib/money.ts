@@ -30,6 +30,20 @@ export function formatCHF(cents: number): string {
   return `${sign}CHF ${francs.toLocaleString('fr-CH').replace(/ |\s/g, "'")}.${centimes}`
 }
 
+/**
+ * Format des montants de la facture papier : « 192.-- » quand il n'y a pas de
+ * centimes, « 192.50 » sinon. Convention suisse reprise du modèle de la cidrerie.
+ */
+export function formatInvoiceAmount(cents: number): string {
+  const sign = cents < 0 ? '-' : ''
+  const abs = Math.abs(cents)
+  const francs = Math.floor(abs / 100)
+    .toLocaleString('fr-CH')
+    .replace(/[\s  ]/g, "'")
+  const rest = abs % 100
+  return rest === 0 ? `${sign}${francs}.--` : `${sign}${francs}.${String(rest).padStart(2, '0')}`
+}
+
 /** Saisie admin en CHF (ex. « 24.50 ») → centimes entiers. */
 export function chfInputToCents(value: string | number): number {
   const n = typeof value === 'string' ? Number(value.replace(',', '.')) : value
