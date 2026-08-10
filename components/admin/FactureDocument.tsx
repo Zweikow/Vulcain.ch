@@ -1,11 +1,14 @@
 import Image from 'next/image'
 import { ClientType, OrderStatus } from '@prisma/client'
 import { formatInvoiceAmount } from '@/lib/money'
+import { creditorReference, formatCreditorReference } from '@/lib/reference'
 
 // Le document est du papier : couleurs fixes, indépendantes du thème sombre.
 
 type FactureOrder = {
   numero: string
+  invoiceNumber: string | null
+  invoicedAt: Date | null
   clientType: ClientType
   status: OrderStatus
   clientName: string
@@ -66,8 +69,12 @@ export function FactureDocument({
 }) {
   const isPro = order.clientType === ClientType.PRO
   const emptyRows = Math.max(0, EMPTY_ROWS_MIN - order.items.length)
-  const dueDate = new Date(order.createdAt)
+  // Le délai de paiement court depuis l'émission de la facture, pas depuis la commande.
+  const dueDate = new Date(order.invoicedAt ?? order.createdAt)
   dueDate.setDate(dueDate.getDate() + settings.paymentTermsDays)
+  const paymentRef = order.invoiceNumber
+    ? formatCreditorReference(creditorReference(order.invoiceNumber))
+    : null
 
   const cellBase = 'border border-[#D8DEE6] px-2 py-1.5 align-top'
   const handFill = 'border border-[#D8DEE6] px-2 py-1.5 bg-[#FCFCFA]'
@@ -109,13 +116,21 @@ export function FactureDocument({
         </p>
       </div>
 
-      {/* Titre — le vrai numéro de commande fait référence de bout en bout */}
+      {/* Titre. Sans numéro attribué, le document n'est pas encore une facture :
+          il le dit, pour qu'un brouillon imprimé ne soit pas pris pour l'original. */}
       <div className="mt-8 flex items-baseline justify-between border-b border-[#E2E8EF] pb-2">
-        <h1 className="font-display text-[22px] font-semibold">Facture</h1>
-        <span className="font-mono text-[15px] font-semibold tracking-tight">{order.numero}</span>
+        <h1 className="font-display text-[22px] font-semibold">
+          {order.invoiceNumber ? 'Facture' : 'Projet de facture'}
+        </h1>
+        <span className="font-mono text-[15px] font-semibold tracking-tight">
+          {order.invoiceNumber ?? 'non émise'}
+        </span>
       </div>
 
       <div className="mt-2 flex flex-wrap gap-x-8 gap-y-1 text-[12px] text-[#4A6278]">
+        <span>
+          Votre commande : <span className="font-mono">{order.numero}</span>
+        </span>
         <span>
           Livraison :{' '}
           {order.deliveryDate
@@ -223,6 +238,17 @@ export function FactureDocument({
           <p>
             {settings.contactName} — {settings.invoicePlace}
           </p>
+          {/* Référence créancier ISO 11649 : permet de rapprocher automatiquement
+              le virement reçu de la facture correspondante. */}
+          {paymentRef && (
+            <p className="mt-2">
+              Référence de paiement : <span className="font-mono">{paymentRef}</span>
+              <br />
+              <span className="text-[10px] text-[#7A95A5]">
+                À indiquer lors du virement pour identifier votre paiement.
+              </span>
+            </p>
+          )}
           <p className="mt-3 font-medium">
             Facture payable à {settings.paymentTermsDays} jours net, au {longDate.format(dueDate)}.
           </p>

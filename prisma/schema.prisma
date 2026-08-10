@@ -66,9 +66,13 @@ enum ClientType {
 }
 
 model Order {
-  id             String          @id @default(cuid())
-  numero         String          @unique // CMD-2026-0023 — numérotation via OrderCounter, jamais order.count()
-  status         OrderStatus     @default(A_TRAITER)
+  id     String      @id @default(cuid())
+  numero String      @unique // CMD-2026-0023 — série commande, attribuée à la prise de commande
+  status OrderStatus @default(A_TRAITER)
+  // Série facture, distincte et attribuée seulement à l'émission : une commande
+  // annulée ne doit pas créer de trou dans la numérotation des factures.
+  invoiceNumber String?   @unique // FAC-2026-0007
+  invoicedAt    DateTime?
   clientType     ClientType      @default(PRIVE) // figé au moment de la commande
   customer       Customer?       @relation(fields: [customerId], references: [id])
   customerId     String?
@@ -152,8 +156,14 @@ model Setting {
   paymentTermsDays Int    @default(30) // « Facture payable à 30 jours net »
 }
 
-// Compteur de numérotation par année — incrément atomique en transaction.
-model OrderCounter {
-  year  Int @id
-  value Int @default(0)
+// Compteur de numérotation par série et par année — incrément atomique en
+// transaction. Séries : CMD (commandes), FAC (factures), AV (avoirs, à venir).
+// Une série par année : la remise à zéro annuelle est admise partout, à
+// condition que chaque série reste continue sur l'année.
+model DocumentCounter {
+  series String
+  year   Int
+  value  Int    @default(0)
+
+  @@id([series, year])
 }

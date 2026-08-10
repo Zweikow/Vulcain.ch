@@ -5,6 +5,7 @@ import { getSettings } from '@/lib/settings'
 import { FactureDocument } from '@/components/admin/FactureDocument'
 import { FactureControls } from '@/components/admin/FactureControls'
 import { FactureOrderSelect } from '@/components/admin/FactureOrderSelect'
+import { FactureIssue } from '@/components/admin/FactureIssue'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 
@@ -25,7 +26,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     prisma.order.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
-      select: { id: true, numero: true, clientName: true },
+      select: { id: true, numero: true, invoiceNumber: true, clientName: true },
     }),
   ])
 
@@ -51,6 +52,12 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
         </div>
 
         <FactureOrderSelect currentId={order.id} orders={orders} />
+
+        <FactureIssue
+          orderId={order.id}
+          invoiceNumber={order.invoiceNumber}
+          invoicedAt={order.invoicedAt}
+        />
 
         <StatusSelect orderId={order.id} currentStatus={order.status} />
 

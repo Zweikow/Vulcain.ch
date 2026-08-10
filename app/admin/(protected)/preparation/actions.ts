@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { OrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { issueInvoice } from '@/lib/invoices'
 
 // Flux à trois statuts : À traiter → En préparation → Expédiée (DESIGN.md §3).
 export async function advanceStatus(orderId: string) {
@@ -13,13 +14,18 @@ export async function advanceStatus(orderId: string) {
   const order = await prisma.order.findUnique({ where: { id: orderId } })
   if (!order || order.status === OrderStatus.EXPEDIEE) return
 
+  const shipping = order.status === OrderStatus.EN_PREPARATION
+
   await prisma.order.update({
     where: { id: orderId },
-    data:
-      order.status === OrderStatus.A_TRAITER
-        ? { status: OrderStatus.EN_PREPARATION }
-        : { status: OrderStatus.EXPEDIEE, shippedAt: new Date() },
+    data: shipping
+      ? { status: OrderStatus.EXPEDIEE, shippedAt: new Date() }
+      : { status: OrderStatus.EN_PREPARATION },
   })
+
+  // Aucune commande ne part sans facture : émission automatique si l'exploitant
+  // ne l'a pas déclenchée depuis l'écran facture (idempotent).
+  if (shipping) await issueInvoice(orderId)
   revalidatePath('/admin/preparation')
   revalidatePath('/admin')
 }

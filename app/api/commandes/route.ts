@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma, ClientType, StockMovementReason } from '@prisma/client'
+import { ClientType, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { nextNumber, SERIES } from '@/lib/numbering'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
@@ -130,14 +131,9 @@ export async function POST(request: NextRequest) {
           throw new OrderConflictError(`Stock insuffisant pour ${line.productName}`)
       }
 
-      // Numérotation CMD-AAAA-NNNN — atomique, remplace order.count()
-      const year = new Date().getFullYear()
-      const [counter] = await tx.$queryRaw<{ value: number }[]>(
-        Prisma.sql`INSERT INTO "OrderCounter" ("year", "value") VALUES (${year}, 1)
-                   ON CONFLICT ("year") DO UPDATE SET "value" = "OrderCounter"."value" + 1
-                   RETURNING "value"`
-      )
-      const numero = `CMD-${year}-${String(counter.value).padStart(4, '0')}`
+      // Numérotation CMD-AAAA-NNNN — atomique, remplace order.count().
+      // La facture recevra son propre numéro (série FAC) à son émission.
+      const numero = await nextNumber(tx, SERIES.COMMANDE)
 
       const created = await tx.order.create({
         data: {

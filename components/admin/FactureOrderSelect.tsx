@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 
 interface FactureOrderSelectProps {
   currentId: string
-  orders: { id: string; numero: string; clientName: string }[]
+  orders: { id: string; numero: string; invoiceNumber: string | null; clientName: string }[]
 }
 
 /** Passer d'une facture à l'autre sans revenir en arrière (DESIGN.md §3). */
@@ -27,7 +27,7 @@ export function FactureOrderSelect({ currentId, orders }: FactureOrderSelectProp
       >
         {orders.map((o) => (
           <option key={o.id} value={o.id}>
-            {o.numero} — {o.clientName}
+            {o.invoiceNumber ?? o.numero} — {o.clientName}
           </option>
         ))}
       </select>

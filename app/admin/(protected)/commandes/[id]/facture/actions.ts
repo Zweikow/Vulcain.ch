@@ -5,7 +5,22 @@ import { ClientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { getSettings } from '@/lib/settings'
+import { issueInvoice } from '@/lib/invoices'
 import { proUnitPriceCents, shippingCentsFor, vatIncludedCents } from '@/lib/money'
+
+/**
+ * Émet la facture : lui attribue son numéro de série FAC. Geste volontaire —
+ * une fois émise, la facture est un document comptable dont le numéro est figé.
+ */
+export async function issueInvoiceForOrder(orderId: string) {
+  const session = await auth()
+  if (!session) return
+
+  await issueInvoice(orderId)
+  revalidatePath(`/admin/commandes/${orderId}/facture`)
+  revalidatePath(`/admin/commandes/${orderId}`)
+  revalidatePath('/admin/commandes')
+}
 
 /**
  * Bascule privé / professionnel depuis la facture — un rattrapage, pas le mode

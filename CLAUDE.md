@@ -54,8 +54,18 @@ le back-office Next.js sur mesure (catalogue, commandes, paramètres).
 - **TVA 8.1% incluse** dans les prix affichés, détaillée pour information.
 - **Stock** : borne les quantités côté boutique, décrémenté dans une transaction
   Prisma à la création de commande, tracé (`StockMovement` à ajouter au schéma).
-- **Numérotation `CMD-AAAA-NNNN`** concurrente-sûre (séquence/compteur), jamais
-  `order.count()`.
+- **Numérotation par séries distinctes**, concurrente-sûre via `DocumentCounter`
+  (jamais `order.count()`), remise à zéro chaque année :
+  - `CMD-AAAA-NNNN` — la commande, attribuée à la prise de commande ;
+  - `FAC-AAAA-NNNN` — la facture, attribuée **seulement à son émission**, pour
+    qu'une commande annulée ne laisse pas de trou dans la série comptable ;
+  - `AV-AAAA-NNNN` — les avoirs, série réservée, pas encore implémentée.
+    Un numéro émis est définitif. L'émission est idempotente et se déclenche
+    automatiquement à l'expédition si l'exploitant ne l'a pas faite avant.
+- **Référence de paiement ISO 11649** (« référence RF ») dérivée du numéro de
+  facture, dans `lib/reference.ts` — validée contre l'exemple officiel de la
+  norme. Elle fonctionne avec un IBAN classique ; ne pas la confondre avec la
+  référence QRR, qui exige un QR-IBAN et 27 chiffres.
 - **Un produit cité dans une commande ne se supprime pas** : archivage.
 - **Vente d'alcool** : case « 18 ans révolus » bloquante, mention d'interdiction
   aux mineurs en pied de boutique et sur la facture.
