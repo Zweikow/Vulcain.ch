@@ -1,12 +1,18 @@
 'use client'
 
+import { formatCHF } from '@/lib/money'
+
 interface ConfirmationModalProps {
   orderId: string
-  total: number
+  totalCents: number
   onClose: () => void
 }
 
-export default function ConfirmationModal({ orderId, total, onClose }: ConfirmationModalProps) {
+export default function ConfirmationModal({
+  orderId,
+  totalCents,
+  onClose,
+}: ConfirmationModalProps) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="card p-8 w-full max-w-sm text-center flex flex-col items-center gap-4 shadow-xl">
@@ -47,7 +53,7 @@ export default function ConfirmationModal({ orderId, total, onClose }: Confirmat
           <div className="flex justify-between text-sm">
             <span className="text-text-secondary dark:text-text-secondary-dark">Total</span>
             <span className="font-semibold text-text-primary dark:text-text-primary-dark">
-              CHF {total.toFixed(2)}
+              {formatCHF(totalCents)}
             </span>
           </div>
         </div>

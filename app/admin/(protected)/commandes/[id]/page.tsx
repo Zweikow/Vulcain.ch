@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { formatCHF } from '@/lib/money'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 
@@ -17,8 +18,6 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   })
 
   if (!order) notFound()
-
-  const total = Number(order.total)
 
   return (
     <div className="max-w-2xl">
@@ -86,6 +85,28 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           <dd className="text-text-primary dark:text-text-primary-dark">
             {order.address}, {order.npa} {order.city}
           </dd>
+
+          {order.deliveryDate && (
+            <>
+              <dt className="text-text-secondary dark:text-text-secondary-dark">
+                Livraison souhaitée
+              </dt>
+              <dd className="text-text-primary dark:text-text-primary-dark">
+                {new Date(order.deliveryDate).toLocaleDateString('fr-CH', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </dd>
+            </>
+          )}
+
+          {order.message && (
+            <>
+              <dt className="text-text-secondary dark:text-text-secondary-dark">Message</dt>
+              <dd className="text-text-primary dark:text-text-primary-dark">{order.message}</dd>
+            </>
+          )}
         </dl>
       </div>
 
@@ -126,10 +147,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                   {item.quantity}
                 </td>
                 <td className="px-4 py-3 text-right text-text-secondary dark:text-text-secondary-dark">
-                  CHF {Number(item.unitPrice).toFixed(2)}
+                  {formatCHF(item.unitPriceCents)}
                 </td>
                 <td className="px-4 py-3 text-right font-medium text-text-primary dark:text-text-primary-dark">
-                  CHF {(item.quantity * Number(item.unitPrice)).toFixed(2)}
+                  {formatCHF(item.quantity * item.unitPriceCents)}
                 </td>
               </tr>
             ))}
@@ -138,12 +159,45 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             <tr className="border-t border-border dark:border-border-dark">
               <td
                 colSpan={3}
+                className="px-4 py-2 text-right text-text-secondary dark:text-text-secondary-dark"
+              >
+                Sous-total
+              </td>
+              <td className="px-4 py-2 text-right text-text-primary dark:text-text-primary-dark">
+                {formatCHF(order.subtotalCents)}
+              </td>
+            </tr>
+            <tr>
+              <td
+                colSpan={3}
+                className="px-4 py-2 text-right text-text-secondary dark:text-text-secondary-dark"
+              >
+                Frais de port
+              </td>
+              <td className="px-4 py-2 text-right text-text-primary dark:text-text-primary-dark">
+                {order.shippingCents === 0 ? 'Offerts' : formatCHF(order.shippingCents)}
+              </td>
+            </tr>
+            <tr className="border-t border-border dark:border-border-dark">
+              <td
+                colSpan={3}
                 className="px-4 py-3 text-right font-semibold text-text-primary dark:text-text-primary-dark"
               >
                 Total
               </td>
               <td className="px-4 py-3 text-right font-bold text-text-primary dark:text-text-primary-dark">
-                CHF {total.toFixed(2)}
+                {formatCHF(order.totalCents)}
+              </td>
+            </tr>
+            <tr>
+              <td
+                colSpan={3}
+                className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark"
+              >
+                dont TVA
+              </td>
+              <td className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                {formatCHF(order.vatCents)}
               </td>
             </tr>
           </tfoot>

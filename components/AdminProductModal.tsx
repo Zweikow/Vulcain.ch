@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Product } from '@/types'
+import { chfInputToCents } from '@/lib/money'
 
 interface AdminProductModalProps {
   product?: Product
@@ -10,11 +11,13 @@ interface AdminProductModalProps {
 }
 
 export default function AdminProductModal({ product, onSave, onClose }: AdminProductModalProps) {
+  // La saisie du prix se fait en CHF ; la conversion en centimes se fait à la
+  // frontière, au moment d'enregistrer (chfInputToCents).
   const [form, setForm] = useState({
     name: product?.name ?? '',
     category: product?.category ?? ('Cidre' as Product['category']),
     year: product?.year ?? new Date().getFullYear(),
-    price: product?.price ?? 0,
+    price: product ? product.priceCents / 100 : 0,
     stock: product?.stock ?? 0,
     description: product?.description ?? '',
     image: product?.image ?? '',
@@ -27,7 +30,8 @@ export default function AdminProductModal({ product, onSave, onClose }: AdminPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave({ ...form, id: product?.id })
+    const { price, ...rest } = form
+    onSave({ ...rest, priceCents: chfInputToCents(price), id: product?.id })
   }
 
   return (

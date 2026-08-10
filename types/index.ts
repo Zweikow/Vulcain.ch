@@ -3,7 +3,7 @@ export interface Product {
   name: string
   category: 'Cidre' | 'Eau-de-vie' | 'Liqueur' | 'Cuisine'
   year?: number
-  price: number
+  priceCents: number // centimes entiers — jamais de flottant pour l'argent
   stock: number
   description: string
   image?: string
@@ -13,14 +13,6 @@ export interface Product {
 export interface CartItem {
   product: Product
   quantity: number
-}
-
-export interface Order {
-  id: string
-  items: CartItem[]
-  total: number
-  customer: CustomerInfo
-  createdAt: Date
 }
 
 export interface CustomerInfo {

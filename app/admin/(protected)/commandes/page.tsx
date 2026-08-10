@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { OrderStatus } from '@prisma/client'
 
@@ -34,7 +35,7 @@ export default async function CommandesPage({
         numero: true,
         clientName: true,
         clientEmail: true,
-        total: true,
+        totalCents: true,
         status: true,
         createdAt: true,
       },
@@ -150,7 +151,7 @@ export default async function CommandesPage({
                     {order.clientEmail}
                   </td>
                   <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    CHF {Number(order.total).toFixed(2)}
+                    {formatCHF(order.totalCents)}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />

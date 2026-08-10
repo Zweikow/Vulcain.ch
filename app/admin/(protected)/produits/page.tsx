@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { formatCHF } from '@/lib/money'
 
 export default async function ProduitsPage() {
   const produits = await prisma.product.findMany({
@@ -91,7 +92,7 @@ export default async function ProduitsPage() {
                       {produit.category.name}
                     </td>
                     <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                      CHF {Number(produit.price).toFixed(2)}
+                      {formatCHF(produit.priceCents)}
                     </td>
                     <td className="px-4 py-3">
                       <span

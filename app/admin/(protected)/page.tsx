@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { OrderStatus } from '@prisma/client'
 
@@ -38,36 +39,57 @@ export default async function DashboardPage({
 
   const since = getPeriodStart(periode)
 
-  const [aTraiter, enPreparation, expediee, caResult, recentOrders] = await Promise.all([
-    prisma.order.count({
-      where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
-    }),
-    prisma.order.count({
-      where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
-    }),
-    prisma.order.count({
-      where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
-    }),
-    prisma.order.aggregate({
-      where: { createdAt: { gte: since } },
-      _sum: { total: true },
-    }),
-    prisma.order.findMany({
-      where: { createdAt: { gte: since } },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        numero: true,
-        clientName: true,
-        total: true,
-        status: true,
-        createdAt: true,
-      },
-    }),
-  ])
+  let aTraiter = 0
+  let enPreparation = 0
+  let expediee = 0
+  let caTotalCents = 0
+  let recentOrders: Array<{
+    id: string
+    numero: string
+    clientName: string
+    totalCents: number
+    status: OrderStatus
+    createdAt: Date
+  }> = []
 
-  const caTotal = Number(caResult._sum.total ?? 0)
+  try {
+    const [countATraiter, countEnPreparation, countExpediee, caResult, orders] = await Promise.all([
+      prisma.order.count({
+        where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
+      }),
+      prisma.order.count({
+        where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
+      }),
+      prisma.order.aggregate({
+        where: { createdAt: { gte: since } },
+        _sum: { totalCents: true },
+      }),
+      prisma.order.findMany({
+        where: { createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          numero: true,
+          clientName: true,
+          totalCents: true,
+          status: true,
+          createdAt: true,
+        },
+      }),
+    ])
+
+    aTraiter = countATraiter
+    enPreparation = countEnPreparation
+    expediee = countExpediee
+    caTotalCents = caResult._sum.totalCents ?? 0
+    recentOrders = orders
+  } catch (error) {
+    console.warn('Dashboard data unavailable, using fallback values:', error)
+  }
 
   return (
     <div>
@@ -127,7 +149,7 @@ export default async function DashboardPage({
             Chiffre d&apos;affaires
           </div>
           <div className="text-3xl font-bold text-text-primary dark:text-text-primary-dark">
-            CHF {caTotal.toFixed(2)}
+            {formatCHF(caTotalCents)}
           </div>
         </div>
       </div>
@@ -185,7 +207,7 @@ export default async function DashboardPage({
                     {order.clientName}
                   </td>
                   <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    CHF {Number(order.total).toFixed(2)}
+                    {formatCHF(order.totalCents)}
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />

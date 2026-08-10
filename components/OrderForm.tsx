@@ -3,13 +3,16 @@
 import { useState, useRef, useCallback } from 'react'
 import { CustomerInfo, CartItem } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
+import { shippingCentsFor } from '@/lib/money'
+import { PublicSettings } from '@/lib/settings'
 
 interface OrderFormProps {
   items: CartItem[]
-  onSubmit: (customer: CustomerInfo, orderId: string, total: number) => void
+  settings: PublicSettings
+  onSubmit: (customer: CustomerInfo, orderId: string, totalCents: number) => void
 }
 
-export default function OrderForm({ items, onSubmit }: OrderFormProps) {
+export default function OrderForm({ items, settings, onSubmit }: OrderFormProps) {
   const [form, setForm] = useState<CustomerInfo>({
     firstName: '',
     lastName: '',
@@ -21,7 +24,11 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
     message: '',
     acceptsMarketing: false,
   })
-  const [errors, setErrors] = useState<Partial<Record<keyof CustomerInfo, string>>>({})
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof CustomerInfo | 'ageConfirmed', string>>
+  >({})
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [sending, setSending] = useState(false)
 
   const turnstileToken = useRef<string>('')
 
@@ -29,9 +36,13 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
     turnstileToken.current = token
   }, [])
 
-  const total =
-    items.reduce((sum, item) => sum + item.product.price * item.quantity, 0) +
-    (items.length > 0 ? 10 : 0)
+  // Estimation en centimes — le total qui fait foi est recalculé par le serveur.
+  const subtotalCents = items.reduce(
+    (sum, item) => sum + item.product.priceCents * item.quantity,
+    0
+  )
+  const estimatedTotalCents =
+    subtotalCents + (items.length > 0 ? shippingCentsFor(subtotalCents, false, settings) : 0)
 
   const validate = () => {
     const e: typeof errors = {}
@@ -42,6 +53,7 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
     if (!form.lieu) e.lieu = 'Requis'
     if (!form.deliveryDate) e.deliveryDate = 'Requis'
     if (!form.email) e.email = 'Requis'
+    if (!ageConfirmed) e.ageConfirmed = "La vente d'alcool est réservée aux personnes majeures"
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -54,6 +66,7 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
       return
     }
 
+    // Aucun prix n'est envoyé : le serveur recalcule tout depuis la base.
     const payload = {
       firstName: form.firstName,
       lastName: form.lastName,
@@ -61,29 +74,37 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
       address: form.address,
       npa: form.npa,
       city: form.lieu,
-      total,
+      deliveryDate: form.deliveryDate || undefined,
+      message: form.message || undefined,
+      acceptsMarketing: form.acceptsMarketing,
+      ageConfirmed,
       items: items.map((i) => ({
         productId: i.product.id,
         quantity: i.quantity,
-        unitPrice: i.product.price,
       })),
       turnstileToken: turnstileToken.current,
       website: '', // honeypot field — always empty for real users
     }
 
-    const res = await fetch('/api/commandes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
+    setSending(true)
+    try {
+      const res = await fetch('/api/commandes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-    if (!res.ok) {
-      alert('Une erreur est survenue. Veuillez réessayer.')
-      return
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        alert(data?.error ?? 'Une erreur est survenue. Veuillez réessayer.')
+        return
+      }
+
+      const { orderId, totalCents } = await res.json()
+      onSubmit(form, orderId, totalCents ?? estimatedTotalCents)
+    } finally {
+      setSending(false)
     }
-
-    const { orderId } = await res.json()
-    onSubmit(form, orderId, total)
   }
 
   const update = (field: keyof CustomerInfo, value: string | boolean) => {
@@ -253,6 +274,52 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
         </span>
       </label>
 
+      {/* Confirmation de majorité — obligation légale, case bloquante */}
+      <label className="flex items-start gap-2 cursor-pointer">
+        <div className="relative mt-0.5">
+          <input
+            type="checkbox"
+            className="sr-only"
+            checked={ageConfirmed}
+            onChange={(e) => {
+              setAgeConfirmed(e.target.checked)
+              setErrors((prev) => ({ ...prev, ageConfirmed: undefined }))
+            }}
+          />
+          <div
+            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
+              ageConfirmed
+                ? 'bg-primary border-primary'
+                : errors.ageConfirmed
+                  ? 'border-text-error bg-bg-input dark:bg-bg-input-dark'
+                  : 'border-border dark:border-border-dark bg-bg-input dark:bg-bg-input-dark'
+            }`}
+          >
+            {ageConfirmed && (
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            )}
+          </div>
+        </div>
+        <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
+          Je confirme avoir 18 ans révolus
+        </span>
+      </label>
+      {errors.ageConfirmed && (
+        <span className="text-xs text-text-error -mt-2">{errors.ageConfirmed}</span>
+      )}
+
       {/* Honeypot — invisible pour les humains */}
       <input
         type="text"
@@ -266,8 +333,12 @@ export default function OrderForm({ items, onSubmit }: OrderFormProps) {
       {/* Turnstile invisible */}
       <TurnstileWidget onToken={handleTurnstileToken} />
 
-      <button type="submit" className="btn-primary w-full mt-2">
-        Passer la commande
+      <button
+        type="submit"
+        disabled={sending}
+        className="btn-primary w-full mt-2 disabled:opacity-50"
+      >
+        {sending ? 'Envoi en cours…' : 'Passer la commande'}
       </button>
     </form>
   )

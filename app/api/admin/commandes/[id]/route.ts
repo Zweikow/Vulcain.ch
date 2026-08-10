@@ -25,14 +25,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   if (!order) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
 
-  return NextResponse.json({
-    ...order,
-    total: Number(order.total),
-    items: order.items.map((item) => ({
-      ...item,
-      unitPrice: Number(item.unitPrice),
-    })),
-  })
+  // Montants en centimes entiers — sérialisables tels quels, aucune conversion.
+  return NextResponse.json(order)
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

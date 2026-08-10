@@ -1,17 +1,26 @@
 'use client'
 
 import { CartItem } from '@/types'
+import { formatCHF } from '@/lib/money'
+import { PublicSettings } from '@/lib/settings'
 
 interface CartProps {
   items: CartItem[]
+  settings: PublicSettings
   onCheckout: () => void
 }
 
-export default function Cart({ items, onCheckout }: CartProps) {
+export default function Cart({ items, settings, onCheckout }: CartProps) {
   const hasItems = items.length > 0
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shipping = hasItems ? 10.0 : 0
-  const total = subtotal + shipping
+  // Estimation en centimes — le montant qui fait foi est recalculé par le serveur.
+  const subtotalCents = items.reduce(
+    (sum, item) => sum + item.product.priceCents * item.quantity,
+    0
+  )
+  const shippingCents =
+    hasItems && subtotalCents < settings.francoCents ? settings.shippingCents : 0
+  const totalCents = subtotalCents + shippingCents
+  const missingForFranco = settings.francoCents - subtotalCents
 
   return (
     <div className="card p-4 flex flex-col gap-3">
@@ -35,7 +44,7 @@ export default function Cart({ items, onCheckout }: CartProps) {
                   {item.product.name} ×{item.quantity}
                 </span>
                 <span className="font-medium text-text-primary dark:text-text-primary-dark">
-                  CHF {(item.product.price * item.quantity).toFixed(2)}
+                  {formatCHF(item.product.priceCents * item.quantity)}
                 </span>
               </div>
             ))}
@@ -43,11 +52,16 @@ export default function Cart({ items, onCheckout }: CartProps) {
             <div className="border-t border-border dark:border-border-dark pt-2 flex flex-col gap-1">
               <div className="flex justify-between text-sm text-text-secondary dark:text-text-secondary-dark">
                 <span>Frais de port</span>
-                <span>CHF {shipping.toFixed(2)}</span>
+                <span>{shippingCents === 0 ? 'Offerts' : formatCHF(shippingCents)}</span>
               </div>
+              {missingForFranco > 0 && (
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                  Ajoutez {formatCHF(missingForFranco)} d&apos;articles pour la livraison offerte.
+                </p>
+              )}
               <div className="flex justify-between font-semibold text-text-primary dark:text-text-primary-dark">
                 <span>Total</span>
-                <span>CHF {total.toFixed(2)}</span>
+                <span>{formatCHF(totalCents)}</span>
               </div>
             </div>
           </div>
