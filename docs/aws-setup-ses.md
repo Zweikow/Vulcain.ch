@@ -46,20 +46,31 @@ SES affiche alors les enregistrements à créer dans la zone DNS du domaine, che
 | MX    | `mail`              | `feedback-smtp.eu-central-2.amazonses.com`, priorité 10 |
 | TXT   | `mail`              | `v=spf1 include:amazonses.com ~all`                     |
 
+Ajouter aussi un **DMARC** : TXT sur `_dmarc` →
+`v=DMARC1; p=none; rua=mailto:commandes@cidrerie-vulcain.ch`. Vérifier d'abord
+qu'il n'en existe pas déjà un ; deux enregistrements DMARC s'annulent.
+
 Compter de quelques minutes à quelques heures avant que SES bascule sur
 _Verified_.
 
-Pendant que vous y êtes, deux enregistrements qui améliorent nettement la
-délivrabilité — sans eux, une partie des messages finit en indésirables :
+### Deux pièges à la saisie
 
-- **SPF** : ajouter `include:amazonses.com` à l'enregistrement TXT existant, ou
-  le créer : `v=spf1 include:amazonses.com ~all`
-- **DMARC** : TXT sur `_dmarc.cidrerie-vulcain.ch` →
-  `v=DMARC1; p=none; rua=mailto:commandes@cidrerie-vulcain.ch`
+**Noms relatifs.** Infomaniak attend la partie relative dans le champ « Nom » et
+ajoute le domaine lui-même. Saisir `mail`, pas `mail.cidrerie-vulcain.ch` — sinon
+l'enregistrement créé est `mail.cidrerie-vulcain.ch.cidrerie-vulcain.ch` et la
+vérification échoue sans message clair. Idem pour les `…._domainkey` et `_dmarc`.
 
-Attention : s'il existe déjà un SPF pour la messagerie Infomaniak, il faut
-**compléter la ligne existante**, pas en ajouter une seconde. Deux SPF sur un
-domaine invalident les deux.
+**Priorité du MX.** Le `10` va dans le champ « priorité » dédié, pas collé devant
+le nom d'hôte dans la valeur.
+
+### Le SPF du domaine racine ne doit pas être modifié
+
+Grâce au domaine MAIL FROM personnalisé, l'adresse d'enveloppe est
+`mail.cidrerie-vulcain.ch` : c'est le SPF de ce **sous-domaine** qui est vérifié,
+celui créé ci-dessus. Le SPF de `cidrerie-vulcain.ch`, qui sert à la messagerie
+Infomaniak, reste inchangé — et l'alignement DMARC fonctionne quand même, les
+deux partageant le même domaine organisationnel. Ne pas y toucher évite le
+classique « deux SPF sur un domaine s'invalident mutuellement ».
 
 ## 2. Demander la sortie du bac à sable (~1 jour ouvré)
 
