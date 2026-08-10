@@ -31,16 +31,8 @@ next-env.d.ts
 *.temp
 tsconfig.tsbuildinfo
 
-# Sous-dossiers Next.js
-App-Cidrerie-Vulcain/.next/
-App-Cidrerie-Vulcain/.env.local
-App-Cidrerie-Vulcain/next-env.d.ts
-
 # Claude (worktrees, mémoire, config locale)
 .claude/
-
-# Auto-généré par Next.js
-next-env.d.ts
 
 # Plans et specs internes Claude (non critiques pour l'app)
 docs/superpowers/
