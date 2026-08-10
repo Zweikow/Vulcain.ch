@@ -1,3 +1,7 @@
+// Modèle de données Cidrerie du Vulcain — v2 (règles DESIGN.md).
+// Tous les montants sont en centimes entiers (Int) : jamais de flottant ni de
+// Decimal, ni en base ni côté application. Les calculs vivent dans lib/money.ts.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -22,56 +26,127 @@ model Category {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int         @default(0)
-  stockSeuil  Int         @default(5)
-  active      Boolean     @default(true)
-  imageUrl    String?
-  year        Int?
-  category    Category    @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  orderItems  OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  priceCents     Int // prix public TTC — le prix pro est dérivé du taux Setting, jamais stocké
+  stock          Int             @default(0)
+  stockSeuil     Int             @default(5)
+  active         Boolean         @default(true) // visibilité boutique
+  archived       Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
+  imageUrl       String?
+  year           Int?
+  category       Category        @relation(fields: [categoryId], references: [id])
+  categoryId     String
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+// Le tarif pro appartient au client, pas à la commande (DESIGN.md §2).
+model Customer {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  firstName        String
+  lastName         String
+  phone            String?
+  address          String
+  npa              String
+  city             String
+  isPro            Boolean  @default(false)
+  acceptsMarketing Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  orders           Order[]
+}
+
+enum ClientType {
+  PRIVE
+  PRO
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  numero      String      @unique
-  status      OrderStatus @default(A_TRAITER)
-  clientName  String
-  clientEmail String
-  clientPhone String?
-  address     String
-  npa         String
-  city        String
-  total       Decimal  @db.Decimal(10, 2)
-  shippedAt   DateTime?
-  items       OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id             String          @id @default(cuid())
+  numero         String          @unique // CMD-2026-0023 — numérotation via OrderCounter, jamais order.count()
+  status         OrderStatus     @default(A_TRAITER)
+  clientType     ClientType      @default(PRIVE) // figé au moment de la commande
+  customer       Customer?       @relation(fields: [customerId], references: [id])
+  customerId     String?
+  // Instantané des coordonnées : la commande reste lisible même si la fiche client change
+  clientName     String
+  clientEmail    String
+  clientPhone    String?
+  address        String
+  npa            String
+  city           String
+  subtotalCents  Int // somme des lignes au prix appliqué
+  discountCents  Int             @default(0) // remise pro totale, pour affichage
+  shippingCents  Int             @default(0) // port facturé, figé au moment de la commande
+  totalCents     Int
+  vatCents       Int             @default(0) // TVA incluse, informative
+  deliveryDate   DateTime?
+  message        String?
+  shippedAt      DateTime?
+  items          OrderItem[]
+  stockMovements StockMovement[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId   String
-  product   Product @relation(fields: [productId], references: [id])
-  productId String
-  quantity  Int
-  unitPrice Decimal  @db.Decimal(10, 2)
-}
-
-model Setting {
-  key   String @id
-  value String
+  id             String  @id @default(cuid())
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId        String
+  product        Product @relation(fields: [productId], references: [id])
+  productId      String
+  productName    String  @default("") // instantané : la facture ne change pas si le produit change
+  listPriceCents Int // prix public au moment de la commande
+  unitPriceCents Int // prix appliqué (public ou pro)
+  quantity       Int
 }
 
 enum OrderStatus {
   A_TRAITER
   EN_PREPARATION
   EXPEDIEE
+}
+
+enum StockMovementReason {
+  COMMANDE
+  AJUSTEMENT
+  REASSORT
+}
+
+model StockMovement {
+  id        String              @id @default(cuid())
+  product   Product             @relation(fields: [productId], references: [id])
+  productId String
+  order     Order?              @relation(fields: [orderId], references: [id])
+  orderId   String?
+  delta     Int // négatif pour une sortie
+  reason    StockMovementReason
+  createdAt DateTime            @default(now())
+}
+
+// Réglages globaux — une seule ligne (id = 1). Port, franco et taux pro sont
+// TOUJOURS lus ici, jamais codés en dur (bug historique : 10 CHF dans Cart.tsx).
+model Setting {
+  id              Int    @id @default(1)
+  proRatePercent  Int    @default(20) // remise pro en % entier, appliquée à tout le catalogue
+  shippingCents   Int    @default(1000) // port standard
+  francoCents     Int    @default(12000) // seuil de livraison offerte (bandeau actuel : 120 CHF)
+  prepDays        Int    @default(3) // jours de préparation annoncés
+  companyName     String @default("Cidrerie du Vulcain")
+  companyAddress  String @default("Chemin du Vulcain, Aubonne, Suisse")
+  contactEmail    String @default("commandes@cidrerie-vulcain.ch")
+  contactPhone    String @default("")
+  vatNumber       String @default("") // ex. CHE-123.456.789 TVA
+  vatRatePermille Int    @default(81) // TVA 8.1% incluse dans les prix affichés
+  iban            String @default("")
+}
+
+// Compteur de numérotation par année — incrément atomique en transaction.
+model OrderCounter {
+  year  Int @id
+  value Int @default(0)
 }
