@@ -24,13 +24,30 @@ _Identities_ → **Create identity** :
 
 - Type : **Domain**
 - Domaine : `cidrerie-vulcain.ch`
+- **Domaine MAIL FROM personnalisé** : saisir `mail`, soit
+  `mail.cidrerie-vulcain.ch`. Sans lui, l'adresse d'enveloppe reste un
+  sous-domaine d'`amazonses.com` et seul DKIM s'aligne avec DMARC ; avec lui,
+  SPF et DKIM s'alignent tous les deux, ce qui pèse lourd chez Gmail et Outlook.
+  Le MX ajouté porte sur le **sous-domaine** : la messagerie Infomaniak de
+  `cidrerie-vulcain.ch` n'est pas touchée.
+- Comportement en cas d'échec MX : **Utiliser le domaine MAIL FROM par défaut**.
+  Un incident DNS fait alors basculer SES sur son propre domaine au lieu de
+  refuser l'envoi — un problème d'email ne doit jamais bloquer une commande.
 - **Easy DKIM**, longueur de clé RSA 2048
 - Laisser _Publish DNS records to Route 53_ décoché (le domaine est chez
   Infomaniak)
 
-SES affiche alors **trois enregistrements CNAME**. Il faut les créer dans la zone
-DNS du domaine, chez **Infomaniak** (Manager → Domaine → Zone DNS). Compter de
-quelques minutes à quelques heures avant que SES bascule sur _Verified_.
+SES affiche alors les enregistrements à créer dans la zone DNS du domaine, chez
+**Infomaniak** (Manager → Domaine → Zone DNS) :
+
+| Type  | Nom                 | Valeur                                                  |
+| ----- | ------------------- | ------------------------------------------------------- |
+| CNAME | `…._domainkey` (×3) | `….dkim.amazonses.com` — signature DKIM                 |
+| MX    | `mail`              | `feedback-smtp.eu-central-2.amazonses.com`, priorité 10 |
+| TXT   | `mail`              | `v=spf1 include:amazonses.com ~all`                     |
+
+Compter de quelques minutes à quelques heures avant que SES bascule sur
+_Verified_.
 
 Pendant que vous y êtes, deux enregistrements qui améliorent nettement la
 délivrabilité — sans eux, une partie des messages finit en indésirables :
