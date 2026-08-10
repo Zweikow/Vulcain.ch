@@ -42,18 +42,16 @@ le back-office Next.js sur mesure (catalogue, commandes, paramètres).
 
 ## Règles métier (source : docs/DESIGN.md — s'appliquent à tout nouveau code)
 
-- **Montants en centimes entiers** pour tout calcul. Le schéma actuel est en
-  `Decimal(10,2)` ; aucun calcul flottant côté application, migration vers des
-  centimes `Int` prévue.
+- **Montants en centimes entiers** (`Int`) partout, base comprise. Aucun flottant
+  ne transporte un montant ; `lib/money.ts` est le seul endroit qui calcule.
 - **Le total est recalculé côté serveur** : prix depuis la base, tarif pro depuis
-  la fiche client, port depuis `Setting`. Jamais de montant en dur (les 10 CHF
-  dans `Cart.tsx` / `OrderForm.tsx` sont un bug connu à résorber).
+  la fiche client, port depuis `Setting`. Le client n'envoie aucun prix.
 - **Le prix pro est dérivé** d'un taux unique dans `Setting`, jamais saisi ni
   stocké par produit. Le tarif pro appartient au client, pas à la commande.
 - **Port offert** aux professionnels et dès le seuil de franco (paramétrable).
 - **TVA 8.1% incluse** dans les prix affichés, détaillée pour information.
-- **Stock** : borne les quantités côté boutique, décrémenté dans une transaction
-  Prisma à la création de commande, tracé (`StockMovement` à ajouter au schéma).
+- **Stock** : borne les quantités côté boutique, décrémenté dans la transaction
+  Prisma de création de commande, tracé par `StockMovement`.
 - **Numérotation par séries distinctes**, concurrente-sûre via `DocumentCounter`
   (jamais `order.count()`), remise à zéro chaque année :
   - `CMD-AAAA-NNNN` — la commande, attribuée à la prise de commande ;
