@@ -138,7 +138,19 @@ d'environnement : la cidrerie peut la changer elle-même.
 - [ ] Couper `MAIL_FROM` et confirmer qu'une commande passe toujours : un email
       qui ne part pas ne doit jamais faire échouer une commande
 
-## Coût
+## Coût et plan tarifaire
 
-Environ **0.10 USD pour 1000 emails**, plus 0.12 USD par Go de pièces jointes.
-À quelques dizaines de messages par mois, la facture est négligeable.
+Choisir le plan **Essentials** : c'est le seul sans abonnement mensuel (Pro et
+Enterprise facturent 105 et 500 USD par région et par mois pour des fonctions
+inutiles ici). Il revient à **0.16 USD les 1000 emails** et inclut le
+gestionnaire virtuel de diffusion, qui signale si les messages partent en
+indésirables. L'option « à la carte » est à peine moins chère (0.10 USD les 1000) et n'apporte pas ce suivi : l'écart se compte en millièmes de dollar au
+volume de la cidrerie.
+
+Passer les étapes facultatives, en particulier le **pool d'adresses IP dédiées**.
+Une IP dédiée doit être chauffée par plusieurs milliers d'envois quotidiens pour
+bâtir sa réputation ; à quelques dizaines de messages par mois elle dégraderait
+la délivrabilité, là où les IP partagées de SES sont déjà bien établies.
+
+À ce volume, la facture SES restera sous le dollar — l'essentiel du coût AWS du
+projet vient de RDS.
