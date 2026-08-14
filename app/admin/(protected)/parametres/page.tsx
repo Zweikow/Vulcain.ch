@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { requireAdmin } from '@/lib/guards'
 import { PasswordChange } from '@/components/admin/PasswordChange'
+import { NumberField } from '@/components/admin/NumberField'
 import { saveSettings } from './actions'
 
 const EXAMPLE_PRICE_CENTS = 2400
@@ -38,9 +39,9 @@ export default async function ParametresPage() {
           </h2>
           <label className="mt-4 block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
             Remise pro (% du prix public)
-            <input
+            <NumberField
               name="proRatePercent"
-              type="number"
+
               min={0}
               max={90}
               defaultValue={s.proRatePercent}
@@ -61,9 +62,9 @@ export default async function ParametresPage() {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Port (centimes)
-              <input
+              <NumberField
                 name="shippingCents"
-                type="number"
+
                 min={0}
                 defaultValue={s.shippingCents}
                 className="input-field mt-1 tabular"
@@ -71,9 +72,9 @@ export default async function ParametresPage() {
             </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Franco dès (centimes)
-              <input
+              <NumberField
                 name="francoCents"
-                type="number"
+
                 min={0}
                 defaultValue={s.francoCents}
                 className="input-field mt-1 tabular"
@@ -81,9 +82,9 @@ export default async function ParametresPage() {
             </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Jours de préparation
-              <input
+              <NumberField
                 name="prepDays"
-                type="number"
+
                 min={0}
                 defaultValue={s.prepDays}
                 className="input-field mt-1 tabular"
@@ -139,9 +140,9 @@ export default async function ParametresPage() {
             </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Délai de paiement (jours)
-              <input
+              <NumberField
                 name="paymentTermsDays"
-                type="number"
+
                 min={0}
                 max={180}
                 defaultValue={s.paymentTermsDays}
@@ -179,9 +180,9 @@ export default async function ParametresPage() {
             </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Taux de TVA (pour-mille, 81 = 8.1%)
-              <input
+              <NumberField
                 name="vatRatePermille"
-                type="number"
+
                 min={0}
                 max={999}
                 defaultValue={s.vatRatePermille}

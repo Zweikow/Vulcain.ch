@@ -47,8 +47,10 @@ export default function AdminProductModal({
     categoryId: product?.categoryId ?? categories[0]?.id ?? '',
     year: product?.year ? String(product.year) : '',
     priceChf: product ? String(product.priceCents / 100) : '',
-    stock: product?.stock ?? 0,
-    stockSeuil: product?.stockSeuil ?? 5,
+    // Chaînes et non nombres : un champ vide reste vide, au lieu d'afficher un
+    // zéro devant lequel la saisie viendrait s'ajouter (« 01500 »).
+    stock: product ? String(product.stock) : '',
+    stockSeuil: product ? String(product.stockSeuil) : '5',
     description: product?.description ?? '',
     imageUrl: product?.imageUrl ?? '',
     active: product?.active ?? true,
@@ -157,6 +159,7 @@ export default function AdminProductModal({
                 className="input-field tabular"
                 placeholder="2026"
                 value={form.year}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => update('year', e.target.value)}
               />
             </div>
@@ -171,6 +174,7 @@ export default function AdminProductModal({
                 className="input-field tabular"
                 placeholder="24.00"
                 value={form.priceChf}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => update('priceChf', e.target.value)}
                 required
               />
@@ -201,7 +205,8 @@ export default function AdminProductModal({
                 min="0"
                 className="input-field tabular"
                 value={form.stock}
-                onChange={(e) => update('stock', Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => update('stock', e.target.value)}
                 required
               />
             </div>
@@ -214,7 +219,8 @@ export default function AdminProductModal({
                 min="0"
                 className="input-field tabular"
                 value={form.stockSeuil}
-                onChange={(e) => update('stockSeuil', Number(e.target.value))}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => update('stockSeuil', e.target.value)}
                 required
               />
             </div>

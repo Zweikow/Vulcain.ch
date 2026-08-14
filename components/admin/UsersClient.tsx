@@ -99,7 +99,7 @@ export function UsersClient({
               Nom d&apos;utilisateur
               <input
                 className="input-field mt-1 font-mono"
-                placeholder="papa"
+                placeholder="username"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase() })}
               />
@@ -108,7 +108,7 @@ export function UsersClient({
               Nom affiché
               <input
                 className="input-field mt-1"
-                placeholder="Bertrand Baeriswyl"
+                placeholder="Prénom Nom"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
