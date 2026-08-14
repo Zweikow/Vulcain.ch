@@ -19,6 +19,10 @@ const ACTION_TONE: Record<string, string> = {
   TARIF_BASCULE: 'bg-accent-mauve-dark text-white',
   COMMANDE_ANNULEE: 'bg-[#FDF2F2] text-[#C62828]',
   COMMANDE_SUPPRIMEE: 'bg-[#FDF2F2] text-[#C62828]',
+  PRIX_MODIFIE: 'bg-[#E3F2FD] text-[#1565C0]',
+  STOCK_AJUSTE: 'bg-[#F3E5F5] text-[#7B1FA2]',
+  PRODUIT_CREE: 'bg-[#E8F5E9] text-[#2E7D32]',
+  PRODUIT_ARCHIVE: 'bg-[#FDF2F2] text-[#C62828]',
 }
 
 export default async function JournalPage() {
@@ -36,8 +40,8 @@ export default async function JournalPage() {
           Journal d&apos;activité
         </h1>
         <p className="mt-1 text-sm text-text-secondary dark:text-text-secondary-dark">
-          Qui a fait quoi sur les commandes. Visible par les administrateurs seulement ·{' '}
-          {entries.length} dernière{entries.length > 1 ? 's' : ''} entrée
+          Qui a fait quoi sur les commandes et le catalogue. Visible par les administrateurs
+          seulement · {entries.length} dernière{entries.length > 1 ? 's' : ''} entrée
           {entries.length > 1 ? 's' : ''}
         </p>
       </div>
@@ -55,7 +59,7 @@ export default async function JournalPage() {
                   <th className="px-4 py-3 font-semibold">Quand</th>
                   <th className="px-4 py-3 font-semibold">Qui</th>
                   <th className="px-4 py-3 font-semibold">Action</th>
-                  <th className="px-4 py-3 font-semibold">Commande</th>
+                  <th className="px-4 py-3 font-semibold">Cible</th>
                   <th className="px-4 py-3 font-semibold">Détail</th>
                 </tr>
               </thead>
@@ -81,19 +85,25 @@ export default async function JournalPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">
-                      {e.orderId ? (
-                        <Link
-                          href={`/admin/commandes/${e.orderId}`}
-                          className="text-text-primary hover:underline dark:text-text-primary-dark"
-                        >
-                          {e.orderNumero}
-                        </Link>
+                      {e.targetType === 'COMMANDE' ? (
+                        e.targetId ? (
+                          <Link
+                            href={`/admin/commandes/${e.targetId}`}
+                            className="text-text-primary hover:underline dark:text-text-primary-dark"
+                          >
+                            {e.targetLabel}
+                          </Link>
+                        ) : (
+                          <span
+                            className="text-text-tertiary line-through dark:text-text-tertiary-dark"
+                            title="Commande supprimée"
+                          >
+                            {e.targetLabel}
+                          </span>
+                        )
                       ) : (
-                        <span
-                          className="text-text-tertiary line-through dark:text-text-tertiary-dark"
-                          title="Commande supprimée"
-                        >
-                          {e.orderNumero}
+                        <span className="text-text-primary dark:text-text-primary-dark">
+                          {e.targetLabel}
                         </span>
                       )}
                     </td>

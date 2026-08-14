@@ -37,7 +37,7 @@ export async function cancelOrderAction(
   if (order) {
     await recordAudit(
       AuditAction.COMMANDE_ANNULEE,
-      { id: orderId, numero: order.numero },
+      { type: 'COMMANDE', id: orderId, label: order.numero },
       reason.trim() || undefined
     )
   }
@@ -69,7 +69,11 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
   if (!result.ok) return { error: result.error }
 
   if (order) {
-    await recordAudit(AuditAction.COMMANDE_SUPPRIMEE, { id: null, numero: order.numero })
+    await recordAudit(AuditAction.COMMANDE_SUPPRIMEE, {
+      type: 'COMMANDE',
+      id: null,
+      label: order.numero,
+    })
   }
 
   revalidate()

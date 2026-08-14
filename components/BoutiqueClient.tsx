@@ -153,12 +153,32 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
 
       {/* Pied de page sombre avec mention légale (DESIGN.md §4) */}
       <footer className="mt-8 bg-bg-header dark:bg-bg-header-dark px-4 py-8 text-sm text-white/80">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <p className="font-display font-semibold text-base text-white">Cidrerie du Vulcain</p>
-            <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain — Aubonne, Suisse</p>
+            <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain</p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+              <a
+                href="/cgv"
+                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
+              >
+                Conditions de vente
+              </a>
+              <a
+                href="/mentions-legales"
+                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
+              >
+                Mentions légales
+              </a>
+              <a
+                href="/confidentialite"
+                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
+              >
+                Protection des données
+              </a>
+            </div>
           </div>
-          <p className="rounded-md bg-[#FDF2F2] px-4 py-2 text-xs font-medium text-[#C62828]">
+          <p className="rounded-md bg-[#FDF2F2] px-4 py-2 text-xs font-medium text-[#C62828] self-start md:self-center">
             La vente d&apos;alcool est interdite aux mineurs.
           </p>
         </div>

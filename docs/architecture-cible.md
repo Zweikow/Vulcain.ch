@@ -126,3 +126,9 @@ qui permettrait de pointer `CMD-2026-0002` avec le virement reçu.
 - **Statut pro lu en base uniquement** (`Customer.isPro`) : infalsifiable depuis
   le navigateur.
 - **Snapshots sur `OrderItem`** : une facture passée ne change jamais.
+- **Micro-services gratuits (SaaS) plutôt que AWS natif** : Le choix a été fait
+  d'utiliser **Cloudflare Turnstile** pour le CAPTCHA et **Upstash Redis** pour
+  le Rate Limiting, plutôt qu'une solution 100% AWS (AWS WAF / ElastiCache). Cela
+  permet de bénéficier de la philosophie _Best-in-class Serverless_ et de garder
+  les coûts proches de zéro pour ces briques, contrairement aux solutions AWS qui
+  auraient généré des frais fixes inadaptés au trafic de la cidrerie.

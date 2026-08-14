@@ -31,14 +31,18 @@ export async function advanceStatus(orderId: string) {
   // ensuite, pour qu'il porte le numéro de facture et sa référence de paiement.
   await recordAudit(
     AuditAction.STATUT_MODIFIE,
-    order,
+    { type: 'COMMANDE', id: order.id, label: order.numero },
     shipping ? 'En préparation → Expédiée' : 'À traiter → En préparation'
   )
 
   if (shipping) {
     const invoiceNumber = await issueInvoice(orderId)
     if (invoiceNumber && !order.invoiceNumber) {
-      await recordAudit(AuditAction.FACTURE_EMISE, order, invoiceNumber)
+      await recordAudit(
+        AuditAction.FACTURE_EMISE,
+        { type: 'COMMANDE', id: order.id, label: order.numero },
+        invoiceNumber
+      )
     }
     await notifyOrderShipped(orderId)
   }

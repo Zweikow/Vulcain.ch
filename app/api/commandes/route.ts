@@ -172,7 +172,11 @@ export async function POST(request: NextRequest) {
       return created
     })
 
-    await recordCustomerAudit(AuditAction.COMMANDE_CREEE, order, formatCHF(order.totalCents))
+    await recordCustomerAudit(
+      AuditAction.COMMANDE_CREEE,
+      { type: 'COMMANDE', id: order.id, label: order.numero },
+      formatCHF(order.totalCents)
+    )
 
     // Confirmation au client et notification à la cidrerie. N'échoue jamais :
     // la commande est déjà enregistrée, elle ne doit pas être perdue si SES

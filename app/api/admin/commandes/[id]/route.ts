@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   await recordAudit(
     AuditAction.STATUT_MODIFIE,
-    { id, numero: order.numero },
+    { type: 'COMMANDE', id, label: order.numero },
     STATUS_LABELS[newStatus]
   )
 
@@ -88,7 +88,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (newStatus === OrderStatus.EXPEDIEE) {
     const invoiceNumber = await issueInvoice(id)
     if (invoiceNumber) {
-      await recordAudit(AuditAction.FACTURE_EMISE, { id, numero: order.numero }, invoiceNumber)
+      await recordAudit(
+        AuditAction.FACTURE_EMISE,
+        { type: 'COMMANDE', id, label: order.numero },
+        invoiceNumber
+      )
     }
     await notifyOrderShipped(id)
   }

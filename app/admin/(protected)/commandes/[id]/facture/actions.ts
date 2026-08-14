@@ -24,7 +24,11 @@ export async function issueInvoiceForOrder(orderId: string) {
   })
   const invoiceNumber = await issueInvoice(orderId)
   if (order && invoiceNumber && !order.invoiceNumber) {
-    await recordAudit(AuditAction.FACTURE_EMISE, { id: orderId, ...order }, invoiceNumber)
+    await recordAudit(
+      AuditAction.FACTURE_EMISE,
+      { type: 'COMMANDE', id: orderId, label: order.numero },
+      invoiceNumber
+    )
   }
 
   revalidatePath(`/admin/commandes/${orderId}/facture`)
@@ -94,7 +98,7 @@ export async function toggleClientType(orderId: string) {
   if (after) {
     await recordAudit(
       AuditAction.TARIF_BASCULE,
-      { id: orderId, numero: after.numero },
+      { type: 'COMMANDE', id: orderId, label: after.numero },
       after.clientType === ClientType.PRO
         ? 'Particulier → Professionnel'
         : 'Professionnel → Particulier'

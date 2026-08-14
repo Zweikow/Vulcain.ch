@@ -1,9 +1,9 @@
-import { AuditAction, Prisma } from '@prisma/client'
+import { AuditAction, AuditTargetType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { currentUser } from '@/lib/guards'
 
 /**
- * Journal d'activité des commandes. Enregistrer ne doit jamais faire échouer
+ * Journal d'activité. Enregistrer ne doit jamais faire échouer
  * l'opération journalisée : une préparation qui se déroule bien ne peut pas
  * être annulée parce que la trace n'a pas pu s'écrire.
  *
@@ -12,7 +12,7 @@ import { currentUser } from '@/lib/guards'
  */
 export async function recordAudit(
   action: AuditAction,
-  order: { id?: string | null; numero: string },
+  target: { type: AuditTargetType; id?: string | null; label: string },
   detail?: string,
   client?: Prisma.TransactionClient
 ): Promise<void> {
@@ -21,37 +21,39 @@ export async function recordAudit(
     await (client ?? prisma).auditLog.create({
       data: {
         action,
-        orderNumero: order.numero,
-        orderId: order.id ?? null,
+        targetType: target.type,
+        targetLabel: target.label,
+        targetId: target.id ?? null,
         detail: detail ?? null,
         userId: user?.id ?? null,
         actorLabel: user?.name || 'Client (boutique)',
       },
     })
   } catch (error) {
-    console.error('Écriture du journal impossible', { action, numero: order.numero, error })
+    console.error('Écriture du journal impossible', { action, target, error })
   }
 }
 
 /** Enregistrement sans session : la commande passée par le client sur la boutique. */
 export async function recordCustomerAudit(
   action: AuditAction,
-  order: { id: string; numero: string },
+  target: { type: AuditTargetType; id: string; label: string },
   detail?: string
 ): Promise<void> {
   try {
     await prisma.auditLog.create({
       data: {
         action,
-        orderNumero: order.numero,
-        orderId: order.id,
+        targetType: target.type,
+        targetLabel: target.label,
+        targetId: target.id,
         detail: detail ?? null,
         userId: null,
         actorLabel: 'Client (boutique)',
       },
     })
   } catch (error) {
-    console.error('Écriture du journal impossible', { action, numero: order.numero, error })
+    console.error('Écriture du journal impossible', { action, target, error })
   }
 }
 
@@ -62,4 +64,8 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
   TARIF_BASCULE: 'Tarif basculé',
   COMMANDE_ANNULEE: 'Commande annulée',
   COMMANDE_SUPPRIMEE: 'Commande supprimée',
+  PRIX_MODIFIE: 'Prix modifié',
+  STOCK_AJUSTE: 'Stock ajusté',
+  PRODUIT_CREE: 'Produit créé',
+  PRODUIT_ARCHIVE: 'Produit archivé',
 }

@@ -32,6 +32,11 @@ model User {
   auditLogs AuditLog[]
 }
 
+enum AuditTargetType {
+  COMMANDE
+  PRODUIT
+}
+
 enum AuditAction {
   COMMANDE_CREEE
   STATUT_MODIFIE
@@ -39,23 +44,26 @@ enum AuditAction {
   TARIF_BASCULE
   COMMANDE_ANNULEE
   COMMANDE_SUPPRIMEE
+  PRIX_MODIFIE
+  STOCK_AJUSTE
+  PRODUIT_CREE
+  PRODUIT_ARCHIVE
 }
 
 /**
- * Journal d'activité sur les commandes : qui a fait quoi, et quand.
- * Le numéro de commande est recopié plutôt que seulement référencé — une
- * commande supprimée ne doit pas emporter la trace de sa suppression.
+ * Journal d'activité généralisé : commandes, modifications catalogue...
  */
 model AuditLog {
-  id          String      @id @default(cuid())
-  createdAt   DateTime    @default(now())
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
   action      AuditAction
-  orderNumero String // instantané, survit à la suppression de la commande
-  orderId     String? // lien vivant tant que la commande existe
+  targetType  AuditTargetType  @default(COMMANDE)
+  targetLabel String // instantané, survit à la suppression (ex: numéro de commande, nom de produit)
+  targetId    String? // lien optionnel (identifiant commande ou produit)
   detail      String? // « À traiter → En préparation », motif d'annulation…
   // Nul quand l'auteur est le client lui-même depuis la boutique.
   userId      String?
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   actorLabel  String // nom lisible figé : le compte peut être supprimé ensuite
 
   @@index([createdAt])
