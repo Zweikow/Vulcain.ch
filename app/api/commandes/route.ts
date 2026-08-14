@@ -7,7 +7,7 @@ import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
 import { getSettings } from '@/lib/settings'
-import { proUnitPriceCents, shippingCentsFor, vatIncludedCents } from '@/lib/money'
+import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
 
 class OrderConflictError extends Error {}
 
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
       const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
       const totalCents = subtotalCents + shippingCents
-      const vatCents = vatIncludedCents(totalCents, settings.vatRatePermille)
+      const vatCents = orderVatCents(totalCents, settings)
 
       // Décrément conditionnel : échoue si une commande concurrente a vidé le stock.
       for (const line of lines) {

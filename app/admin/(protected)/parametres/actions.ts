@@ -15,6 +15,8 @@ const settingsSchema = z.object({
   contactEmail: z.string().email().or(z.literal('')),
   contactPhone: z.string().max(30),
   vatNumber: z.string().max(50),
+  // Case à cocher : absente du formulaire quand elle est décochée
+  vatSubject: z.preprocess((v) => v === 'on' || v === true, z.boolean()),
   vatRatePermille: z.coerce.number().int().min(0).max(999),
   iban: z.string().max(40),
   // En-tête et pied de la facture papier

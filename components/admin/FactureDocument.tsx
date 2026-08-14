@@ -45,6 +45,7 @@ type FactureSettings = {
   iban: string
   bankName: string
   vatNumber: string
+  vatSubject: boolean
   vatRatePermille: number
   paymentTermsDays: number
   proRatePercent: number
@@ -223,10 +224,19 @@ export function FactureDocument({
         </tfoot>
       </table>
 
+      {/* Une TVA ne se mentionne que si la cidrerie la perçoit réellement.
+          Sinon, la mention de non-assujettissement évite qu'un client
+          professionnel tente de déduire une taxe qui n'existe pas. */}
       <p className="mt-1.5 text-[11px] text-[#7A95A5]">
-        {/* Point décimal, pas de virgule : convention suisse (DESIGN.md §5) */}
-        TVA {(settings.vatRatePermille / 10).toFixed(1)}% incluse, soit{' '}
-        {formatInvoiceAmount(order.vatCents)}.
+        {settings.vatSubject ? (
+          <>
+            {/* Point décimal, pas de virgule : convention suisse (DESIGN.md §5) */}
+            TVA {(settings.vatRatePermille / 10).toFixed(1)}% incluse, soit{' '}
+            {formatInvoiceAmount(order.vatCents)}.
+          </>
+        ) : (
+          <>Non assujetti à la TVA (art. 10 al. 2 LTVA). Aucune TVA n&apos;est facturée.</>
+        )}
       </p>
 
       {/* Paiement */}

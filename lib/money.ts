@@ -11,6 +11,20 @@ export function vatIncludedCents(totalCents: number, vatRatePermille: number): n
   return Math.round((totalCents * vatRatePermille) / (1000 + vatRatePermille))
 }
 
+/**
+ * TVA d'une commande. Nulle tant que la cidrerie n'est pas assujettie : on ne
+ * peut pas faire état d'une TVA qu'on ne perçoit pas. Passer par cette fonction
+ * plutôt que par le taux seul, qui reste renseigné en prévision du jour où le
+ * seuil d'assujettissement sera franchi.
+ */
+export function orderVatCents(
+  totalCents: number,
+  settings: { vatSubject: boolean; vatRatePermille: number }
+): number {
+  if (!settings.vatSubject) return 0
+  return vatIncludedCents(totalCents, settings.vatRatePermille)
+}
+
 /** Port : offert aux professionnels et dès le seuil de franco. */
 export function shippingCentsFor(
   subtotalCents: number,

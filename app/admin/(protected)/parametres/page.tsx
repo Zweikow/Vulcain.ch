@@ -140,6 +140,22 @@ export default async function ParametresPage() {
               Raison sociale
               <input name="companyName" defaultValue={s.companyName} className="input-field mt-1" />
             </label>
+            <label className="flex items-start gap-2 text-xs font-medium text-text-secondary dark:text-text-secondary-dark sm:col-span-2">
+              <input
+                type="checkbox"
+                name="vatSubject"
+                defaultChecked={s.vatSubject}
+                className="mt-0.5"
+              />
+              <span>
+                Assujettie à la TVA
+                <span className="block font-normal text-text-tertiary dark:text-text-tertiary-dark">
+                  À cocher seulement à partir de 100 000 CHF de chiffre d&apos;affaires annuel.
+                  Décochée, aucune TVA n&apos;est facturée ni mentionnée sur les documents — faire
+                  état d&apos;une TVA qu&apos;on ne perçoit pas n&apos;est pas permis.
+                </span>
+              </span>
+            </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Numéro de TVA
               <input

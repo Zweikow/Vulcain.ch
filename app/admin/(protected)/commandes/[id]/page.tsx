@@ -197,17 +197,20 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 {formatCHF(order.totalCents)}
               </td>
             </tr>
-            <tr>
-              <td
-                colSpan={3}
-                className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark"
-              >
-                dont TVA
-              </td>
-              <td className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark">
-                {formatCHF(order.vatCents)}
-              </td>
-            </tr>
+            {/* La ligne de TVA n'a de sens que si la cidrerie la perçoit */}
+            {order.vatCents > 0 && (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark"
+                >
+                  dont TVA
+                </td>
+                <td className="px-4 pb-3 text-right text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                  {formatCHF(order.vatCents)}
+                </td>
+              </tr>
+            )}
           </tfoot>
         </table>
       </div>

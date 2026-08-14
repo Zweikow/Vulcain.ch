@@ -148,8 +148,13 @@ model Setting {
   companyAddress  String @default("Ch. des Moilles 16")
   contactEmail    String @default("commandes@cidrerie-vulcain.ch")
   contactPhone    String @default("")
-  vatNumber       String @default("") // ex. CHE-123.456.789 TVA
-  vatRatePermille Int    @default(81) // TVA 8.1% incluse dans les prix affichés
+  // La cidrerie n'est pas assujettie à la TVA (chiffre d'affaires sous le seuil
+  // de 100 000 CHF) : aucun document ne doit en faire mention. Le taux reste
+  // renseigné pour le jour où le seuil sera franchi ; c'est cet indicateur qui
+  // commande son application, jamais le taux seul.
+  vatSubject      Boolean @default(false)
+  vatNumber       String @default("") // ex. CHE-123.456.789 TVA, une fois assujettie
+  vatRatePermille Int    @default(81) // 8.1%, appliqué seulement si vatSubject
   iban            String @default("CH57 0900 0000 1703 3189 6")
   // En-tête et pied de la facture papier (modèle Facture_Base.docx)
   contactName      String @default("Bertrand Baeriswyl") // signataire de la facture

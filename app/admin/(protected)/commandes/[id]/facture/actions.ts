@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { getSettings } from '@/lib/settings'
 import { issueInvoice } from '@/lib/invoices'
-import { proUnitPriceCents, shippingCentsFor, vatIncludedCents } from '@/lib/money'
+import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
 
 /**
  * Émet la facture : lui attribue son numéro de série FAC. Geste volontaire —
@@ -68,7 +68,7 @@ export async function toggleClientType(orderId: string) {
         discountCents,
         shippingCents,
         totalCents,
-        vatCents: vatIncludedCents(totalCents, settings.vatRatePermille),
+        vatCents: orderVatCents(totalCents, settings),
       },
     })
 
