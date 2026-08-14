@@ -1,7 +1,22 @@
 import type { NextAuthConfig } from 'next-auth'
 
+/**
+ * Le secret de signature n'a pas de valeur de repli : une valeur écrite dans le
+ * code serait publique (le dépôt l'est), et permettrait de forger une session
+ * d'administration. Mieux vaut refuser de démarrer que signer avec un secret connu.
+ */
+function authSecret(): string {
+  const secret = process.env.AUTH_SECRET
+  if (secret) return secret
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_SECRET manquant : refus de démarrer avec un secret de repli.')
+  }
+  console.warn('AUTH_SECRET manquant — secret de développement utilisé, sessions non sûres.')
+  return 'developpement-uniquement-non-sur'
+}
+
 export const authConfig: NextAuthConfig = {
-  secret: process.env.AUTH_SECRET ?? 'vulcain-admin-secret-dev-2026',
+  secret: authSecret(),
   pages: {
     signIn: '/admin/login',
   },

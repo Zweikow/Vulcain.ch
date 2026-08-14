@@ -10,6 +10,7 @@
     "db:seed": "npx tsx prisma/seed.ts",
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
+    "admin:password": "npx tsx scripts/set-admin-password.ts",
     "prepare": "husky"
   },
   "dependencies": {

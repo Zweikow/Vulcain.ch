@@ -1,11 +1,20 @@
 import { getSettings } from '@/lib/settings'
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
+import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
+import { PasswordChange } from '@/components/admin/PasswordChange'
 import { saveSettings } from './actions'
 
 const EXAMPLE_PRICE_CENTS = 2400
 
 export default async function ParametresPage() {
-  const s = await getSettings()
+  const [s, session] = await Promise.all([getSettings(), auth()])
+  const account = session?.user?.id
+    ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { username: true },
+      })
+    : null
 
   return (
     <div className="max-w-2xl">
@@ -211,6 +220,13 @@ export default async function ParametresPage() {
           <button className="btn-primary">Enregistrer les paramètres</button>
         </div>
       </form>
+
+      {/* Formulaire distinct : le mot de passe ne s'enregistre pas avec le reste */}
+      {account && (
+        <div className="mt-4">
+          <PasswordChange username={account.username} />
+        </div>
+      )}
     </div>
   )
 }
