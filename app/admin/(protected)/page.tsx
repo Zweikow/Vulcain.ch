@@ -1,31 +1,23 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
-import { StatusBadge } from '@/components/admin/StatusBadge'
-import { OrderStatus } from '@prisma/client'
+import { getDashboard, PERIODES, type DashboardData, type Periode } from '@/lib/dashboard'
+import { RevenueChart } from '@/components/admin/RevenueChart'
 
-type Periode = '1M' | '4M' | '6M' | '1A'
-
-const PERIODES: { label: string; value: Periode }[] = [
-  { label: '1 mois', value: '1M' },
-  { label: '4 mois', value: '4M' },
-  { label: '6 mois', value: '6M' },
-  { label: '1 an', value: '1A' },
-]
-
-function getPeriodStart(periode: Periode): Date {
-  const now = new Date()
-  switch (periode) {
-    case '4M':
-      return new Date(now.getFullYear(), now.getMonth() - 4, now.getDate())
-    case '6M':
-      return new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())
-    case '1A':
-      return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-    default:
-      return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-  }
+const EMPTY: DashboardData = {
+  revenueCents: 0,
+  shippedCount: 0,
+  proShippedCount: 0,
+  openOrders: 0,
+  urgentOrders: 0,
+  bottlesToPick: 0,
+  averageBasketCents: 0,
+  productCount: 0,
+  buckets: [],
+  alerts: [],
+  topSales: [],
 }
+
+const heure = new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' })
 
 export default async function DashboardPage({
   searchParams,
@@ -37,84 +29,81 @@ export default async function DashboardPage({
     ['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'
   ) as Periode
 
-  const since = getPeriodStart(periode)
-
-  let aTraiter = 0
-  let enPreparation = 0
-  let expediee = 0
-  let caTotalCents = 0
-  let recentOrders: Array<{
-    id: string
-    numero: string
-    clientName: string
-    totalCents: number
-    status: OrderStatus
-    createdAt: Date
-  }> = []
-
+  let data = EMPTY
+  let unavailable = false
   try {
-    const [countATraiter, countEnPreparation, countExpediee, caResult, orders] = await Promise.all([
-      prisma.order.count({
-        where: { status: OrderStatus.A_TRAITER, createdAt: { gte: since } },
-      }),
-      prisma.order.count({
-        where: { status: OrderStatus.EN_PREPARATION, createdAt: { gte: since } },
-      }),
-      prisma.order.count({
-        where: { status: OrderStatus.EXPEDIEE, createdAt: { gte: since } },
-      }),
-      // Une commande annulée n'a jamais produit de chiffre d'affaires.
-      prisma.order.aggregate({
-        where: { createdAt: { gte: since }, status: { not: OrderStatus.ANNULEE } },
-        _sum: { totalCents: true },
-      }),
-      prisma.order.findMany({
-        where: { createdAt: { gte: since } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          numero: true,
-          clientName: true,
-          totalCents: true,
-          status: true,
-          createdAt: true,
-        },
-      }),
-    ])
-
-    aTraiter = countATraiter
-    enPreparation = countEnPreparation
-    expediee = countExpediee
-    caTotalCents = caResult._sum.totalCents ?? 0
-    recentOrders = orders
+    data = await getDashboard(periode)
   } catch (error) {
-    console.warn('Dashboard data unavailable, using fallback values:', error)
+    console.warn('Données du tableau de bord indisponibles', error)
+    unavailable = true
   }
+
+  // Chaque indicateur porte une seconde ligne qui le qualifie : un chiffre sans
+  // référent ne dit rien (DESIGN.md §3).
+  const kpis = [
+    {
+      label: "Chiffre d'affaires",
+      icon: '💰',
+      value: formatCHF(data.revenueCents),
+      detail:
+        data.shippedCount === 0
+          ? 'aucune expédition sur la période'
+          : `${data.shippedCount} expédiée${data.shippedCount > 1 ? 's' : ''}${
+              data.proShippedCount > 0 ? `, dont ${data.proShippedCount} pro` : ''
+            }`,
+      href: '/admin/commandes?statut=EXPEDIEE',
+    },
+    {
+      label: 'Commandes à traiter',
+      icon: '📦',
+      value: String(data.openOrders),
+      detail:
+        data.urgentOrders > 0
+          ? `${data.urgentOrders} livraison${data.urgentOrders > 1 ? 's' : ''} sous 48 h`
+          : 'aucune échéance proche',
+      href: '/admin/preparation',
+    },
+    {
+      label: 'Bouteilles à sortir',
+      icon: '🍾',
+      value: String(data.bottlesToPick),
+      detail:
+        data.openOrders === 0
+          ? 'plus rien à préparer'
+          : `pour ${data.openOrders} commande${data.openOrders > 1 ? 's' : ''} ouverte${data.openOrders > 1 ? 's' : ''}`,
+      href: '/admin/preparation',
+    },
+    {
+      label: 'Panier moyen',
+      icon: '🧾',
+      value: formatCHF(data.averageBasketCents),
+      detail: `${data.productCount} référence${data.productCount > 1 ? 's' : ''} au catalogue`,
+      href: '/admin/produits',
+    },
+  ]
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* En-tête */}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
+          <h1 className="font-display text-[26px] font-semibold text-text-primary dark:text-text-primary-dark">
             Tableau de bord
           </h1>
-          <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-            Vue d&apos;ensemble de la cidrerie
+          <p className="mt-1 text-sm text-text-secondary dark:text-text-secondary-dark">
+            Aperçu de l&apos;activité artisanale · mis à jour à {heure.format(new Date())}
           </p>
         </div>
 
-        {/* Filtres période */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {PERIODES.map(({ label, value }) => (
             <Link
               key={value}
               href={`/admin?periode=${value}`}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 periode === value
-                  ? 'bg-primary text-white'
-                  : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
+                  ? 'bg-primary text-text-on-primary'
+                  : 'border border-border bg-bg-card text-text-secondary hover:bg-primary/10 dark:border-border-dark dark:bg-bg-card-dark dark:text-text-secondary-dark'
               }`}
             >
               {label}
@@ -123,105 +112,161 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="card p-5">
-          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
-            À traiter
-          </div>
-          <div className="text-3xl font-bold text-text-warning dark:text-[#FF9800]">{aTraiter}</div>
+      {unavailable && (
+        <div className="card mb-6 border-[#F3D5D5] bg-[#FDF2F2] p-4 text-sm text-[#C62828] dark:border-[#5a2a2a] dark:bg-[#2a1717] dark:text-[#EF5350]">
+          Les données sont momentanément indisponibles. Vérifiez la connexion à la base.
         </div>
-        <div className="card p-5">
-          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
-            En préparation
-          </div>
-          <div className="text-3xl font-bold text-[#1565C0] dark:text-[#64B5F6]">
-            {enPreparation}
-          </div>
-        </div>
-        <div className="card p-5">
-          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
-            Expédiées
-          </div>
-          <div className="text-3xl font-bold text-text-success dark:text-[#81C784]">{expediee}</div>
-        </div>
-        <div className="card p-5">
-          <div className="text-xs text-text-secondary dark:text-text-secondary-dark uppercase tracking-wide mb-1">
-            Chiffre d&apos;affaires
-          </div>
-          <div className="text-3xl font-bold text-text-primary dark:text-text-primary-dark">
-            {formatCHF(caTotalCents)}
-          </div>
-        </div>
+      )}
+
+      {/* Indicateurs */}
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((kpi) => (
+          <Link
+            key={kpi.label}
+            href={kpi.href}
+            className="card p-5 transition-colors hover:border-text-tertiary dark:hover:border-text-tertiary-dark"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
+                {kpi.label}
+              </span>
+              <span aria-hidden>{kpi.icon}</span>
+            </div>
+            <p className="tabular mt-2 font-display text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+              {kpi.value}
+            </p>
+            <p className="mt-1 text-xs text-text-secondary dark:text-text-secondary-dark">
+              {kpi.detail}
+            </p>
+          </Link>
+        ))}
       </div>
 
-      {/* Commandes récentes */}
-      <div className="card overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border dark:border-border-dark">
-          <h2 className="font-medium text-text-primary dark:text-text-primary-dark">
-            Commandes récentes
+      {/* Graphique et alertes */}
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <section className="card p-5 lg:col-span-2">
+          <h2 className="mb-4 font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
+            Évolution du chiffre d&apos;affaires
           </h2>
-          <Link href="/admin/commandes" className="text-sm text-primary hover:text-primary-hover">
-            Voir toutes →
-          </Link>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark">
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                N°
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Client
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Total
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Statut
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Date
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentOrders.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-4 py-8 text-center text-text-tertiary dark:text-text-tertiary-dark"
-                >
-                  Aucune commande sur cette période
-                </td>
-              </tr>
-            ) : (
-              recentOrders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50"
-                >
-                  <td className="px-4 py-3 font-mono text-xs text-text-primary dark:text-text-primary-dark">
-                    {order.numero}
-                  </td>
-                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    {order.clientName}
-                  </td>
-                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    {formatCHF(order.totalCents)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={order.status} />
-                  </td>
-                  <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
-                    {new Date(order.createdAt).toLocaleDateString('fr-CH')}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+          <RevenueChart buckets={data.buckets} />
+        </section>
+
+        <section className="card flex flex-col p-5">
+          <h2 className="mb-4 font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
+            Alerte de stock
+          </h2>
+          {/* N'apparaît que si un produit actif passe sous son seuil (DESIGN.md §3) */}
+          {data.alerts.length === 0 ? (
+            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
+              Aucun produit actif sous son seuil d&apos;alerte.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.alerts.map((a) => {
+                const critical = a.stock === 0
+                return (
+                  <li key={a.id}>
+                    <Link
+                      href="/admin/produits"
+                      className={`flex items-center justify-between gap-2 rounded-lg border p-3 transition-opacity hover:opacity-80 ${
+                        critical
+                          ? 'border-[#C62828]/20 bg-[#FDF2F2] dark:bg-[#2a1717]'
+                          : 'border-[#FFB300]/30 bg-[#FFF8E1] dark:bg-[#3d2a0a]'
+                      }`}
+                    >
+                      <span>
+                        <span className="block text-sm font-semibold text-text-primary dark:text-text-primary-dark">
+                          {a.name}
+                        </span>
+                        <span
+                          className={`text-sm ${critical ? 'text-[#C62828] dark:text-[#EF5350]' : 'text-text-warning dark:text-[#FF9800]'}`}
+                        >
+                          {a.stock === 0
+                            ? 'épuisé'
+                            : `${a.stock} bouteille${a.stock > 1 ? 's' : ''} restante${a.stock > 1 ? 's' : ''}`}
+                          {' · seuil '}
+                          {a.threshold}
+                        </span>
+                      </span>
+                      <span aria-hidden className="text-text-tertiary dark:text-text-tertiary-dark">
+                        ›
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
       </div>
+
+      {/* Meilleures ventes */}
+      <section className="card overflow-hidden">
+        <div className="border-b border-border p-5 dark:border-border-dark">
+          <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
+            Meilleures ventes
+          </h2>
+        </div>
+        {data.topSales.length === 0 ? (
+          <p className="p-8 text-center text-sm text-text-tertiary dark:text-text-tertiary-dark">
+            Aucune vente sur la période.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="tabular w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-bg-page text-left text-[11px] uppercase tracking-[.08em] text-text-secondary dark:border-border-dark dark:bg-bg-page-dark dark:text-text-secondary-dark">
+                  <th className="px-4 py-3 font-semibold">Cuvée</th>
+                  <th className="px-4 py-3 font-semibold">Catégorie</th>
+                  <th className="px-4 py-3 text-right font-semibold">Ventes</th>
+                  <th className="px-4 py-3 text-right font-semibold">Revenus</th>
+                  <th className="px-4 py-3 text-right font-semibold">Tendance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.topSales.map((s) => (
+                  <tr
+                    key={s.productName}
+                    className="border-b border-border-light last:border-0 hover:bg-bg-page/50 dark:border-border-light-dark dark:hover:bg-bg-page-dark/50"
+                  >
+                    <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
+                      {s.productName}
+                    </td>
+                    <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
+                      {s.categoryName}
+                    </td>
+                    <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
+                      {s.quantity} btl
+                    </td>
+                    <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
+                      {formatCHF(s.revenueCents)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {s.trend === null ? (
+                        <span className="text-text-tertiary dark:text-text-tertiary-dark">
+                          nouveau
+                        </span>
+                      ) : (
+                        <span
+                          className={
+                            s.trend > 0
+                              ? 'text-text-success'
+                              : s.trend < 0
+                                ? 'text-text-error'
+                                : 'text-text-tertiary dark:text-text-tertiary-dark'
+                          }
+                        >
+                          {s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '—'} {Math.abs(s.trend)}%
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

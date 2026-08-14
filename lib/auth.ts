@@ -14,8 +14,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null
 
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-          select: { id: true, email: true, name: true, password: true },
+          where: { username: parsed.data.username },
+          select: { id: true, username: true, email: true, name: true, password: true },
         })
 
         // Always run bcrypt to prevent timing-based username enumeration

@@ -4,18 +4,20 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@cidrerie-vulcain.ch'
+  // Connexion par nom d'utilisateur ; l'adresse ne sert que de contact du compte.
+  const username = process.env.SEED_ADMIN_USERNAME ?? 'admin'
+  const email = process.env.SEED_ADMIN_EMAIL ?? 'commandes@cidrerie-vulcain.ch'
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'changeme123'
   const name = process.env.SEED_ADMIN_NAME ?? 'Administrateur'
 
   const hash = await bcrypt.hash(password, 12)
 
   await prisma.user.upsert({
-    where: { email },
+    where: { username },
     update: {},
-    create: { email, password: hash, name },
+    create: { username, email, password: hash, name },
   })
-  console.log(`✓ Admin créé : ${email}`)
+  console.log(`✓ Admin créé : ${username} (mot de passe à changer)`)
 
   const categories = ['Cidre', 'Eau-de-vie', 'Liqueur', 'Cuisine']
   for (const catName of categories) {

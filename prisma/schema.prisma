@@ -12,10 +12,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
+  id       String @id @default(cuid())
+  // Identifiant de connexion : un nom d'utilisateur, pas une adresse. Rien
+  // n'oblige l'exploitant à taper une adresse complète pour entrer chez lui.
+  username String @unique
+  password String
+  name     String
+  // Adresse de contact du compte, pour une future réinitialisation de mot de
+  // passe. Ne sert pas à se connecter.
+  email     String?  @unique
   createdAt DateTime @default(now())
 }
 

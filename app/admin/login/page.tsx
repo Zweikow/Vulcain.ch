@@ -13,7 +13,7 @@ export default async function LoginPage({
     'use server'
     try {
       await signIn('credentials', {
-        email: formData.get('email'),
+        username: formData.get('username'),
         password: formData.get('password'),
         redirectTo: '/admin',
       })
@@ -38,22 +38,27 @@ export default async function LoginPage({
         {error === 'credentials' && (
           <div role="alert" className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Email ou mot de passe incorrect.
+              Nom d&apos;utilisateur ou mot de passe incorrect.
             </p>
           </div>
         )}
 
         <form action={login} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email
+            <label
+              htmlFor="username"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Nom d&apos;utilisateur
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="username"
+              name="username"
+              type="text"
               required
-              autoComplete="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>

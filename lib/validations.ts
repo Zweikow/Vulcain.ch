@@ -1,7 +1,9 @@
 import { z } from 'zod'
 
+// Connexion par nom d'utilisateur : l'exploitant n'a pas à taper une adresse
+// complète pour entrer chez lui.
 export const loginSchema = z.object({
-  email: z.string().email('Email invalide'),
+  username: z.string().min(1, 'Requis').max(60),
   password: z.string().min(8, 'Minimum 8 caractères'),
 })
 
