@@ -10,7 +10,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
     <>
       <SessionWatcher />
       <div className="min-h-screen flex bg-bg-page dark:bg-bg-page-dark">
-        <AdminSidebar isAdmin={user?.role === Role.ADMIN} />
+        <AdminSidebar role={user?.role ?? Role.PREPARATEUR} />
         <main className="flex-1 overflow-auto p-8 print:overflow-visible print:p-0">
           {children}
         </main>

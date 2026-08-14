@@ -4,28 +4,66 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Role } from '@prisma/client'
+import { can, ROLE_LABELS } from '@/lib/permissions'
 
 const NAV_LINKS = [
-  { href: '/admin', label: 'Tableau de bord', icon: '📊', exact: true, adminOnly: false },
-  { href: '/admin/preparation', label: 'Préparation', icon: '📦', exact: false, adminOnly: false },
-  { href: '/admin/commandes', label: 'Commandes', icon: '🧾', exact: false, adminOnly: false },
-  { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false, adminOnly: false },
-  { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: '👥', exact: false, adminOnly: true },
-  { href: '/admin/journal', label: 'Journal', icon: '📜', exact: false, adminOnly: true },
-  { href: '/admin/parametres', label: 'Paramètres', icon: '⚙️', exact: false, adminOnly: true },
+  {
+    href: '/admin',
+    label: 'Tableau de bord',
+    icon: '📊',
+    exact: true,
+    capability: can.seeDashboard,
+  },
+  {
+    href: '/admin/preparation',
+    label: 'Préparation',
+    icon: '📦',
+    exact: false,
+    capability: () => true,
+  },
+  {
+    href: '/admin/commandes',
+    label: 'Commandes',
+    icon: '🧾',
+    exact: false,
+    capability: () => true,
+  },
+  { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false, capability: () => true },
+  {
+    href: '/admin/utilisateurs',
+    label: 'Utilisateurs',
+    icon: '👥',
+    exact: false,
+    capability: can.manageUsers,
+  },
+  {
+    href: '/admin/journal',
+    label: 'Journal',
+    icon: '📜',
+    exact: false,
+    capability: can.seeJournal,
+  },
+  {
+    href: '/admin/parametres',
+    label: 'Paramètres',
+    icon: '⚙️',
+    exact: false,
+    capability: can.manageSettings,
+  },
 ]
 
-export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
+export function AdminSidebar({ role }: { role: Role }) {
   const pathname = usePathname()
   // Masquer un lien est un confort, pas une protection : chaque écran vérifie
-  // le rôle côté serveur.
-  const links = NAV_LINKS.filter((l) => !l.adminOnly || isAdmin)
+  // la capacité côté serveur.
+  const links = NAV_LINKS.filter((l) => l.capability(role))
 
   return (
     <aside className="w-56 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white flex flex-col shrink-0 print:hidden">
       <div className="p-5 border-b border-white/10">
         <div className="font-display font-semibold text-sm leading-tight">Cidrerie du Vulcain</div>
-        <div className="text-xs opacity-60 mt-0.5">Administration</div>
+        <div className="text-xs opacity-60 mt-0.5">{ROLE_LABELS[role]}</div>
       </div>
 
       <nav className="flex-1 p-3 flex flex-col gap-1">

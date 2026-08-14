@@ -1,8 +1,16 @@
 import { prisma } from '@/lib/prisma'
 import { getSettings } from '@/lib/settings'
 import { ProduitsClient } from '@/components/admin/ProduitsClient'
+import { currentUser } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 export default async function ProduitsPage() {
+  // Le préparateur consulte le catalogue pour retrouver une cuvée, sans voir
+  // les prix ni pouvoir toucher aux quantités.
+  const user = await currentUser()
+  const canEdit = user ? can.manageCatalogue(user.role) : false
+  const showMoney = user ? can.seeFinancials(user.role) : false
+
   const [produits, categories, settings] = await Promise.all([
     prisma.product.findMany({
       where: { archived: false },
@@ -34,6 +42,8 @@ export default async function ProduitsPage() {
       }))}
       categories={categories}
       proRatePercent={settings.proRatePercent}
+      canEdit={canEdit}
+      showMoney={showMoney}
     />
   )
 }

@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { AuditAction } from '@prisma/client'
-import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { assertCapability } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 import { cancelOrder, deleteOrder } from '@/lib/cancellation'
 import { notifyOrderCancelled } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
@@ -22,8 +23,8 @@ export async function cancelOrderAction(
   reason: string,
   notifyCustomer: boolean
 ): Promise<{ error?: string; message?: string }> {
-  const session = await auth()
-  if (!session) return { error: 'Non autorisé' }
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { error: guard.error }
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -55,8 +56,8 @@ export async function cancelOrderAction(
 }
 
 export async function deleteOrderAction(orderId: string): Promise<{ error?: string }> {
-  const session = await auth()
-  if (!session) return { error: 'Non autorisé' }
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { error: guard.error }
 
   // Le numéro est lu avant la suppression : c'est tout ce qui restera au journal.
   const order = await prisma.order.findUnique({

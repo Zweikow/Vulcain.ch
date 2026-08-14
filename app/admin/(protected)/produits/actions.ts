@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { assertCapability } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 const productSchema = z.object({
   name: z.string().min(1).max(200),
@@ -26,8 +27,8 @@ function revalidate() {
 }
 
 export async function createProduct(input: ProductInput) {
-  const session = await auth()
-  if (!session) return { error: 'Non autorisé' }
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
 
   const parsed = productSchema.safeParse(input)
   if (!parsed.success) return { error: 'Complétez les champs requis' }
@@ -40,8 +41,8 @@ export async function createProduct(input: ProductInput) {
 }
 
 export async function updateProduct(id: string, input: ProductInput) {
-  const session = await auth()
-  if (!session) return { error: 'Non autorisé' }
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
 
   const parsed = productSchema.safeParse(input)
   if (!parsed.success) return { error: 'Complétez les champs requis' }
@@ -55,8 +56,8 @@ export async function updateProduct(id: string, input: ProductInput) {
 }
 
 export async function toggleProductActive(id: string) {
-  const session = await auth()
-  if (!session) return
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return
 
   const product = await prisma.product.findUnique({ where: { id } })
   if (!product || product.archived) return
@@ -69,8 +70,8 @@ export async function toggleProductActive(id: string) {
  * (DESIGN.md §2). Un produit jamais commandé peut être supprimé réellement.
  */
 export async function archiveProduct(id: string) {
-  const session = await auth()
-  if (!session) return { error: 'Non autorisé' }
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
 
   const orderCount = await prisma.orderItem.count({ where: { productId: id } })
   if (orderCount === 0) {

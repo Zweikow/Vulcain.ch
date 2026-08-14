@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { AuditAction, ClientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { assertCapability } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 import { getSettings } from '@/lib/settings'
 import { issueInvoice } from '@/lib/invoices'
 import { recordAudit } from '@/lib/audit'
@@ -14,8 +15,8 @@ import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
  * une fois émise, la facture est un document comptable dont le numéro est figé.
  */
 export async function issueInvoiceForOrder(orderId: string) {
-  const session = await auth()
-  if (!session) return
+  const guard = await assertCapability(can.seeFinancials)
+  if (!guard.ok) return
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -41,8 +42,8 @@ export async function issueInvoiceForOrder(orderId: string) {
  * appartient et doit se réappliquer aux commandes suivantes.
  */
 export async function toggleClientType(orderId: string) {
-  const session = await auth()
-  if (!session) return
+  const guard = await assertCapability(can.seeFinancials)
+  if (!guard.ok) return
 
   const settings = await getSettings()
 

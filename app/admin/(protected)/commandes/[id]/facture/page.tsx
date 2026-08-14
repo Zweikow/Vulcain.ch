@@ -8,6 +8,8 @@ import { FactureOrderSelect } from '@/components/admin/FactureOrderSelect'
 import { FactureIssue } from '@/components/admin/FactureIssue'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
+import { requireCapability } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 const stamp = new Intl.DateTimeFormat('fr-CH', {
   day: '2-digit',
@@ -18,6 +20,9 @@ const stamp = new Intl.DateTimeFormat('fr-CH', {
 })
 
 export default async function FacturePage({ params }: { params: Promise<{ id: string }> }) {
+  // Une facture est un document financier.
+  await requireCapability(can.seeFinancials)
+
   const { id } = await params
 
   const [order, settings, orders] = await Promise.all([

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { formatCHF } from '@/lib/money'
 import { getDashboard, PERIODES, type DashboardData, type Periode } from '@/lib/dashboard'
 import { RevenueChart } from '@/components/admin/RevenueChart'
+import { requireCapability } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 const EMPTY: DashboardData = {
   revenueCents: 0,
@@ -24,6 +26,10 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ periode?: string }>
 }) {
+  // Le tableau de bord est financier de bout en bout : un préparateur est
+  // renvoyé vers son écran de travail.
+  await requireCapability(can.seeDashboard)
+
   const { periode: rawPeriode } = await searchParams
   const periode: Periode = (
     ['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'

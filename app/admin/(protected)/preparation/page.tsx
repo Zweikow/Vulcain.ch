@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
+import { currentUser } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 import { advanceStatus } from './actions'
 
 const NEXT_ACTION: Partial<Record<OrderStatus, string>> = {
@@ -11,6 +13,10 @@ const NEXT_ACTION: Partial<Record<OrderStatus, string>> = {
 }
 
 export default async function PreparationPage() {
+  // Le préparateur travaille sur des quantités, pas sur des montants.
+  const user = await currentUser()
+  const showMoney = user ? can.seeFinancials(user.role) : false
+
   // Une commande expédiée quitte l'écran et sort de la liste de picking.
   const orders = await prisma.order.findMany({
     where: { status: { in: [OrderStatus.A_TRAITER, OrderStatus.EN_PREPARATION] } },
@@ -90,9 +96,11 @@ export default async function PreparationPage() {
                       </span>
                     )}
                   </div>
-                  <span className="tabular text-sm font-bold text-text-primary dark:text-text-primary-dark">
-                    {formatCHF(order.totalCents)}
-                  </span>
+                  {showMoney && (
+                    <span className="tabular text-sm font-bold text-text-primary dark:text-text-primary-dark">
+                      {formatCHF(order.totalCents)}
+                    </span>
+                  )}
                 </div>
 
                 <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
@@ -126,10 +134,14 @@ export default async function PreparationPage() {
 
                 <div className="mt-4 flex justify-end gap-2">
                   <Link
-                    href={`/admin/commandes/${order.id}/facture`}
+                    href={
+                      showMoney
+                        ? `/admin/commandes/${order.id}/facture`
+                        : `/admin/commandes/${order.id}`
+                    }
                     className="btn-secondary text-sm"
                   >
-                    Voir la facture
+                    {showMoney ? 'Voir la facture' : 'Voir le détail'}
                   </Link>
                   <form action={advanceStatus.bind(null, order.id)}>
                     <button className="btn-primary text-sm">{NEXT_ACTION[order.status]}</button>

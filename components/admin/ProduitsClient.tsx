@@ -12,9 +12,17 @@ interface ProduitsClientProps {
   produits: Row[]
   categories: { id: string; name: string }[]
   proRatePercent: number
+  canEdit: boolean
+  showMoney: boolean
 }
 
-export function ProduitsClient({ produits, categories, proRatePercent }: ProduitsClientProps) {
+export function ProduitsClient({
+  produits,
+  categories,
+  proRatePercent,
+  canEdit,
+  showMoney,
+}: ProduitsClientProps) {
   const router = useRouter()
   const [modal, setModal] = useState<'closed' | 'new' | Row>('closed')
 
@@ -28,13 +36,16 @@ export function ProduitsClient({ produits, categories, proRatePercent }: Produit
             Produits
           </h1>
           <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-            {produits.length} référence{produits.length > 1 ? 's' : ''} · prix pro dérivé du taux de{' '}
-            {proRatePercent}%
+            {produits.length} référence{produits.length > 1 ? 's' : ''}
+            {showMoney && ` · prix pro dérivé du taux de ${proRatePercent}%`}
+            {!canEdit && ' · consultation seule'}
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setModal('new')}>
-          + Ajouter un produit
-        </button>
+        {canEdit && (
+          <button className="btn-primary" onClick={() => setModal('new')}>
+            + Ajouter un produit
+          </button>
+        )}
       </div>
 
       {stockBasCount > 0 && (
@@ -59,12 +70,16 @@ export function ProduitsClient({ produits, categories, proRatePercent }: Produit
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
                 Catégorie
               </th>
-              <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Prix public
-              </th>
-              <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Prix pro
-              </th>
+              {showMoney && (
+                <>
+                  <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
+                    Prix public
+                  </th>
+                  <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
+                    Prix pro
+                  </th>
+                </>
+              )}
               <th className="text-right px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
                 Stock
               </th>
@@ -103,12 +118,16 @@ export function ProduitsClient({ produits, categories, proRatePercent }: Produit
                     <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                       {p.categoryName}
                     </td>
-                    <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
-                      {formatCHF(p.priceCents)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-accent-mauve-dark dark:text-accent-mauve">
-                      {formatCHF(proUnitPriceCents(p.priceCents, proRatePercent))}
-                    </td>
+                    {showMoney && (
+                      <>
+                        <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
+                          {formatCHF(p.priceCents)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-accent-mauve-dark dark:text-accent-mauve">
+                          {formatCHF(proUnitPriceCents(p.priceCents, proRatePercent))}
+                        </td>
+                      </>
+                    )}
                     <td className="px-4 py-3 text-right">
                       <span
                         className={`inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-medium ${
@@ -125,24 +144,28 @@ export function ProduitsClient({ produits, categories, proRatePercent }: Produit
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => {
+                          if (!canEdit) return
                           void toggleProductActive(p.id).then(() => router.refresh())
                         }}
+                        disabled={!canEdit}
                         className={`rounded-pill px-3 py-1 text-xs font-semibold transition-colors ${
                           p.active
                             ? 'bg-primary text-text-on-primary'
                             : 'bg-border-light dark:bg-border-dark text-text-tertiary dark:text-text-tertiary-dark'
-                        }`}
+                        } ${canEdit ? '' : 'cursor-default opacity-70'}`}
                       >
                         {p.active ? 'Visible' : 'Masqué'}
                       </button>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setModal(p)}
-                        className="text-sm text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark hover:underline"
-                      >
-                        Modifier
-                      </button>
+                      {canEdit && (
+                        <button
+                          onClick={() => setModal(p)}
+                          className="text-sm text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark hover:underline"
+                        >
+                          Modifier
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )

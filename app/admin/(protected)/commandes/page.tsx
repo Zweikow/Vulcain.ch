@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { OrderStatus } from '@prisma/client'
+import { currentUser } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 type StatusFilter = 'TOUTES' | OrderStatus
 
@@ -24,6 +26,9 @@ export default async function CommandesPage({
   const statut: StatusFilter = validStatuts.includes(rawStatut ?? '')
     ? (rawStatut as OrderStatus)
     : 'TOUTES'
+
+  const user = await currentUser()
+  const showMoney = user ? can.seeFinancials(user.role) : false
 
   const whereClause = statut === 'TOUTES' ? {} : { status: statut as OrderStatus }
 
@@ -112,9 +117,11 @@ export default async function CommandesPage({
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
                 Email
               </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Total
-              </th>
+              {showMoney && (
+                <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
+                  Total
+                </th>
+              )}
               <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
                 Statut
               </th>
@@ -155,9 +162,11 @@ export default async function CommandesPage({
                   <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                     {order.clientEmail}
                   </td>
-                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    {formatCHF(order.totalCents)}
-                  </td>
+                  {showMoney && (
+                    <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
+                      {formatCHF(order.totalCents)}
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />
                   </td>

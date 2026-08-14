@@ -12,8 +12,9 @@ datasource db {
 }
 
 enum Role {
-  ADMIN // gestion des comptes, paramètres, journal d'activité
-  PREPARATEUR // commandes, préparation et catalogue au quotidien
+  ADMIN // tout : comptes, paramètres, journal d'activité
+  GESTIONNAIRE // commandes, catalogue et catégories, sans les réglages ni le journal
+  PREPARATEUR // commandes et préparation ; catalogue en lecture, aucun montant
 }
 
 model User {

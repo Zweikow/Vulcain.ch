@@ -8,6 +8,7 @@ import {
   deleteUser,
   resetUserPassword,
 } from '@/app/admin/(protected)/utilisateurs/actions'
+import { ROLE_LABELS, ROLE_DESCRIPTIONS } from '@/lib/permissions'
 
 export type AdminUser = {
   id: string
@@ -17,10 +18,7 @@ export type AdminUser = {
   createdAt: Date
 }
 
-const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: 'Administrateur',
-  PREPARATEUR: 'Préparateur',
-}
+// Libellés et descriptions partagés avec le reste de l'application.
 
 const stamp = new Intl.DateTimeFormat('fr-CH', {
   day: '2-digit',
@@ -121,8 +119,12 @@ export function UsersClient({
                 onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
               >
                 <option value={Role.PREPARATEUR}>Préparateur</option>
+                <option value={Role.GESTIONNAIRE}>Gestionnaire</option>
                 <option value={Role.ADMIN}>Administrateur</option>
               </select>
+              <span className="mt-1 block font-normal text-text-tertiary dark:text-text-tertiary-dark">
+                {ROLE_DESCRIPTIONS[form.role]}
+              </span>
             </label>
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Mot de passe initial
