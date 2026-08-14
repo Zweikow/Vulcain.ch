@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { issueInvoice } from '@/lib/invoices'
 import { notifyOrderShipped } from '@/lib/notifications'
+import { recordAudit } from '@/lib/audit'
+import { AuditAction } from '@prisma/client'
 
 // Flux à trois statuts : À traiter → En préparation → Expédiée (DESIGN.md §3).
 export async function advanceStatus(orderId: string) {
@@ -27,8 +29,17 @@ export async function advanceStatus(orderId: string) {
   // Aucune commande ne part sans facture : émission automatique si l'exploitant
   // ne l'a pas déclenchée depuis l'écran facture (idempotent). L'avis part
   // ensuite, pour qu'il porte le numéro de facture et sa référence de paiement.
+  await recordAudit(
+    AuditAction.STATUT_MODIFIE,
+    order,
+    shipping ? 'En préparation → Expédiée' : 'À traiter → En préparation'
+  )
+
   if (shipping) {
-    await issueInvoice(orderId)
+    const invoiceNumber = await issueInvoice(orderId)
+    if (invoiceNumber && !order.invoiceNumber) {
+      await recordAudit(AuditAction.FACTURE_EMISE, order, invoiceNumber)
+    }
     await notifyOrderShipped(orderId)
   }
   revalidatePath('/admin/preparation')

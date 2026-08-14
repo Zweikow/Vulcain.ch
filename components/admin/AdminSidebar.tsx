@@ -6,15 +6,20 @@ import { signOut } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 const NAV_LINKS = [
-  { href: '/admin', label: 'Tableau de bord', icon: '📊', exact: true },
-  { href: '/admin/preparation', label: 'Préparation', icon: '📦', exact: false },
-  { href: '/admin/commandes', label: 'Commandes', icon: '🧾', exact: false },
-  { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false },
-  { href: '/admin/parametres', label: 'Paramètres', icon: '⚙️', exact: false },
+  { href: '/admin', label: 'Tableau de bord', icon: '📊', exact: true, adminOnly: false },
+  { href: '/admin/preparation', label: 'Préparation', icon: '📦', exact: false, adminOnly: false },
+  { href: '/admin/commandes', label: 'Commandes', icon: '🧾', exact: false, adminOnly: false },
+  { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false, adminOnly: false },
+  { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: '👥', exact: false, adminOnly: true },
+  { href: '/admin/journal', label: 'Journal', icon: '📜', exact: false, adminOnly: true },
+  { href: '/admin/parametres', label: 'Paramètres', icon: '⚙️', exact: false, adminOnly: true },
 ]
 
-export function AdminSidebar() {
+export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname()
+  // Masquer un lien est un confort, pas une protection : chaque écran vérifie
+  // le rôle côté serveur.
+  const links = NAV_LINKS.filter((l) => !l.adminOnly || isAdmin)
 
   return (
     <aside className="w-56 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white flex flex-col shrink-0 print:hidden">
@@ -24,7 +29,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex-1 p-3 flex flex-col gap-1">
-        {NAV_LINKS.map(({ href, label, icon, exact }) => {
+        {links.map(({ href, label, icon, exact }) => {
           const isActive = exact ? pathname === href : pathname.startsWith(href)
           return (
             <Link

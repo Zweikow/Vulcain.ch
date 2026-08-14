@@ -1,11 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ClientType } from '@prisma/client'
+import { AuditAction, ClientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { getSettings } from '@/lib/settings'
 import { issueInvoice } from '@/lib/invoices'
+import { recordAudit } from '@/lib/audit'
 import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
 
 /**
@@ -16,7 +17,15 @@ export async function issueInvoiceForOrder(orderId: string) {
   const session = await auth()
   if (!session) return
 
-  await issueInvoice(orderId)
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { numero: true, invoiceNumber: true },
+  })
+  const invoiceNumber = await issueInvoice(orderId)
+  if (order && invoiceNumber && !order.invoiceNumber) {
+    await recordAudit(AuditAction.FACTURE_EMISE, { id: orderId, ...order }, invoiceNumber)
+  }
+
   revalidatePath(`/admin/commandes/${orderId}/facture`)
   revalidatePath(`/admin/commandes/${orderId}`)
   revalidatePath('/admin/commandes')
@@ -76,6 +85,20 @@ export async function toggleClientType(orderId: string) {
       await tx.customer.update({ where: { id: order.customerId }, data: { isPro } })
     }
   })
+
+  const after = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { numero: true, clientType: true },
+  })
+  if (after) {
+    await recordAudit(
+      AuditAction.TARIF_BASCULE,
+      { id: orderId, numero: after.numero },
+      after.clientType === ClientType.PRO
+        ? 'Particulier → Professionnel'
+        : 'Professionnel → Particulier'
+    )
+  }
 
   revalidatePath(`/admin/commandes/${orderId}/facture`)
   revalidatePath(`/admin/commandes/${orderId}`)

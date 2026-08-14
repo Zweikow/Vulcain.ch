@@ -2,12 +2,15 @@ import { getSettings } from '@/lib/settings'
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { requireAdmin } from '@/lib/guards'
 import { PasswordChange } from '@/components/admin/PasswordChange'
 import { saveSettings } from './actions'
 
 const EXAMPLE_PRICE_CENTS = 2400
 
 export default async function ParametresPage() {
+  // Tarifs, IBAN et facturation ne concernent pas un préparateur.
+  await requireAdmin()
   const [s, session] = await Promise.all([getSettings(), auth()])
   const account = session?.user?.id
     ? await prisma.user.findUnique({

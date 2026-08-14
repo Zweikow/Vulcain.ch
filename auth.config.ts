@@ -37,11 +37,17 @@ export const authConfig: NextAuthConfig = {
       return isLoggedIn
     },
     jwt({ token, user }) {
-      if (user) token.id = user.id
+      if (user) {
+        token.id = user.id
+        token.role = user.role
+      }
       return token
     },
     session({ session, token }) {
       if (token.id) session.user.id = token.id as string
+      // Le rôle voyage dans le jeton : les écrans réservés à l'administrateur
+      // s'y fient, et un préparateur ne peut pas se l'attribuer côté client.
+      if (token.role) session.user.role = token.role
       return session
     },
   },

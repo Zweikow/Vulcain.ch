@@ -11,6 +11,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN // gestion des comptes, paramètres, journal d'activité
+  PREPARATEUR // commandes, préparation et catalogue au quotidien
+}
+
 model User {
   id       String @id @default(cuid())
   // Identifiant de connexion : un nom d'utilisateur, pas une adresse. Rien
@@ -18,10 +23,41 @@ model User {
   username String @unique
   password String
   name     String
+  role     Role   @default(PREPARATEUR)
   // Adresse de contact du compte, pour une future réinitialisation de mot de
   // passe. Ne sert pas à se connecter.
-  email     String?  @unique
-  createdAt DateTime @default(now())
+  email     String?    @unique
+  createdAt DateTime   @default(now())
+  auditLogs AuditLog[]
+}
+
+enum AuditAction {
+  COMMANDE_CREEE
+  STATUT_MODIFIE
+  FACTURE_EMISE
+  TARIF_BASCULE
+  COMMANDE_ANNULEE
+  COMMANDE_SUPPRIMEE
+}
+
+/**
+ * Journal d'activité sur les commandes : qui a fait quoi, et quand.
+ * Le numéro de commande est recopié plutôt que seulement référencé — une
+ * commande supprimée ne doit pas emporter la trace de sa suppression.
+ */
+model AuditLog {
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  action      AuditAction
+  orderNumero String // instantané, survit à la suppression de la commande
+  orderId     String? // lien vivant tant que la commande existe
+  detail      String? // « À traiter → En préparation », motif d'annulation…
+  // Nul quand l'auteur est le client lui-même depuis la boutique.
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actorLabel  String // nom lisible figé : le compte peut être supprimé ensuite
+
+  @@index([createdAt])
 }
 
 model Category {

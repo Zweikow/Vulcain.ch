@@ -2,9 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { AuditAction } from '@prisma/client'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { cancelOrder, deleteOrder } from '@/lib/cancellation'
 import { notifyOrderCancelled } from '@/lib/notifications'
+import { recordAudit } from '@/lib/audit'
 
 function revalidate(orderId?: string) {
   if (orderId) revalidatePath(`/admin/commandes/${orderId}`)
@@ -22,8 +25,21 @@ export async function cancelOrderAction(
   const session = await auth()
   if (!session) return { error: 'Non autorisé' }
 
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { numero: true },
+  })
+
   const result = await cancelOrder(orderId, reason)
   if (!result.ok) return { error: result.error }
+
+  if (order) {
+    await recordAudit(
+      AuditAction.COMMANDE_ANNULEE,
+      { id: orderId, numero: order.numero },
+      reason.trim() || undefined
+    )
+  }
 
   if (notifyCustomer) await notifyOrderCancelled(orderId)
 
@@ -42,8 +58,18 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
   const session = await auth()
   if (!session) return { error: 'Non autorisé' }
 
+  // Le numéro est lu avant la suppression : c'est tout ce qui restera au journal.
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { numero: true },
+  })
+
   const result = await deleteOrder(orderId)
   if (!result.ok) return { error: result.error }
+
+  if (order) {
+    await recordAudit(AuditAction.COMMANDE_SUPPRIMEE, { id: null, numero: order.numero })
+  }
 
   revalidate()
   redirect('/admin/commandes')

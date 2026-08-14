@@ -3,8 +3,11 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
+import { AuditAction } from '@prisma/client'
 import { issueInvoice } from '@/lib/invoices'
 import { notifyOrderShipped } from '@/lib/notifications'
+import { recordAudit } from '@/lib/audit'
+import { STATUS_LABELS } from '@/components/admin/StatusBadge'
 
 const patchSchema = z.object({
   status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']),
@@ -60,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         status: newStatus,
         ...(shippedAt !== null ? { shippedAt } : {}),
       },
-      select: { id: true, status: true, shippedAt: true },
+      select: { id: true, numero: true, status: true, shippedAt: true },
     })
   } catch (e: unknown) {
     if (
@@ -74,10 +77,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     throw e
   }
 
+  await recordAudit(
+    AuditAction.STATUT_MODIFIE,
+    { id, numero: order.numero },
+    STATUS_LABELS[newStatus]
+  )
+
   // Une commande expédiée a forcément une facture émise (idempotent), et le
   // client reçoit l'avis avec ses informations de paiement.
   if (newStatus === OrderStatus.EXPEDIEE) {
-    await issueInvoice(id)
+    const invoiceNumber = await issueInvoice(id)
+    if (invoiceNumber) {
+      await recordAudit(AuditAction.FACTURE_EMISE, { id, numero: order.numero }, invoiceNumber)
+    }
     await notifyOrderShipped(id)
   }
 

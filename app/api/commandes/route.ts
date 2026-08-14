@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ClientType, StockMovementReason } from '@prisma/client'
+import { AuditAction, ClientType, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
 import { notifyOrderPlaced } from '@/lib/notifications'
@@ -7,7 +7,8 @@ import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
 import { getSettings } from '@/lib/settings'
-import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
+import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
+import { recordCustomerAudit } from '@/lib/audit'
 
 class OrderConflictError extends Error {}
 
@@ -170,6 +171,8 @@ export async function POST(request: NextRequest) {
 
       return created
     })
+
+    await recordCustomerAudit(AuditAction.COMMANDE_CREEE, order, formatCHF(order.totalCents))
 
     // Confirmation au client et notification à la cidrerie. N'échoue jamais :
     // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
