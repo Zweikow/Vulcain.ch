@@ -68,6 +68,11 @@ vérifiées : un vrai client ne recevrait rien.
 La base contient des commandes de test et des produits fictifs (« Brut Orte »
 à 10 000 CHF). À nettoyer, et à remplacer par le vrai catalogue avec Bertrand.
 
+### 1.6 Contenus — Page "Notre Histoire"
+
+La page `/histoire` a été créée (structure vide), mais le texte doit encore être rédigé.
+À discuter avec ton papa pour écrire l'histoire du domaine, les méthodes de travail et le terroir.
+
 ---
 
 ## 2. Améliorations proposées
