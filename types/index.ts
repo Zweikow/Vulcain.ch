@@ -8,6 +8,9 @@ export interface Product {
   description: string
   image?: string
   active: boolean
+  isBio: boolean
+  isVegan: boolean
+  articleNumber: number
   // Badges calculés côté serveur — « Nouveau » ou « Derniers exemplaires », jamais les deux
   isNew?: boolean
   isLastUnits?: boolean

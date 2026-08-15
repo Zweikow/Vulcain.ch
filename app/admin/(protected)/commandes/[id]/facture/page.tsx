@@ -26,7 +26,12 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
   const { id } = await params
 
   const [order, settings, orders] = await Promise.all([
-    prisma.order.findUnique({ where: { id }, include: { items: true } }),
+    prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: { include: { product: { select: { articleNumber: true } } } },
+      },
+    }),
     getSettings(),
     prisma.order.findMany({
       orderBy: { createdAt: 'desc' },

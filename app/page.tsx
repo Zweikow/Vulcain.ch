@@ -11,7 +11,7 @@ export default async function Home() {
     prisma.product.findMany({
       where: { active: true, archived: false },
       include: { category: { select: { name: true } } },
-      orderBy: { name: 'asc' },
+      orderBy: [{ category: { position: 'asc' } }, { name: 'asc' }],
     }),
     getPublicSettings(),
   ])
@@ -31,6 +31,9 @@ export default async function Home() {
       active: p.active,
       isLastUnits,
       isNew: !isLastUnits && p.createdAt.getTime() > newSince,
+      isBio: p.isBio,
+      isVegan: p.isVegan,
+      articleNumber: p.articleNumber,
     }
   })
 

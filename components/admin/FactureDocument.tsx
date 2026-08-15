@@ -30,6 +30,7 @@ type FactureOrder = {
     quantity: number
     unitPriceCents: number
     listPriceCents: number
+    product: { articleNumber: number }
   }[]
 }
 
@@ -108,13 +109,15 @@ export function FactureDocument({
         {settings.invoicePlace}, le {longDate.format(order.createdAt)}
       </p>
 
-      {/* Destinataire */}
-      <div className="mt-6 text-[13px] leading-relaxed">
-        <p className="font-semibold">{order.clientName}</p>
-        <p>{order.address}</p>
-        <p>
-          {order.npa} {order.city}
-        </p>
+      {/* Destinataire (fenêtre à droite) */}
+      <div className="mt-6 flex justify-end">
+        <div className="text-[13px] leading-relaxed w-64">
+          <p className="font-semibold">{order.clientName}</p>
+          <p>{order.address}</p>
+          <p>
+            {order.npa} {order.city}
+          </p>
+        </div>
       </div>
 
       {/* Titre. Sans numéro attribué, le document n'est pas encore une facture :
@@ -163,7 +166,12 @@ export function FactureDocument({
         <tbody>
           {order.items.map((item) => (
             <tr key={item.id}>
-              <td className={`${cellBase} font-medium`}>{item.productName}</td>
+              <td className={`${cellBase} font-medium`}>
+                {item.productName}
+                <div className="text-[10px] text-[#7A95A5] font-mono font-normal mt-0.5">
+                  Article-Nr. {item.product.articleNumber.toString().padStart(5, '0')}
+                </div>
+              </td>
               <td className={handFill} />
               <td className={handFill} />
               <td className={handFill} />
@@ -217,7 +225,7 @@ export function FactureDocument({
           </tr>
           <tr className="bg-[#F7F6F0] font-bold">
             <td className={`${cellBase} text-right`} colSpan={6}>
-              Total TTC
+              {settings.vatSubject ? 'Total TTC' : 'Total'}
             </td>
             <td className={`${cellBase} text-right`}>{formatInvoiceAmount(order.totalCents)}</td>
           </tr>

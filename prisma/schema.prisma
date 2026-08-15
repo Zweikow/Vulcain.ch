@@ -27,9 +27,11 @@ model User {
   role     Role   @default(PREPARATEUR)
   // Adresse de contact du compte, pour une future réinitialisation de mot de
   // passe. Ne sert pas à se connecter.
-  email     String?    @unique
-  createdAt DateTime   @default(now())
-  auditLogs AuditLog[]
+  email          String?    @unique
+  lastLoginAt    DateTime?
+  createdAt      DateTime   @default(now())
+  auditLogs      AuditLog[]
+  assignedOrders Order[]    @relation("OrderAssignedTo")
 }
 
 enum AuditTargetType {
@@ -72,11 +74,13 @@ model AuditLog {
 model Category {
   id       String    @id @default(cuid())
   name     String    @unique
+  position Int       @default(0)
   products Product[]
 }
 
 model Product {
   id             String          @id @default(cuid())
+  articleNumber  Int             @unique @default(autoincrement())
   name           String
   description    String?
   priceCents     Int // prix public TTC — le prix pro est dérivé du taux Setting, jamais stocké
@@ -86,6 +90,9 @@ model Product {
   archived       Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
   imageUrl       String?
   year           Int?
+  isBio          Boolean         @default(false)
+  isVegan        Boolean         @default(false)
+  alcoholVolume  Float?
   category       Category        @relation(fields: [categoryId], references: [id])
   categoryId     String
   orderItems     OrderItem[]
@@ -145,6 +152,8 @@ model Order {
   cancelReason   String? // motif consigné : le client rappelle souvent des mois après
   items          OrderItem[]
   stockMovements StockMovement[]
+  assignedToId   String?
+  assignedTo     User?           @relation("OrderAssignedTo", fields: [assignedToId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
@@ -208,7 +217,7 @@ model Setting {
   iban            String @default("CH57 0900 0000 1703 3189 6")
   // En-tête et pied de la facture papier (modèle Facture_Base.docx)
   contactName      String @default("Bertrand Baeriswyl") // signataire de la facture
-  companyTagline   String @default("Distribution Cidrerie du Vulcain CH")
+  companyTagline   String @default("Cidrerie du Vulcain")
   companyZipCity   String @default("1619 Les Paccots")
   invoicePlace     String @default("Les Paccots") // « Les Paccots, le … »
   bankName         String @default("PostFinance AG")

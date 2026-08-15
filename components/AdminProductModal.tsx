@@ -20,8 +20,12 @@ export type AdminProduct = {
   stock: number
   stockSeuil: number
   active: boolean
+  isBio: boolean
+  isVegan: boolean
+  alcoholVolume: number | null
   imageUrl: string | null
   ordered: boolean // figure dans au moins une commande → archivage, pas de suppression
+  articleNumber: number
 }
 
 interface AdminProductModalProps {
@@ -54,6 +58,9 @@ export default function AdminProductModal({
     description: product?.description ?? '',
     imageUrl: product?.imageUrl ?? '',
     active: product?.active ?? true,
+    isBio: product?.isBio ?? false,
+    isVegan: product?.isVegan ?? false,
+    alcoholVolume: product?.alcoholVolume ? String(product.alcoholVolume) : '',
   })
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
@@ -74,6 +81,9 @@ export default function AdminProductModal({
       stock: Number(form.stock),
       stockSeuil: Number(form.stockSeuil),
       active: form.active,
+      isBio: form.isBio,
+      isVegan: form.isVegan,
+      alcoholVolume: form.alcoholVolume ? Number(form.alcoholVolume) : null,
       imageUrl: form.imageUrl,
     }
     startTransition(async () => {
@@ -105,6 +115,11 @@ export default function AdminProductModal({
         <div className="flex items-center justify-between p-5 border-b border-border dark:border-border-dark">
           <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
             {product ? 'Modifier le produit' : 'Ajouter un produit'}
+            {product && (
+              <span className="ml-3 text-xs font-mono font-normal text-text-tertiary dark:text-text-tertiary-dark bg-bg-page/50 dark:bg-bg-page-dark/50 px-2 py-1 rounded-md">
+                Article-Nr. {product.articleNumber.toString().padStart(5, '0')}
+              </span>
+            )}
           </h2>
           <button
             onClick={onClose}
@@ -257,25 +272,90 @@ export default function AdminProductModal({
             />
           </div>
 
-          {/* Visibilité boutique */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark">
-              Visible dans la boutique
-            </label>
-            <button
-              type="button"
-              onClick={() => update('active', !form.active)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-pill transition-colors ${
-                form.active ? 'bg-primary' : 'bg-border dark:bg-border-dark'
-              }`}
-              aria-label="Basculer la visibilité"
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                  form.active ? 'translate-x-6' : 'translate-x-1'
-                }`}
+          <div className="grid grid-cols-2 gap-3 mt-1 border-t border-border dark:border-border-dark pt-3">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark">
+                  Visible dans la boutique
+                </label>
+                <button
+                  type="button"
+                  onClick={() => update('active', !form.active)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-pill transition-colors ${
+                    form.active ? 'bg-primary' : 'bg-border dark:bg-border-dark'
+                  }`}
+                  aria-label="Basculer la visibilité"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      form.active ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
+                  <span>Certifié Bio</span>
+                  <span className="text-[10px] opacity-70">🌱</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => update('isBio', !form.isBio)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-pill transition-colors ${
+                    form.isBio ? 'bg-primary' : 'bg-border dark:bg-border-dark'
+                  }`}
+                  aria-label="Basculer bio"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      form.isBio ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
+                  <span>Certifié Vegan</span>
+                  <span className="text-[10px] opacity-70">🌿</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => update('isVegan', !form.isVegan)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-pill transition-colors ${
+                    form.isVegan ? 'bg-primary' : 'bg-border dark:bg-border-dark'
+                  }`}
+                  aria-label="Basculer vegan"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      form.isVegan ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                Volume d&apos;alcool (%)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                className="input-field tabular"
+                placeholder="4.5"
+                value={form.alcoholVolume}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => update('alcoholVolume', e.target.value)}
               />
-            </button>
+              <span className="text-[10px] text-text-tertiary mt-1 leading-tight">
+                Laissez vide si non applicable (ex: jus de pomme).
+              </span>
+            </div>
           </div>
 
           {error && (

@@ -15,6 +15,9 @@ const productSchema = z.object({
   stock: z.coerce.number().int().min(0),
   stockSeuil: z.coerce.number().int().min(0),
   active: z.boolean(),
+  isBio: z.boolean().default(false),
+  isVegan: z.boolean().default(false),
+  alcoholVolume: z.coerce.number().min(0).max(100).nullable().optional(),
   imageUrl: z.string().url().or(z.literal('')),
 })
 
@@ -50,6 +53,18 @@ export async function updateProduct(id: string, input: ProductInput) {
   await prisma.product.update({
     where: { id },
     data: { ...parsed.data, imageUrl: parsed.data.imageUrl || null },
+  })
+  revalidate()
+  return { ok: true }
+}
+
+export async function updateProductStockInline(id: string, stock: number) {
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
+
+  await prisma.product.update({
+    where: { id },
+    data: { stock: Math.max(0, stock) },
   })
   revalidate()
   return { ok: true }

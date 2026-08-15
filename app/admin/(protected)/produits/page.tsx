@@ -18,9 +18,9 @@ export default async function ProduitsPage() {
         category: { select: { name: true } },
         _count: { select: { orderItems: true } },
       },
-      orderBy: [{ category: { name: 'asc' } }, { name: 'asc' }],
+      orderBy: [{ category: { position: 'asc' } }, { name: 'asc' }],
     }),
-    prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
+    prisma.category.findMany({ orderBy: { position: 'asc' }, select: { id: true, name: true } }),
     getSettings(),
   ])
 
@@ -28,6 +28,7 @@ export default async function ProduitsPage() {
     <ProduitsClient
       produits={produits.map((p) => ({
         id: p.id,
+        articleNumber: p.articleNumber,
         name: p.name,
         categoryId: p.categoryId,
         categoryName: p.category.name,
@@ -37,6 +38,9 @@ export default async function ProduitsPage() {
         stock: p.stock,
         stockSeuil: p.stockSeuil,
         active: p.active,
+        isBio: p.isBio,
+        isVegan: p.isVegan,
+        alcoholVolume: p.alcoholVolume,
         imageUrl: p.imageUrl,
         ordered: p._count.orderItems > 0,
       }))}
