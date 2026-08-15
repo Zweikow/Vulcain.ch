@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard'
 import Cart from '@/components/Cart'
 import OrderForm from '@/components/OrderForm'
 import ConfirmationModal from '@/components/ConfirmationModal'
+import ProductDetailModal from '@/components/ProductDetailModal'
 import { CartItem, CustomerInfo, Product } from '@/types'
 import { PublicSettings } from '@/lib/settings'
 
@@ -17,6 +18,7 @@ interface BoutiqueClientProps {
 
 export default function BoutiqueClient({ products, settings }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [confirmation, setConfirmation] = useState<{
     orderId: string
     totalCents: number
@@ -46,15 +48,29 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
     )
   }
 
+  const setProductQuantity = (productId: string, quantity: number) => {
+    setCart((prev) => {
+      const product = products.find((p) => p.id === productId)!
+      const validQty = Math.max(0, Math.min(quantity, product.stock))
+
+      const existing = prev.find((i) => i.product.id === productId)
+      if (validQty === 0) {
+        return prev.filter((i) => i.product.id !== productId)
+      }
+
+      if (existing) {
+        return prev.map((i) => (i.product.id === productId ? { ...i, quantity: validQty } : i))
+      }
+      return [...prev, { product, quantity: validQty }]
+    })
+  }
+
   const handleOrder = (customer: CustomerInfo, orderId: string, totalCents: number) => {
     setConfirmation({ orderId, totalCents })
     setCart([])
   }
 
-  const cidreProducts = products.filter((p) => p.category === 'Cidre')
-  const otherProducts = products.filter((p) =>
-    ['Eau-de-vie', 'Liqueur', 'Cuisine'].includes(p.category)
-  )
+  const categories = Array.from(new Set(products.map((p) => p.category)))
 
   return (
     <div className="min-h-screen">
@@ -87,49 +103,36 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
           {/* Left: products + form */}
           <div id="catalogue" className="flex flex-col gap-8">
-            {/* Cidres category */}
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-primary">🍎</span>
-                <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
-                  Cidres
-                </h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {cidreProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    quantity={getQuantity(product.id)}
-                    onAdd={() => addToCart(product.id)}
-                    onRemove={() => removeFromCart(product.id)}
-                  />
-                ))}
-              </div>
-            </section>
+            {categories.map((category) => {
+              const categoryProducts = products.filter((p) => p.category === category)
+              if (categoryProducts.length === 0) return null
 
-            {/* Other products category */}
-            {otherProducts.length > 0 && (
-              <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-primary">🍶</span>
-                  <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
-                    Eaux de vie / Liqueurs / Cidre de cuisine
-                  </h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {otherProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      quantity={getQuantity(product.id)}
-                      onAdd={() => addToCart(product.id)}
-                      onRemove={() => removeFromCart(product.id)}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+              return (
+                <section key={category}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-primary">
+                      {category.toLowerCase().includes('cidre') ? '🍎' : '🍶'}
+                    </span>
+                    <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
+                      {category}
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {categoryProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        quantity={getQuantity(product.id)}
+                        onAdd={() => addToCart(product.id)}
+                        onRemove={() => removeFromCart(product.id)}
+                        onSetQuantity={(qty) => setProductQuantity(product.id, qty)}
+                        onOpenDetails={() => setSelectedProduct(product)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )
+            })}
 
             {/* Order form */}
             <div id="commande">
@@ -189,6 +192,17 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
           orderId={confirmation.orderId}
           totalCents={confirmation.totalCents}
           onClose={() => setConfirmation(null)}
+        />
+      )}
+
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          quantity={getQuantity(selectedProduct.id)}
+          onAdd={() => addToCart(selectedProduct.id)}
+          onRemove={() => removeFromCart(selectedProduct.id)}
+          onSetQuantity={(qty) => setProductQuantity(selectedProduct.id, qty)}
+          onClose={() => setSelectedProduct(null)}
         />
       )}
     </div>
