@@ -107,15 +107,14 @@ export function RevenueChart({ buckets }: { buckets: ChartBucket[] }) {
         ))}
       </div>
 
-      {/* Légende */}
       <div className="mt-4 flex justify-center gap-6 text-sm">
         <span className="flex items-center gap-2 text-text-secondary dark:text-text-secondary-dark">
           <span className="h-3 w-3 rounded-full bg-primary" />
-          Privé (boutique)
+          Privé
         </span>
         <span className="flex items-center gap-2 text-text-secondary dark:text-text-secondary-dark">
           <span className="h-3 w-3 rounded-full bg-accent-mauve-dark" />
-          Pro (restaurants)
+          Pro
         </span>
       </div>
     </div>

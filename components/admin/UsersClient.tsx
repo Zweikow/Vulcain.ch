@@ -16,6 +16,7 @@ export type AdminUser = {
   name: string
   role: Role
   createdAt: Date
+  lastLoginAt: Date | null
 }
 
 // Libellés et descriptions partagés avec le reste de l'application.
@@ -167,6 +168,7 @@ export function UsersClient({
               <th className="px-4 py-3 font-semibold">Nom</th>
               <th className="px-4 py-3 font-semibold">Rôle</th>
               <th className="px-4 py-3 font-semibold">Créé le</th>
+              <th className="px-4 py-3 font-semibold">Dernière connexion</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -200,6 +202,9 @@ export function UsersClient({
                 </td>
                 <td className="tabular px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                   {stamp.format(u.createdAt)}
+                </td>
+                <td className="tabular px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
+                  {u.lastLoginAt ? stamp.format(u.lastLoginAt) : 'Jamais'}
                 </td>
                 <td className="px-4 py-3 text-right">
                   {resetFor === u.id ? (

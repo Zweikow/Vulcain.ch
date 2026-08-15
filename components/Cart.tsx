@@ -65,10 +65,13 @@ export default function Cart({ items, settings, onCheckout }: CartProps) {
               </div>
             </div>
           </div>
+          <a href="#commande" className="btn-primary w-full text-center mt-2">
+            Terminer ma commande
+          </a>
         </>
       )}
 
-      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark italic text-center">
+      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark italic text-center mt-2">
         Livraison en Suisse uniquement
       </div>
     </div>

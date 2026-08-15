@@ -5,6 +5,8 @@ import { StatusBadge } from '@/components/admin/StatusBadge'
 import { OrderStatus } from '@prisma/client'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
+import { SearchCommandes } from '@/components/admin/SearchCommandes'
+import { Suspense } from 'react'
 
 type StatusFilter = 'TOUTES' | OrderStatus
 
@@ -19,9 +21,9 @@ const FILTERS: { label: string; value: StatusFilter }[] = [
 export default async function CommandesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ statut?: string }>
+  searchParams: Promise<{ statut?: string; q?: string }>
 }) {
-  const { statut: rawStatut } = await searchParams
+  const { statut: rawStatut, q } = await searchParams
   const validStatuts = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE', 'ANNULEE']
   const statut: StatusFilter = validStatuts.includes(rawStatut ?? '')
     ? (rawStatut as OrderStatus)
@@ -30,7 +32,15 @@ export default async function CommandesPage({
   const user = await currentUser()
   const showMoney = user ? can.seeFinancials(user.role) : false
 
-  const whereClause = statut === 'TOUTES' ? {} : { status: statut as OrderStatus }
+  const whereClause: any = statut === 'TOUTES' ? {} : { status: statut as OrderStatus }
+
+  if (q) {
+    whereClause.OR = [
+      { numero: { contains: q, mode: 'insensitive' } },
+      { clientName: { contains: q, mode: 'insensitive' } },
+      { clientEmail: { contains: q, mode: 'insensitive' } },
+    ]
+  }
 
   const [commandes, counts] = await Promise.all([
     prisma.order.findMany({
@@ -44,6 +54,7 @@ export default async function CommandesPage({
         totalCents: true,
         status: true,
         createdAt: true,
+        assignedTo: { select: { name: true } },
       },
     }),
     Promise.all(
@@ -75,32 +86,47 @@ export default async function CommandesPage({
         </p>
       </div>
 
-      {/* Filtres */}
-      <div className="flex gap-2 mb-6">
-        {FILTERS.map(({ label, value }) => {
-          const count = value === 'TOUTES' ? totalCount : countMap[value as OrderStatus]
-          const isActive = statut === value
-          return (
-            <Link
-              key={value}
-              href={value === 'TOUTES' ? '/admin/commandes' : `/admin/commandes?statut=${value}`}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-primary text-white'
-                  : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
-              }`}
-            >
-              {label}
-              <span
-                className={`text-xs font-semibold px-1.5 py-0.5 rounded-pill ${
-                  isActive ? 'bg-white/20' : 'bg-border dark:bg-border-dark'
+      {/* Filtres & Recherche */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex gap-2">
+          {FILTERS.map(({ label, value }) => {
+            const count = value === 'TOUTES' ? totalCount : countMap[value as OrderStatus]
+            const isActive = statut === value
+            return (
+              <Link
+                key={value}
+                href={value === 'TOUTES' ? '/admin/commandes' : `/admin/commandes?statut=${value}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary text-white'
+                    : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
                 }`}
               >
-                {count}
-              </span>
-            </Link>
-          )
-        })}
+                {label}
+                <span
+                  className={`text-xs font-semibold px-1.5 py-0.5 rounded-pill ${
+                    isActive ? 'bg-white/20' : 'bg-border dark:bg-border-dark'
+                  }`}
+                >
+                  {count}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+
+        <Suspense
+          fallback={
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              className="input-field w-64 text-sm"
+              disabled
+            />
+          }
+        >
+          <SearchCommandes />
+        </Suspense>
       </div>
 
       {/* Table */}
@@ -169,6 +195,11 @@ export default async function CommandesPage({
                   )}
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />
+                    {order.assignedTo && (
+                      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark mt-1">
+                        Prep: {order.assignedTo.name}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                     {new Date(order.createdAt).toLocaleDateString('fr-CH')}

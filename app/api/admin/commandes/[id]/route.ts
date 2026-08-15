@@ -10,7 +10,8 @@ import { recordAudit } from '@/lib/audit'
 import { STATUS_LABELS } from '@/components/admin/StatusBadge'
 
 const patchSchema = z.object({
-  status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']),
+  status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']).optional(),
+  assignedToId: z.string().nullable().optional(),
 })
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -52,7 +53,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: 'Statut invalide' }, { status: 422 })
   }
 
-  const newStatus = result.data.status as OrderStatus
+  const { status, assignedToId } = result.data
+
+  // If assignedToId is provided and status is not explicitly sent, default to EN_PREPARATION
+  let newStatus = status
+  if (assignedToId !== undefined && !status) {
+    newStatus = OrderStatus.EN_PREPARATION
+  }
+
   const shippedAt = newStatus === OrderStatus.EXPEDIEE ? new Date() : null
 
   let order
@@ -60,10 +68,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     order = await prisma.order.update({
       where: { id },
       data: {
-        status: newStatus,
+        ...(newStatus ? { status: newStatus } : {}),
         ...(shippedAt !== null ? { shippedAt } : {}),
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
       },
-      select: { id: true, numero: true, status: true, shippedAt: true },
+      select: {
+        id: true,
+        numero: true,
+        status: true,
+        shippedAt: true,
+        assignedTo: { select: { name: true } },
+      },
     })
   } catch (e: unknown) {
     if (
@@ -77,24 +92,24 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     throw e
   }
 
-  await recordAudit(
-    AuditAction.STATUT_MODIFIE,
-    { type: 'COMMANDE', id, label: order.numero },
-    STATUS_LABELS[newStatus]
-  )
+  if (newStatus) {
+    await recordAudit(
+      AuditAction.STATUT_MODIFIE,
+      { type: 'COMMANDE', id, label: order.numero },
+      STATUS_LABELS[newStatus]
+    )
 
-  // Une commande expédiée a forcément une facture émise (idempotent), et le
-  // client reçoit l'avis avec ses informations de paiement.
-  if (newStatus === OrderStatus.EXPEDIEE) {
-    const invoiceNumber = await issueInvoice(id)
-    if (invoiceNumber) {
-      await recordAudit(
-        AuditAction.FACTURE_EMISE,
-        { type: 'COMMANDE', id, label: order.numero },
-        invoiceNumber
-      )
+    if (newStatus === OrderStatus.EXPEDIEE) {
+      const invoiceNumber = await issueInvoice(id)
+      if (invoiceNumber) {
+        await recordAudit(
+          AuditAction.FACTURE_EMISE,
+          { type: 'COMMANDE', id, label: order.numero },
+          invoiceNumber
+        )
+      }
+      await notifyOrderShipped(id)
     }
-    await notifyOrderShipped(id)
   }
 
   return NextResponse.json(order)

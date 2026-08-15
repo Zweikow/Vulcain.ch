@@ -5,6 +5,7 @@ import { formatCHF } from '@/lib/money'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 import { OrderCancel } from '@/components/admin/OrderCancel'
+import { AssignSelect } from '@/components/admin/AssignSelect'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,6 +17,11 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         include: { product: { select: { id: true, name: true } } },
       },
     },
+  })
+
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' },
   })
 
   if (!order) notFound()
@@ -65,10 +71,11 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Statut — masqué sur une commande annulée, qui ne progresse plus */}
+      {/* Statut & Assignation — masqués sur une commande annulée, qui ne progresse plus */}
       {order.status !== 'ANNULEE' && (
-        <div className="card p-5 mb-4">
+        <div className="card p-5 mb-4 grid grid-cols-2 gap-4">
           <StatusSelect orderId={order.id} currentStatus={order.status} />
+          <AssignSelect orderId={order.id} currentAssigneeId={order.assignedToId} users={users} />
         </div>
       )}
 
