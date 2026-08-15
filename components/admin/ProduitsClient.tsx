@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import AdminProductModal, { AdminProduct } from '@/components/AdminProductModal'
-import { toggleProductActive } from '@/app/admin/(protected)/produits/actions'
+import {
+  toggleProductActive,
+  updateProductStockInline,
+} from '@/app/admin/(protected)/produits/actions'
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 
-type Row = AdminProduct & { categoryName: string }
+type Row = AdminProduct & { categoryName: string; articleNumber: number }
 
 interface ProduitsClientProps {
   produits: Row[]
@@ -25,8 +28,57 @@ export function ProduitsClient({
 }: ProduitsClientProps) {
   const router = useRouter()
   const [modal, setModal] = useState<'closed' | 'new' | Row>('closed')
+  const [search, setSearch] = useState('')
 
-  const stockBasCount = produits.filter((p) => p.active && p.stock <= p.stockSeuil).length
+  const filteredProduits = produits.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.categoryName.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const stockBasCount = filteredProduits.filter((p) => p.active && p.stock <= p.stockSeuil).length
+
+  const exportCSV = () => {
+    const headers = [
+      'Article-Nr',
+      'Produit',
+      'Catégorie',
+      'Millésime',
+      'Prix Public (CHF)',
+      'Stock',
+      'Seuil',
+      'Visible',
+      'Bio',
+      'Vegan',
+    ]
+
+    const rows = filteredProduits.map((p) => [
+      p.articleNumber.toString().padStart(5, '0'),
+      `"${p.name.replace(/"/g, '""')}"`,
+      `"${p.categoryName.replace(/"/g, '""')}"`,
+      p.year ?? '',
+      (p.priceCents / 100).toFixed(2),
+      p.stock,
+      p.stockSeuil,
+      p.active ? 'Oui' : 'Non',
+      p.isBio ? 'Oui' : 'Non',
+      p.isVegan ? 'Oui' : 'Non',
+    ])
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute(
+      'download',
+      `inventaire_vulcain_${new Date().toISOString().split('T')[0]}.csv`
+    )
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <div>
@@ -41,11 +93,25 @@ export function ProduitsClient({
             {!canEdit && ' · consultation seule'}
           </p>
         </div>
-        {canEdit && (
-          <button className="btn-primary" onClick={() => setModal('new')}>
-            + Ajouter un produit
-          </button>
-        )}
+        <div className="flex flex-col gap-3 items-end">
+          <div className="flex items-center gap-3">
+            <button className="btn-secondary" onClick={exportCSV}>
+              Exporter CSV
+            </button>
+            {canEdit && (
+              <button className="btn-primary" onClick={() => setModal('new')}>
+                + Ajouter un produit
+              </button>
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Rechercher un produit..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input-field w-64 text-sm"
+          />
+        </div>
       </div>
 
       {stockBasCount > 0 && (
@@ -90,17 +156,19 @@ export function ProduitsClient({
             </tr>
           </thead>
           <tbody>
-            {produits.length === 0 ? (
+            {filteredProduits.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
                   className="px-4 py-8 text-center text-text-tertiary dark:text-text-tertiary-dark"
                 >
-                  Aucun produit. Ajoutez votre première référence.
+                  {search
+                    ? 'Aucun produit ne correspond à votre recherche.'
+                    : 'Aucun produit. Ajoutez votre première référence.'}
                 </td>
               </tr>
             ) : (
-              produits.map((p) => {
+              filteredProduits.map((p) => {
                 const isLowStock = p.active && p.stock <= p.stockSeuil
                 return (
                   <tr
@@ -108,12 +176,27 @@ export function ProduitsClient({
                     className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50"
                   >
                     <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
-                      {p.name}
-                      {p.year && (
-                        <span className="ml-2 text-xs text-text-tertiary dark:text-text-tertiary-dark">
-                          {p.year}
-                        </span>
-                      )}
+                      <div>
+                        {p.name}
+                        {p.year && (
+                          <span className="ml-2 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                            {p.year}
+                          </span>
+                        )}
+                        {p.isBio && (
+                          <span className="ml-2" title="Certifié Bio">
+                            🌱
+                          </span>
+                        )}
+                        {p.isVegan && (
+                          <span className="ml-1" title="Certifié Vegan">
+                            🌿
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-text-tertiary dark:text-text-tertiary-dark font-mono mt-0.5 opacity-60">
+                        Article-Nr. {p.articleNumber.toString().padStart(5, '0')}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                       {p.categoryName}
@@ -129,17 +212,38 @@ export function ProduitsClient({
                       </>
                     )}
                     <td className="px-4 py-3 text-right">
-                      <span
-                        className={`inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-medium ${
-                          p.stock === 0
-                            ? 'bg-border-light dark:bg-border-dark text-text-tertiary dark:text-text-tertiary-dark'
-                            : isLowStock
-                              ? 'bg-[#FDF2F2] text-[#C62828]'
-                              : 'bg-[#E8F5E9] text-text-success'
-                        }`}
-                      >
-                        {p.stock}
-                      </span>
+                      {canEdit ? (
+                        <input
+                          type="number"
+                          min="0"
+                          defaultValue={p.stock}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value)
+                            if (!isNaN(val) && val !== p.stock) {
+                              void updateProductStockInline(p.id, val).then(() => router.refresh())
+                            }
+                          }}
+                          className={`w-16 text-right px-2 py-1 rounded-md text-sm border font-medium ${
+                            p.stock === 0
+                              ? 'bg-border-light dark:bg-border-dark text-text-tertiary dark:text-text-tertiary-dark border-transparent'
+                              : isLowStock
+                                ? 'bg-[#FDF2F2] text-[#C62828] border-[#F3D5D5]'
+                                : 'bg-[#E8F5E9] text-text-success border-[#CDE8D4]'
+                          }`}
+                        />
+                      ) : (
+                        <span
+                          className={`inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-medium ${
+                            p.stock === 0
+                              ? 'bg-border-light dark:bg-border-dark text-text-tertiary dark:text-text-tertiary-dark'
+                              : isLowStock
+                                ? 'bg-[#FDF2F2] text-[#C62828]'
+                                : 'bg-[#E8F5E9] text-text-success'
+                          }`}
+                        >
+                          {p.stock}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
