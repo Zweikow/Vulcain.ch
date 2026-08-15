@@ -69,6 +69,7 @@ model AuditLog {
   actorLabel  String // nom lisible figé : le compte peut être supprimé ensuite
 
   @@index([createdAt])
+  @@index([userId])
 }
 
 model Category {
@@ -99,6 +100,8 @@ model Product {
   stockMovements StockMovement[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([categoryId])
 }
 
 // Le tarif pro appartient au client, pas à la commande (DESIGN.md §2).
@@ -156,6 +159,9 @@ model Order {
   assignedTo     User?           @relation("OrderAssignedTo", fields: [assignedToId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([customerId])
+  @@index([assignedToId])
 }
 
 model OrderItem {
@@ -168,6 +174,9 @@ model OrderItem {
   listPriceCents Int // prix public au moment de la commande
   unitPriceCents Int // prix appliqué (public ou pro)
   quantity       Int
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 enum OrderStatus {
@@ -193,6 +202,9 @@ model StockMovement {
   delta     Int // négatif pour une sortie
   reason    StockMovementReason
   createdAt DateTime            @default(now())
+
+  @@index([productId])
+  @@index([orderId])
 }
 
 // Réglages globaux — une seule ligne (id = 1). Port, franco et taux pro sont

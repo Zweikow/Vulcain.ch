@@ -21,9 +21,9 @@ const FILTERS: { label: string; value: StatusFilter }[] = [
 export default async function CommandesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ statut?: string; q?: string }>
+  searchParams: Promise<{ statut?: string; q?: string; page?: string }>
 }) {
-  const { statut: rawStatut, q } = await searchParams
+  const { statut: rawStatut, q, page: pageParam } = await searchParams
   const validStatuts = ['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE', 'ANNULEE']
   const statut: StatusFilter = validStatuts.includes(rawStatut ?? '')
     ? (rawStatut as OrderStatus)
@@ -42,10 +42,16 @@ export default async function CommandesPage({
     ]
   }
 
-  const [commandes, counts] = await Promise.all([
+  const page = Math.max(1, parseInt(pageParam || '1', 10))
+  const TAKE = 20
+  const skip = (page - 1) * TAKE
+
+  const [commandes, statusGroups, filteredTotal] = await Promise.all([
     prisma.order.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
+      take: TAKE,
+      skip,
       select: {
         id: true,
         numero: true,
@@ -57,23 +63,26 @@ export default async function CommandesPage({
         assignedTo: { select: { name: true } },
       },
     }),
-    Promise.all(
-      [
-        OrderStatus.A_TRAITER,
-        OrderStatus.EN_PREPARATION,
-        OrderStatus.EXPEDIEE,
-        OrderStatus.ANNULEE,
-      ].map((s) => prisma.order.count({ where: { status: s } }))
-    ),
+    prisma.order.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    }),
+    prisma.order.count({ where: whereClause }),
   ])
 
   const countMap: Record<OrderStatus, number> = {
-    A_TRAITER: counts[0],
-    EN_PREPARATION: counts[1],
-    EXPEDIEE: counts[2],
-    ANNULEE: counts[3],
+    A_TRAITER: 0,
+    EN_PREPARATION: 0,
+    EXPEDIEE: 0,
+    ANNULEE: 0,
   }
-  const totalCount = counts.reduce((a, b) => a + b, 0)
+  let totalCount = 0
+  for (const group of statusGroups) {
+    countMap[group.status] = group._count._all
+    totalCount += group._count._all
+  }
+
+  const totalPages = Math.ceil(filteredTotal / TAKE)
 
   return (
     <div>
@@ -210,6 +219,49 @@ export default async function CommandesPage({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-6 gap-4">
+          {page > 1 ? (
+            <Link
+              href={`/admin/commandes?${new URLSearchParams({
+                ...(rawStatut && { statut: rawStatut }),
+                ...(q && { q }),
+                page: (page - 1).toString(),
+              }).toString()}`}
+              className="px-3 py-1.5 text-sm bg-bg-card dark:bg-bg-card-dark rounded-md border border-border dark:border-border-dark hover:bg-primary/10 transition-colors"
+            >
+              Précédent
+            </Link>
+          ) : (
+            <span className="px-3 py-1.5 text-sm rounded-md border border-transparent text-text-tertiary dark:text-text-tertiary-dark cursor-not-allowed">
+              Précédent
+            </span>
+          )}
+
+          <span className="text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
+            Page {page} sur {totalPages}
+          </span>
+
+          {page < totalPages ? (
+            <Link
+              href={`/admin/commandes?${new URLSearchParams({
+                ...(rawStatut && { statut: rawStatut }),
+                ...(q && { q }),
+                page: (page + 1).toString(),
+              }).toString()}`}
+              className="px-3 py-1.5 text-sm bg-bg-card dark:bg-bg-card-dark rounded-md border border-border dark:border-border-dark hover:bg-primary/10 transition-colors"
+            >
+              Suivant
+            </Link>
+          ) : (
+            <span className="px-3 py-1.5 text-sm rounded-md border border-transparent text-text-tertiary dark:text-text-tertiary-dark cursor-not-allowed">
+              Suivant
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
