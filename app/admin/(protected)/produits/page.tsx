@@ -35,6 +35,7 @@ export default async function ProduitsPage() {
         year: p.year,
         description: p.description ?? '',
         priceCents: p.priceCents,
+        purchasePriceCents: p.purchasePriceCents,
         stock: p.stock,
         stockSeuil: p.stockSeuil,
         active: p.active,

@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           active: true,
           archived: false,
         },
-        select: { id: true, name: true, priceCents: true, stock: true },
+        select: { id: true, name: true, priceCents: true, purchasePriceCents: true, stock: true },
       })
       const byId = new Map(products.map((p) => [p.id, p]))
 
@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
           productId: product.id,
           productName: product.name,
           listPriceCents: product.priceCents,
+          purchasePriceCents: product.purchasePriceCents,
           unitPriceCents,
           quantity: item.quantity,
         }

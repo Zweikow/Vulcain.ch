@@ -12,6 +12,7 @@ const productSchema = z.object({
   year: z.coerce.number().int().min(1990).max(2100).nullable().optional(),
   description: z.string().max(500),
   priceCents: z.coerce.number().int().min(0).max(100_000_00),
+  purchasePriceCents: z.coerce.number().int().min(0).max(100_000_00).default(0),
   stock: z.coerce.number().int().min(0),
   stockSeuil: z.coerce.number().int().min(0),
   active: z.boolean(),

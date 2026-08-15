@@ -21,7 +21,7 @@ const stamp = new Intl.DateTimeFormat('fr-CH', {
 
 export default async function FacturePage({ params }: { params: Promise<{ id: string }> }) {
   // Une facture est un document financier.
-  await requireCapability(can.seeFinancials)
+  const user = await requireCapability(can.manageInvoices)
 
   const { id } = await params
 
@@ -71,11 +71,13 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
 
         <StatusSelect orderId={order.id} currentStatus={order.status} />
 
-        <FactureControls
-          orderId={order.id}
-          clientType={order.clientType}
-          proRatePercent={settings.proRatePercent}
-        />
+        {can.seeFinancials(user.role) && (
+          <FactureControls
+            orderId={order.id}
+            clientType={order.clientType}
+            proRatePercent={settings.proRatePercent}
+          />
+        )}
 
         <dl className="flex flex-col gap-1 border-t border-border pt-4 text-xs text-text-tertiary dark:border-border-dark dark:text-text-tertiary-dark">
           <div className="flex justify-between gap-2">

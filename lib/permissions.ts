@@ -12,8 +12,11 @@ import { Role } from '@prisma/client'
  *                aucun montant, aucune facture
  */
 export const can = {
-  /** Montants, chiffre d'affaires, factures. Le travail de cave n'en a pas besoin. */
+  /** Montants, chiffre d'affaires. Le travail de cave n'en a pas besoin (sauf via l'impression des factures). */
   seeFinancials: (role: Role) => role !== Role.PREPARATEUR,
+
+  /** Génération et impression des factures. */
+  manageInvoices: () => true,
 
   /** Tableau de bord : indicateurs et statistiques de vente. */
   seeDashboard: (role: Role) => role !== Role.PREPARATEUR,

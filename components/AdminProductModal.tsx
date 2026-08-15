@@ -17,6 +17,7 @@ export type AdminProduct = {
   year: number | null
   description: string
   priceCents: number
+  purchasePriceCents: number
   stock: number
   stockSeuil: number
   active: boolean
@@ -51,6 +52,7 @@ export default function AdminProductModal({
     categoryId: product?.categoryId ?? categories[0]?.id ?? '',
     year: product?.year ? String(product.year) : '',
     priceChf: product ? String(product.priceCents / 100) : '',
+    purchasePriceChf: product ? String(product.purchasePriceCents / 100) : '',
     // Chaînes et non nombres : un champ vide reste vide, au lieu d'afficher un
     // zéro devant lequel la saisie viendrait s'ajouter (« 01500 »).
     stock: product ? String(product.stock) : '',
@@ -78,6 +80,7 @@ export default function AdminProductModal({
       year: form.year ? Number(form.year) : null,
       description: form.description,
       priceCents,
+      purchasePriceCents: chfInputToCents(form.purchasePriceChf),
       stock: Number(form.stock),
       stockSeuil: Number(form.stockSeuil),
       active: form.active,
@@ -178,6 +181,24 @@ export default function AdminProductModal({
                 onChange={(e) => update('year', e.target.value)}
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                Prix d&apos;achat (CHF)
+              </label>
+              <input
+                type="number"
+                step="0.05"
+                min="0"
+                className="input-field tabular"
+                placeholder="10.00"
+                value={form.purchasePriceChf}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => update('purchasePriceChf', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix public (CHF)

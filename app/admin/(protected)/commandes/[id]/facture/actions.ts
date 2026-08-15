@@ -15,7 +15,7 @@ import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
  * une fois émise, la facture est un document comptable dont le numéro est figé.
  */
 export async function issueInvoiceForOrder(orderId: string) {
-  const guard = await assertCapability(can.seeFinancials)
+  const guard = await assertCapability(can.manageInvoices)
   if (!guard.ok) return
 
   const order = await prisma.order.findUnique({

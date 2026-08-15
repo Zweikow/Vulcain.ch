@@ -14,8 +14,8 @@ async function main() {
 
   await prisma.user.upsert({
     where: { username },
-    update: {},
-    create: { username, email, password: hash, name },
+    update: { role: 'ADMIN' },
+    create: { username, email, password: hash, name, role: 'ADMIN' },
   })
   console.log(`✓ Admin créé : ${username} (mot de passe à changer)`)
 

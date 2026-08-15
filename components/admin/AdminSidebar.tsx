@@ -66,7 +66,7 @@ export function AdminSidebar({ user }: { user: any }) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
 
-  const role = user?.role ?? Role.PREPARATEUR
+  const role = (user?.role as Role) ?? Role.PREPARATEUR
   const links = NAV_LINKS.filter((l) => l.capability(role))
 
   return (

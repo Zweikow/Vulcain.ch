@@ -33,10 +33,13 @@ export type ChartBucket = {
   label: string
   privateCents: number
   proCents: number
+  marginCents: number
 }
 
 export type DashboardData = {
   revenueCents: number
+  marginCents: number
+  purchaseTotalCents: number
   shippedCount: number
   proShippedCount: number
   openOrders: number
@@ -120,6 +123,7 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
             productName: true,
             quantity: true,
             unitPriceCents: true,
+            purchasePriceCents: true,
             product: { select: { category: { select: { name: true } } } },
           },
         },
@@ -150,6 +154,13 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
   // Indicateurs
   const shipped = periodOrders.filter((o) => o.status === OrderStatus.EXPEDIEE)
   const revenueCents = shipped.reduce((n, o) => n + o.totalCents, 0)
+  // Calcul du coût d'achat total pour les commandes expédiées
+  const purchaseTotalCents = shipped.reduce(
+    (total, o) =>
+      total + o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0),
+    0
+  )
+  const marginCents = revenueCents - purchaseTotalCents
   const proShippedCount = shipped.filter((o) => o.clientType === ClientType.PRO).length
   const averageBasketCents = shipped.length > 0 ? Math.round(revenueCents / shipped.length) : 0
   const bottlesToPick = openOrders.reduce(
@@ -171,6 +182,7 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
       proCents: inBucket
         .filter((o) => o.clientType === ClientType.PRO)
         .reduce((n, o) => n + o.totalCents, 0),
+      marginCents: inBucket.reduce((n, o) => n + (o.totalCents - o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0)), 0),
     }
   })
 
@@ -210,6 +222,8 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
 
   return {
     revenueCents,
+    marginCents,
+    purchaseTotalCents,
     shippedCount: shipped.length,
     proShippedCount,
     openOrders: openOrders.length,

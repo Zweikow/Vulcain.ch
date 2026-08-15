@@ -14,6 +14,8 @@ const EMPTY: DashboardData = {
   bottlesToPick: 0,
   averageBasketCents: 0,
   productCount: 0,
+  marginCents: 0,
+  purchaseTotalCents: 0,
   buckets: [],
   alerts: [],
   topSales: [],
@@ -60,6 +62,13 @@ export default async function DashboardPage({
       href: '/admin/commandes?statut=EXPEDIEE',
     },
     {
+      label: 'Marge brute',
+      icon: '📈',
+      value: formatCHF(data.marginCents),
+      detail: `Achats : ${formatCHF(data.purchaseTotalCents)}`,
+      href: '/admin/commandes?statut=EXPEDIEE',
+    },
+    {
       label: 'Commandes à traiter',
       icon: '📦',
       value: String(data.openOrders),
@@ -101,20 +110,28 @@ export default async function DashboardPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {PERIODES.map(({ label, value }) => (
-            <Link
-              key={value}
-              href={`/admin?periode=${value}`}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                periode === value
-                  ? 'bg-primary text-text-on-primary'
-                  : 'border border-border bg-bg-card text-text-secondary hover:bg-primary/10 dark:border-border-dark dark:bg-bg-card-dark dark:text-text-secondary-dark'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+        <div className="flex flex-col items-start md:items-end gap-3">
+          <div className="flex flex-wrap gap-2">
+            {PERIODES.map(({ label, value }) => (
+              <Link
+                key={value}
+                href={`/admin?periode=${value}`}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  periode === value
+                    ? 'bg-primary text-text-on-primary'
+                    : 'border border-border bg-bg-card text-text-secondary hover:bg-primary/10 dark:border-border-dark dark:bg-bg-card-dark dark:text-text-secondary-dark'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          <a
+            href={`/api/admin/export-achats?periode=${periode}`}
+            className="text-xs font-medium text-text-secondary hover:text-primary transition-colors flex items-center gap-1 bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark px-2 py-1 rounded-md shadow-sm"
+          >
+            <span aria-hidden>↓</span> Décompte d&apos;achat CSV
+          </a>
         </div>
       </div>
 
