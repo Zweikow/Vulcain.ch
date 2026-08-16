@@ -1,0 +1,17 @@
+stages:
+  - deploy
+
+deploy_sandbox:
+  stage: deploy
+  image: node:20
+  # Ce job ne s'exécute QUE si la modification se fait sur la branche "sandbox"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "sandbox"'
+  script:
+    - echo "Déploiement automatique sur AWS (Sandbox) en cours..."
+    - npm ci
+    - npx prisma generate
+    - npx sst deploy --stage sandbox
+  environment:
+    name: sandbox
+    url: https://sandbox.cidrerie-vulcain.ch

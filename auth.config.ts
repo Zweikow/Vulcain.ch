@@ -30,7 +30,7 @@ export const authConfig: NextAuthConfig = {
       const isLoginPage = nextUrl.pathname === '/admin/login'
 
       if (isLoginPage) {
-        if (isLoggedIn) return Response.redirect(new URL('/admin', nextUrl))
+        if (isLoggedIn) return Response.redirect(new URL('/admin', nextUrl.origin))
         return true
       }
 

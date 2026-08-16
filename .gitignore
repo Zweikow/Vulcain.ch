@@ -35,3 +35,16 @@ tsconfig.tsbuildinfo
 
 # Plans et specs internes Claude (non critiques pour l'app)
 docs/superpowers/
+
+# SST / OpenNext
+.sst/
+.open-next/
+
+# Temporary files
+route53-batch*.json
+test-db.js
+
+cf-func.json
+dist.json
+check-users.js
+sst-env.d.ts

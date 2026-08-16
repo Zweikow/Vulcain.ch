@@ -112,6 +112,41 @@ export default function AdminProductModal({
     })
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setError(null)
+      // 1. Demander une URL présignée à notre API
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type }),
+      })
+
+      if (!res.ok) {
+        throw new Error("Erreur de préparation S3 (Vérifiez votre configuration AWS)")
+      }
+
+      const { uploadUrl, fileUrl } = await res.json()
+
+      // 2. Uploader le fichier directement sur S3
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      })
+
+      if (!uploadRes.ok) throw new Error("Erreur lors de l'envoi de l'image vers S3")
+
+      // 3. Mettre à jour l'URL dans le formulaire
+      update('imageUrl', fileUrl)
+    } catch (err: any) {
+      setError(err.message || "Erreur d'upload")
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="card w-full max-w-lg shadow-xl overflow-y-auto max-h-[90vh]">
@@ -281,13 +316,32 @@ export default function AdminProductModal({
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
               Image du produit
             </label>
-            <div className="border-2 border-dashed border-border dark:border-border-dark rounded-md p-4 flex flex-col items-center gap-1 text-text-tertiary dark:text-text-tertiary-dark">
+            <div className="border-2 border-dashed border-border dark:border-border-dark rounded-md p-4 flex flex-col items-center gap-3 text-text-tertiary dark:text-text-tertiary-dark relative">
               <span className="font-mono text-[11px]">photo bouteille 1:1 — 800×600 min</span>
-              <span className="text-xs">L&apos;upload direct arrivera avec le stockage S3</span>
+              {form.imageUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <img src={form.imageUrl} alt="Aperçu" className="w-24 h-24 object-contain rounded-md border border-border" />
+                  <button type="button" onClick={() => update('imageUrl', '')} className="text-xs text-text-error hover:underline">
+                    Retirer l&apos;image
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-md pointer-events-none">
+                    Sélectionner un fichier
+                  </span>
+                </>
+              )}
             </div>
             <input
-              className="input-field mt-1"
-              placeholder="https://… (URL de l'image, facultatif)"
+              className="input-field mt-1 text-xs"
+              placeholder="https://… (URL S3 générée automatiquement)"
               value={form.imageUrl}
               onChange={(e) => update('imageUrl', e.target.value)}
             />
