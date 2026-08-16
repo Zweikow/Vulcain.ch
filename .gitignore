@@ -1,5 +1,7 @@
-# Configuration EmailJS (contient les clés secrètes)
-config.js
+# Variables d'environnement (secrets)
+.env
+.env.local
+.env*.local
 
 # Fichiers système
 .DS_Store
@@ -15,10 +17,34 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Dependencies (si ajoutées plus tard)
+# Dependencies
 node_modules/
-package-lock.json
+
+# Next.js
+.next/
+out/
+next-env.d.ts
 
 # Fichiers temporaires
 *.tmp
 *.temp
+tsconfig.tsbuildinfo
+
+# Claude (worktrees, mémoire, config locale)
+.claude/
+
+# Plans et specs internes Claude (non critiques pour l'app)
+docs/superpowers/
+
+# SST / OpenNext
+.sst/
+.open-next/
+
+# Temporary files
+route53-batch*.json
+test-db.js
+
+cf-func.json
+dist.json
+check-users.js
+sst-env.d.ts

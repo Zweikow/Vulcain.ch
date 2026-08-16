@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
+  }
+
+  /* Focus visible sur tous les éléments interactifs (DESIGN.md §6) */
+  :focus-visible {
+    outline: 2px solid #5ed97f;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Texte sombre sur fond vert — jamais de blanc (DESIGN.md, correctif contraste) */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-secondary {
+    @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-danger {
+    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .input-field {
+    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border dark:border-border-dark rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+  }
+  .card {
+    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
+  }
+}
+
+@layer utilities {
+  /* Montants alignés en colonne (DESIGN.md §1) */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* --- Facture A4 -----------------------------------------------------------
+   Le document est calibré en millimètres : ce qui est à l'écran est ce qui
+   sort sur papier. C'est le support de travail réel à la cave (DESIGN.md §6). */
+.facture-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 16mm 18mm;
+  display: flex;
+  flex-direction: column;
+}
+
+.facture-shell {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8ef;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(21, 50, 67, 0.06);
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .facture-shell {
+    max-width: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .facture-page {
+    padding: 14mm 16mm;
+  }
+}
