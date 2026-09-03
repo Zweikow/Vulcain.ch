@@ -32,7 +32,7 @@ const PRODUITS = {
     ],
     cidres: [
         { id: 'poire-comment-2022', nom: 'NEW: Poiré Comment! 2022', prix: 18, description: 'Sec, poires cuites au four, velour en bouche' },
-        { id: 'poire-la-premoudiere', nom: 'Poiré La Prémoudière', prix: 20, description: 'Juteux, sec' },
+        { id: 'poire-la-premoudiere', nom: 'Poiré La Prémoudière 2022', prix: 20, description: 'Juteux, sec' },
         { id: '3-pepins-23', nom: '3 Pépins 2023', prix: 18, description: 'Extra brut, vineux' },
         { id: 'lande-foy-22', nom: 'Lande Foy 2022', prix: 12, description: 'Brut, fruité' },
         { id: 'belle-brutale-17', nom: 'Belle Brutale 2017', prix: 18, description: 'Sec, fruité, acidulée' },
