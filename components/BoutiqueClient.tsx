@@ -160,6 +160,11 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
           <div>
             <p className="font-display font-semibold text-base text-white">Cidrerie du Vulcain</p>
             <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain</p>
+            {process.env.NEXT_PUBLIC_COMMIT_SHA && (
+              <p className="mt-1 font-mono text-[11px] text-white/40">
+                version: {process.env.NEXT_PUBLIC_COMMIT_SHA} {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
               <a
                 href="/cgv"

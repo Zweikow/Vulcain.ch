@@ -1,6 +1,10 @@
 export async function verifyTurnstileToken(token: string): Promise<boolean> {
   if (!token) return false
   if (!process.env.TURNSTILE_SECRET_KEY) {
+    if (process.env.NEXT_PUBLIC_STAGE !== 'production') {
+      console.warn('TURNSTILE_SECRET_KEY manquant — validation contournée (hors production)')
+      return true
+    }
     console.error('TURNSTILE_SECRET_KEY is not set')
     return false
   }
