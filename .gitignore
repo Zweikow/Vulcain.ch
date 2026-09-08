@@ -47,4 +47,3 @@ test-db.js
 cf-func.json
 dist.json
 check-users.js
-sst-env.d.ts
