@@ -31,6 +31,12 @@ export function TurnstileWidget({ onToken }: TurnstileWidgetProps) {
   }, [onToken])
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+      // Clé absente (ex: environnement dev / sandbox sans Cloudflare configuré) : token factice
+      onToken('sandbox-dummy-token')
+      return
+    }
+
     if (window.turnstile) {
       renderWidget()
       return

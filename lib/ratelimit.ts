@@ -9,13 +9,13 @@ let _ratelimit: OrderLimiter | null = null
 export function getOrderRatelimit(): OrderLimiter {
   if (!_ratelimit) {
     if (!process.env.UPSTASH_REDIS_REST_URL) {
-      // Sans Upstash : bloquant en production (fail loud), permissif en dev.
-      if (process.env.NODE_ENV === 'production') {
+      // Sans Upstash : bloquant en production uniquement, permissif en dev/sandbox.
+      if (process.env.NEXT_PUBLIC_STAGE === 'production') {
         throw new Error(
           'UPSTASH_REDIS_REST_URL manquant : le rate limiting est obligatoire en production.'
         )
       }
-      console.warn('Upstash non configuré — rate limiting désactivé (dev uniquement).')
+      console.warn('Upstash non configuré — rate limiting désactivé (hors production).')
       _ratelimit = { limit: async () => ({ success: true }) }
     } else {
       _ratelimit = new Ratelimit({

@@ -9,6 +9,7 @@ deploy_sandbox:
     - if: '$CI_COMMIT_BRANCH == "sandbox"'
   script:
     - echo "Déploiement automatique sur AWS (Sandbox) en cours..."
+    - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
     - npx prisma generate
     - npx sst deploy --stage sandbox

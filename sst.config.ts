@@ -45,6 +45,8 @@ export default $config({
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || "",
         AUTH_TRUST_HOST: "true",
         AUTH_URL: domain ? `https://${domain}` : "",
+        NEXT_PUBLIC_COMMIT_SHA: process.env.CI_COMMIT_SHORT_SHA || process.env.NEXT_PUBLIC_COMMIT_SHA || "",
+        NEXT_PUBLIC_STAGE: $app.stage,
       }
     });
 
