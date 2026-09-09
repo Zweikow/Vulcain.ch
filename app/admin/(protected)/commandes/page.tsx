@@ -86,13 +86,24 @@ export default async function CommandesPage({
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
-          Commandes
-        </h1>
-        <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-          Gérez et suivez toutes les commandes
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
+            Commandes
+          </h1>
+          <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
+            Gérez et suivez toutes les commandes
+          </p>
+        </div>
+        {user && can.manageOrders(user.role) && (
+          <Link
+            href="/admin/commandes/nouvelle"
+            className="btn-primary text-sm flex items-center gap-1.5 px-4 py-2"
+          >
+            <span>+</span>
+            <span>Nouvelle commande</span>
+          </Link>
+        )}
       </div>
 
       {/* Filtres & Recherche */}
