@@ -84,8 +84,12 @@ export function FactureDocument({
         {/* En-tête : expéditeur à gauche, logo à droite */}
         <header className="flex items-start justify-between gap-8">
           <div className="text-[12px] leading-relaxed">
-            <p className="font-semibold">{settings.contactName}</p>
-            <p>{settings.companyTagline}</p>
+            <p className="font-bold text-[13px] tracking-tight">
+              {settings.companyTagline === 'Cidrerie du Vulcain'
+                ? 'Vulcano Distribution'
+                : settings.companyTagline || 'Vulcano Distribution'}
+            </p>
+            <p className="font-medium">{settings.contactName}</p>
             <p>{settings.companyAddress}</p>
             <p>{settings.companyZipCity}</p>
             {settings.vatNumber && (

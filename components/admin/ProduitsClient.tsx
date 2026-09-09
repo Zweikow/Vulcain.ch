@@ -9,11 +9,16 @@ import {
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 
-type Row = AdminProduct & { categoryName: string; articleNumber: number }
+type Row = AdminProduct & {
+  categoryName: string
+  articleNumber: number
+  producerName?: string | null
+}
 
 interface ProduitsClientProps {
   produits: Row[]
   categories: { id: string; name: string }[]
+  producers: { id: string; name: string }[]
   proRatePercent: number
   canEdit: boolean
   showMoney: boolean
@@ -22,6 +27,7 @@ interface ProduitsClientProps {
 export function ProduitsClient({
   produits,
   categories,
+  producers,
   proRatePercent,
   canEdit,
   showMoney,
@@ -177,9 +183,12 @@ export function ProduitsClient({
                   >
                     <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
                       <div>
-                        {p.name}
+                        {p.origin === 'FR' ? '🇫🇷' : '🇨🇭'} {p.name}
+                        <span className="ml-1.5 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                          {p.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}
+                        </span>
                         {p.year && (
-                          <span className="ml-2 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                          <span className="ml-1.5 text-xs text-text-tertiary dark:text-text-tertiary-dark">
                             {p.year}
                           </span>
                         )}
@@ -194,8 +203,9 @@ export function ProduitsClient({
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-text-tertiary dark:text-text-tertiary-dark font-mono mt-0.5 opacity-60">
-                        Article-Nr. {p.articleNumber.toString().padStart(5, '0')}
+                      <div className="flex items-center gap-2 text-[10px] text-text-tertiary dark:text-text-tertiary-dark font-mono mt-0.5 opacity-75">
+                        <span>Article-Nr. {p.articleNumber.toString().padStart(5, '0')}</span>
+                        {p.producerName && <span>· {p.producerName}</span>}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
@@ -283,6 +293,7 @@ export function ProduitsClient({
         <AdminProductModal
           product={modal === 'new' ? undefined : modal}
           categories={categories}
+          producers={producers}
           proRatePercent={proRatePercent}
           onClose={() => setModal('closed')}
         />

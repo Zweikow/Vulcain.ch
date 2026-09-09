@@ -11,16 +11,18 @@ export default async function ProduitsPage() {
   const canEdit = user ? can.manageCatalogue(user.role) : false
   const showMoney = user ? can.seeFinancials(user.role) : false
 
-  const [produits, categories, settings] = await Promise.all([
+  const [produits, categories, producers, settings] = await Promise.all([
     prisma.product.findMany({
       where: { archived: false },
       include: {
         category: { select: { name: true } },
+        producer: { select: { name: true } },
         _count: { select: { orderItems: true } },
       },
       orderBy: [{ category: { position: 'asc' } }, { name: 'asc' }],
     }),
     prisma.category.findMany({ orderBy: { position: 'asc' }, select: { id: true, name: true } }),
+    prisma.producer.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
     getSettings(),
   ])
 
@@ -32,7 +34,11 @@ export default async function ProduitsPage() {
         name: p.name,
         categoryId: p.categoryId,
         categoryName: p.category.name,
+        producerId: p.producerId,
+        producerName: p.producer?.name ?? null,
         year: p.year,
+        bottleSize: p.bottleSize,
+        origin: p.origin,
         description: p.description ?? '',
         priceCents: p.priceCents,
         purchasePriceCents: p.purchasePriceCents,
@@ -46,6 +52,7 @@ export default async function ProduitsPage() {
         ordered: p._count.orderItems > 0,
       }))}
       categories={categories}
+      producers={producers}
       proRatePercent={settings.proRatePercent}
       canEdit={canEdit}
       showMoney={showMoney}

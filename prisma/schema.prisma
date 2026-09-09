@@ -29,6 +29,8 @@ model User {
   // Adresse de contact du compte, pour une future réinitialisation de mot de
   // passe. Ne sert pas à se connecter.
   email          String?    @unique
+  active         Boolean    @default(true)
+  mustChangePassword Boolean @default(false)
   lastLoginAt    DateTime?
   createdAt      DateTime   @default(now())
   auditLogs      AuditLog[]
@@ -80,6 +82,14 @@ model Category {
   products Product[]
 }
 
+model Producer {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Product {
   id             String          @id @default(cuid())
   articleNumber  Int             @unique @default(autoincrement())
@@ -93,17 +103,22 @@ model Product {
   archived       Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
   imageUrl       String?
   year           Int?
+  bottleSize     String          @default("75cl") // "75cl" ou "27.5cl"
+  origin         String          @default("CH") // "CH" (Suisse) ou "FR" (France)
   isBio          Boolean         @default(false)
   isVegan        Boolean         @default(false)
   alcoholVolume  Float?
   category       Category        @relation(fields: [categoryId], references: [id])
   categoryId     String
+  producer       Producer?       @relation(fields: [producerId], references: [id])
+  producerId     String?
   orderItems     OrderItem[]
   stockMovements StockMovement[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   @@index([categoryId])
+  @@index([producerId])
 }
 
 // Le tarif pro appartient au client, pas à la commande (DESIGN.md §2).
@@ -232,7 +247,7 @@ model Setting {
   iban            String @default("CH57 0900 0000 1703 3189 6")
   // En-tête et pied de la facture papier (modèle Facture_Base.docx)
   contactName      String @default("Bertrand Baeriswyl") // signataire de la facture
-  companyTagline   String @default("Cidrerie du Vulcain")
+  companyTagline   String @default("Vulcano Distribution")
   companyZipCity   String @default("1619 Les Paccots")
   invoicePlace     String @default("Les Paccots") // « Les Paccots, le … »
   bankName         String @default("PostFinance AG")
