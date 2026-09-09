@@ -198,7 +198,7 @@
 
 ## 5. Épopée 5 — Administration : Facturation & Expédition (BL)
 
-### US-ADM-05 — Émission de factures conformes et QR-Facture suisse
+### US-ADM-05 — Émission de factures conformes
 
 **En tant qu'** administrateur,  
 **je veux** générer une facture officielle avec son propre numéro chronologique et ses mentions fiscales,  
@@ -210,6 +210,20 @@
 - [x] Calcul de la TVA suisse au taux légal en vigueur.
 - [x] Mise en page A4 professionnelle imprimable (`@media print`).
 - [x] Possibilité de basculer le type client (Privé / Pro) avant émission.
+
+### US-ADM-28 — Génération dynamique de la QR-facture suisse (norme SIX)
+
+**En tant qu'** administrateur et client de la cidrerie,  
+**je veux** que chaque facture génère automatiquement la section de paiement QR suisse officielle au bas de la page A4,  
+**afin de** permettre au client de payer en scannant le QR code avec son e-banking (montant, compte et facture pré-remplis) ou au guichet postal.
+
+**Critères d'acceptation :**
+
+- [x] Rendu vectoriel conforme SIX / PostFinance (210×105 mm) avec récépissé (62 mm), section de paiement (148 mm) et croix suisse centrale (7×7 mm).
+- [x] Coordonnées créancier automatiques (IBAN PostFinance `CH57 0900...`, nom et adresse de Bertrand Baeriswyl).
+- [x] Pré-remplissage dynamique du montant en CHF et des coordonnées du débiteur (client).
+- [x] Mention du numéro de facture et de commande dans les informations de paiement.
+- [x] Lignes de découpe avec icônes ciseaux conformes pour l'impression A4.
 
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
@@ -414,9 +428,9 @@
 | **2. Prise de Commande**        |    3     |           3           |                —                 |
 | **3. Infos Légales & Histoire** |    2     |           2           |   _(Contenu final /histoire)_    |
 | **4. Gestion des Commandes**    |    4     |           4           |                —                 |
-| **5. Facturation & Expédition** |    2     |           1           | **US-ADM-06 (Bon de livraison)** |
+| **5. Facturation & Expédition** |    3     |           2           | **US-ADM-06 (Bon de livraison)** |
 | **6. Catalogue & Stocks**       |    3     |           3           |                —                 |
 | **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
 | **9. DevOps & Sécurité**        |    4     |           4           |                —                 |
-| **TOTAL**                       |  **27**  |        **26**         |          **1 en cours**          |
+| **TOTAL**                       |  **28**  |        **27**         |          **1 en cours**          |

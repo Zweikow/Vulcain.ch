@@ -48,9 +48,26 @@
 .facture-page {
   width: 210mm;
   min-height: 297mm;
-  padding: 16mm 18mm;
   display: flex;
   flex-direction: column;
+  background: #fff;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.facture-body {
+  padding: 12mm 16mm 2mm 16mm;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.facture-qr {
+  width: 210mm;
+  height: 105mm;
+  margin-top: auto;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .facture-shell {
@@ -63,7 +80,7 @@
 
 @media print {
   @page {
-    size: A4;
+    size: A4 portrait;
     margin: 0;
   }
 
@@ -81,6 +98,24 @@
   }
 
   .facture-page {
-    padding: 14mm 16mm;
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
+    padding: 0;
+    margin: 0;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .facture-body {
+    padding: 10mm 16mm 2mm 16mm;
+  }
+
+  .facture-qr {
+    width: 210mm;
+    height: 105mm;
+    margin-top: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
