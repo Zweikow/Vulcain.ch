@@ -96,9 +96,12 @@ export default function ProductDetailModal({
 
           <div className="text-sm text-text-secondary dark:text-text-secondary-dark mb-6 leading-relaxed flex flex-col gap-1">
             <span className="font-semibold text-text-primary dark:text-text-primary-dark">
-              Cidrerie du Vulcain
+              {product.producerName || 'Jacques Perritaz'}
             </span>
-            <span>Suisse</span>
+            <span>
+              {product.origin === 'FR' ? '🇫🇷 France' : '🇨🇭 Suisse'} ·{' '}
+              {product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}
+            </span>
             <span>{product.category}</span>
           </div>
 

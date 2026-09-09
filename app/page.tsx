@@ -10,7 +10,10 @@ export default async function Home() {
   const [dbProducts, settings] = await Promise.all([
     prisma.product.findMany({
       where: { active: true, archived: false },
-      include: { category: { select: { name: true } } },
+      include: {
+        category: { select: { name: true } },
+        producer: { select: { name: true } },
+      },
       orderBy: [{ category: { position: 'asc' } }, { name: 'asc' }],
     }),
     getPublicSettings(),
@@ -23,7 +26,10 @@ export default async function Home() {
       id: p.id,
       name: p.name,
       category: p.category.name as Product['category'],
+      producerName: p.producer?.name ?? undefined,
       year: p.year ?? undefined,
+      bottleSize: (p.bottleSize as '75cl' | '27.5cl') || '75cl',
+      origin: (p.origin as 'CH' | 'FR') || 'CH',
       priceCents: p.priceCents,
       stock: p.stock,
       description: p.description ?? '',

@@ -62,6 +62,18 @@
 - [x] Navigation mobile avec menu hamburger escamotable.
 - [x] Palette de couleurs respectant la charte graphique de la cidrerie en clair et en sombre.
 
+### US-PUB-08 — Drapeaux d'origine, contenance et producteur sur la boutique
+
+**En tant que** client consultant le catalogue,  
+**je veux** voir immédiatement l'origine (drapeau 🇨🇭 Suisse ou 🇫🇷 France) et la contenance (75 cl / 27.5 cl) de chaque bouteille avant de cliquer, ainsi que le producteur dans le détail,  
+**afin d'** identifier rapidement le format et la provenance des cuvées.
+
+**Critères d'acceptation :**
+
+- [x] Affichage d'un emoji drapeau (🇨🇭 ou 🇫🇷) à côté du titre sur chaque fiche produit de la grille.
+- [x] Affichage de la contenance (`75 cl` ou `27.5 cl`) sur la carte produit.
+- [x] Affichage du nom du producteur associé (ex: _Jacques Perritaz_) et du pays dans la modale détaillée.
+
 ---
 
 ## 2. Épopée 2 — Prise de Commande & Paiement
@@ -198,7 +210,7 @@
 
 ## 5. Épopée 5 — Administration : Facturation & Expédition (BL)
 
-### US-ADM-05 — Émission de factures conformes et QR-Facture suisse
+### US-ADM-05 — Émission de factures conformes
 
 **En tant qu'** administrateur,  
 **je veux** générer une facture officielle avec son propre numéro chronologique et ses mentions fiscales,  
@@ -210,6 +222,31 @@
 - [x] Calcul de la TVA suisse au taux légal en vigueur.
 - [x] Mise en page A4 professionnelle imprimable (`@media print`).
 - [x] Possibilité de basculer le type client (Privé / Pro) avant émission.
+
+### US-ADM-28 — Génération dynamique de la QR-facture suisse (norme SIX)
+
+**En tant qu'** administrateur et client de la cidrerie,  
+**je veux** que chaque facture génère automatiquement la section de paiement QR suisse officielle au bas de la page A4,  
+**afin de** permettre au client de payer en scannant le QR code avec son e-banking (montant, compte et facture pré-remplis) ou au guichet postal.
+
+**Critères d'acceptation :**
+
+- [x] Rendu vectoriel conforme SIX / PostFinance (210×105 mm) avec récépissé (62 mm), section de paiement (148 mm) et croix suisse centrale (7×7 mm).
+- [x] Coordonnées créancier automatiques (IBAN PostFinance `CH57 0900...`, nom et adresse de Bertrand Baeriswyl).
+- [x] Pré-remplissage dynamique du montant en CHF et des coordonnées du débiteur (client).
+- [x] Mention du numéro de facture et de commande dans les informations de paiement.
+- [x] Lignes de découpe avec icônes ciseaux conformes pour l'impression A4.
+
+### US-ADM-29 — Mention de Vulcano Distribution en en-tête de facture
+
+**En tant que** gérant et comptable de la structure,  
+**je veux** que le nom commercial officiel « Vulcano Distribution » apparaisse distinctement tout en haut à gauche des factures émises,  
+**afin de** refléter fidèlement la structure de distribution auprès des clients et des autorités fiscales.
+
+**Critères d'acceptation :**
+
+- [x] Remplacement de l'en-tête par défaut par « Vulcano Distribution » en haut à gauche du document A4.
+- [x] Conservation des coordonnées bancaires et légales du créancier (Bertrand Baeriswyl / IBAN PostFinance) pour la QR-facture officielle.
 
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
@@ -265,6 +302,32 @@
 - [x] Interface de gestion des catégories `/admin/categories`.
 - [x] Attribution d'un ordre numérique de position.
 - [x] Protection contre la suppression d'une catégorie contenant encore des produits.
+
+### US-ADM-30 — Gestion de la contenance (75 cl / 27.5 cl) et de l'origine (Suisse / France)
+
+**En tant qu'** administrateur du catalogue,  
+**je veux** sélectionner la contenance de la bouteille (75 cl ou 27.5 cl) et le pays d'origine (Suisse ou France) lors de la création ou l'édition d'un produit,  
+**afin de** classifier précisément les formats de bouteilles et leur provenance géographique.
+
+**Critères d'acceptation :**
+
+- [x] Sélecteur dédié de contenance (75 cl / 27.5 cl) dans le formulaire produit admin.
+- [x] Sélecteur d'origine géographique (🇨🇭 Suisse / 🇫🇷 France) avec drapeaux indicatifs.
+- [x] Enregistrement en base de données avec valeurs par défaut robustes (75 cl, CH).
+- [x] Visualisation synthétique (drapeau, volume) dans le tableau d'administration des produits.
+
+### US-ADM-31 — Gestion des producteurs et sélection par liste déroulante
+
+**En tant qu'** administrateur,  
+**je veux** attribuer un producteur à chaque cuvée via une liste déroulante et pouvoir ajouter rapidement de nouveaux producteurs à la volée,  
+**afin d'** éviter toute erreur de frappe et gérer un catalogue multi-producteurs simplement.
+
+**Critères d'acceptation :**
+
+- [x] Table relationnelle dédiée aux producteurs (`Producer`) en base de données.
+- [x] Liste déroulante des producteurs existants dans le formulaire de création/modification de produit.
+- [x] Possibilité d'ajouter un nouveau producteur directement depuis la modale sans recharger la page.
+- [x] Affichage du nom du producteur dans la colonne correspondante du tableau admin.
 
 ---
 
@@ -410,13 +473,13 @@
 
 | Épopée                          | Total US | Réalisées (Terminées) |   En cours / Prochaines étapes   |
 | ------------------------------- | :------: | :-------------------: | :------------------------------: |
-| **1. Boutique Publique**        |    3     |           3           |                —                 |
+| **1. Boutique Publique**        |    4     |           4           |                —                 |
 | **2. Prise de Commande**        |    3     |           3           |                —                 |
 | **3. Infos Légales & Histoire** |    2     |           2           |   _(Contenu final /histoire)_    |
 | **4. Gestion des Commandes**    |    4     |           4           |                —                 |
-| **5. Facturation & Expédition** |    2     |           1           | **US-ADM-06 (Bon de livraison)** |
-| **6. Catalogue & Stocks**       |    3     |           3           |                —                 |
+| **5. Facturation & Expédition** |    4     |           3           | **US-ADM-06 (Bon de livraison)** |
+| **6. Catalogue & Stocks**       |    5     |           5           |                —                 |
 | **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
 | **9. DevOps & Sécurité**        |    4     |           4           |                —                 |
-| **TOTAL**                       |  **27**  |        **26**         |          **1 en cours**          |
+| **TOTAL**                       |  **32**  |        **31**         |          **1 en cours**          |

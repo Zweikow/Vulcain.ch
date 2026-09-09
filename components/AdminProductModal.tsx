@@ -6,6 +6,7 @@ import {
   createProduct,
   updateProduct,
   archiveProduct,
+  createProducer,
   ProductInput,
 } from '@/app/admin/(protected)/produits/actions'
 import { chfInputToCents, formatCHF, proUnitPriceCents } from '@/lib/money'
@@ -14,7 +15,10 @@ export type AdminProduct = {
   id: string
   name: string
   categoryId: string
+  producerId: string | null
   year: number | null
+  bottleSize: string
+  origin: string
   description: string
   priceCents: number
   purchasePriceCents: number
@@ -32,6 +36,7 @@ export type AdminProduct = {
 interface AdminProductModalProps {
   product?: AdminProduct
   categories: { id: string; name: string }[]
+  producers: { id: string; name: string }[]
   proRatePercent: number
   onClose: () => void
 }
@@ -39,6 +44,7 @@ interface AdminProductModalProps {
 export default function AdminProductModal({
   product,
   categories,
+  producers,
   proRatePercent,
   onClose,
 }: AdminProductModalProps) {
@@ -47,10 +53,18 @@ export default function AdminProductModal({
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  const [producersList, setProducersList] = useState(producers)
+  const [showNewProducer, setShowNewProducer] = useState(false)
+  const [newProducerName, setNewProducerName] = useState('')
+  const [isCreatingProducer, setIsCreatingProducer] = useState(false)
+
   const [form, setForm] = useState({
     name: product?.name ?? '',
     categoryId: product?.categoryId ?? categories[0]?.id ?? '',
+    producerId: product?.producerId ?? producers[0]?.id ?? '',
     year: product?.year ? String(product.year) : '',
+    bottleSize: (product?.bottleSize as '75cl' | '27.5cl') ?? '75cl',
+    origin: (product?.origin as 'CH' | 'FR') ?? 'CH',
     priceChf: product ? String(product.priceCents / 100) : '',
     purchasePriceChf: product ? String(product.purchasePriceCents / 100) : '',
     // Chaînes et non nombres : un champ vide reste vide, au lieu d'afficher un
@@ -71,13 +85,33 @@ export default function AdminProductModal({
 
   const priceCents = chfInputToCents(form.priceChf)
 
+  const handleCreateProducer = async () => {
+    if (!newProducerName.trim()) return
+    setIsCreatingProducer(true)
+    const res = await createProducer(newProducerName)
+    setIsCreatingProducer(false)
+    if (res?.ok && res.producer) {
+      setProducersList((prev) =>
+        [...prev, res.producer].sort((a, b) => a.name.localeCompare(b.name))
+      )
+      update('producerId', res.producer.id)
+      setNewProducerName('')
+      setShowNewProducer(false)
+    } else if (res?.error) {
+      setError(res.error)
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     const input: ProductInput = {
       name: form.name,
       categoryId: form.categoryId,
+      producerId: form.producerId || null,
       year: form.year ? Number(form.year) : null,
+      bottleSize: form.bottleSize,
+      origin: form.origin,
       description: form.description,
       priceCents,
       purchasePriceCents: chfInputToCents(form.purchasePriceChf),
@@ -126,7 +160,7 @@ export default function AdminProductModal({
       })
 
       if (!res.ok) {
-        throw new Error("Erreur de préparation S3 (Vérifiez votre configuration AWS)")
+        throw new Error('Erreur de préparation S3 (Vérifiez votre configuration AWS)')
       }
 
       const { uploadUrl, fileUrl } = await res.json()
@@ -169,20 +203,22 @@ export default function AdminProductModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
-          {/* Nom + Catégorie */}
+          {/* Nom du produit */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Nom du produit
+            </label>
+            <input
+              className="input-field"
+              placeholder="Cidre Brut 2024"
+              value={form.name}
+              onChange={(e) => update('name', e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Catégorie + Producteur */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-                Nom du produit
-              </label>
-              <input
-                className="input-field"
-                placeholder="Cidre Brut 2024"
-                value={form.name}
-                onChange={(e) => update('name', e.target.value)}
-                required
-              />
-            </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Catégorie
@@ -199,23 +235,134 @@ export default function AdminProductModal({
                 ))}
               </select>
             </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                  Producteur
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewProducer(!showNewProducer)}
+                  className="text-[11px] font-semibold text-primary hover:underline"
+                >
+                  {showNewProducer ? 'Annuler' : '+ Nouveau'}
+                </button>
+              </div>
+              {showNewProducer ? (
+                <div className="flex gap-1.5">
+                  <input
+                    className="input-field py-1 text-xs"
+                    placeholder="Jacques Perritaz"
+                    value={newProducerName}
+                    onChange={(e) => setNewProducerName(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateProducer}
+                    disabled={isCreatingProducer || !newProducerName.trim()}
+                    className="rounded bg-primary px-2.5 py-1 text-xs font-medium text-text-on-primary hover:bg-primary-hover disabled:opacity-40 shrink-0"
+                  >
+                    {isCreatingProducer ? '...' : 'OK'}
+                  </button>
+                </div>
+              ) : (
+                <select
+                  className="input-field"
+                  value={form.producerId}
+                  onChange={(e) => update('producerId', e.target.value)}
+                >
+                  <option value="">— Aucun producteur —</option>
+                  {producersList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
 
-          {/* Millésime + Prix public + Prix pro dérivé */}
+          {/* Contenance + Origine + Millésime */}
           <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                Contenance
+              </label>
+              <div className="grid grid-cols-2 gap-1 h-9">
+                <button
+                  type="button"
+                  onClick={() => update('bottleSize', '75cl')}
+                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                    form.bottleSize === '75cl'
+                      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                      : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
+                  }`}
+                >
+                  75 cl
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update('bottleSize', '27.5cl')}
+                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                    form.bottleSize === '27.5cl'
+                      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                      : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
+                  }`}
+                >
+                  27.5 cl
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                Origine
+              </label>
+              <div className="grid grid-cols-2 gap-1 h-9">
+                <button
+                  type="button"
+                  onClick={() => update('origin', 'CH')}
+                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                    form.origin === 'CH'
+                      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                      : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
+                  }`}
+                >
+                  🇨🇭 CH
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update('origin', 'FR')}
+                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                    form.origin === 'FR'
+                      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                      : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
+                  }`}
+                >
+                  🇫🇷 FR
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Millésime
               </label>
               <input
                 type="number"
-                className="input-field tabular"
+                className="input-field tabular h-9"
                 placeholder="2026"
                 value={form.year}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) => update('year', e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Prix d'achat + Prix public + Prix pro dérivé */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix d&apos;achat (CHF)
@@ -231,9 +378,6 @@ export default function AdminProductModal({
                 onChange={(e) => update('purchasePriceChf', e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix public (CHF)
@@ -254,7 +398,6 @@ export default function AdminProductModal({
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix pro (−{proRatePercent}%)
               </label>
-              {/* Dérivé du taux unique de Setting — jamais saisi (DESIGN.md §2) */}
               <input
                 className="input-field tabular opacity-60"
                 value={
@@ -320,8 +463,16 @@ export default function AdminProductModal({
               <span className="font-mono text-[11px]">photo bouteille 1:1 — 800×600 min</span>
               {form.imageUrl ? (
                 <div className="flex flex-col items-center gap-2">
-                  <img src={form.imageUrl} alt="Aperçu" className="w-24 h-24 object-contain rounded-md border border-border" />
-                  <button type="button" onClick={() => update('imageUrl', '')} className="text-xs text-text-error hover:underline">
+                  <img
+                    src={form.imageUrl}
+                    alt="Aperçu"
+                    className="w-24 h-24 object-contain rounded-md border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => update('imageUrl', '')}
+                    className="text-xs text-text-error hover:underline"
+                  >
                     Retirer l&apos;image
                   </button>
                 </div>

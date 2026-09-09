@@ -9,6 +9,7 @@ import { can } from '@/lib/permissions'
 const productSchema = z.object({
   name: z.string().min(1).max(200),
   categoryId: z.string().min(1),
+  producerId: z.string().nullable().optional(),
   year: z.coerce.number().int().min(1990).max(2100).nullable().optional(),
   description: z.string().max(500),
   priceCents: z.coerce.number().int().min(0).max(100_000_00),
@@ -16,6 +17,8 @@ const productSchema = z.object({
   stock: z.coerce.number().int().min(0),
   stockSeuil: z.coerce.number().int().min(0),
   active: z.boolean(),
+  bottleSize: z.enum(['75cl', '27.5cl']).default('75cl'),
+  origin: z.enum(['CH', 'FR']).default('CH'),
   isBio: z.boolean().default(false),
   isVegan: z.boolean().default(false),
   alcoholVolume: z.coerce.number().min(0).max(100).nullable().optional(),
@@ -28,6 +31,30 @@ function revalidate() {
   revalidatePath('/admin/produits')
   revalidatePath('/admin')
   revalidatePath('/')
+}
+
+export async function getProducers() {
+  return prisma.producer.findMany({ orderBy: { name: 'asc' } })
+}
+
+export async function createProducer(name: string) {
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
+
+  const trimmed = name.trim()
+  if (!trimmed) return { error: 'Nom du producteur requis' }
+
+  try {
+    const producer = await prisma.producer.upsert({
+      where: { name: trimmed },
+      update: {},
+      create: { name: trimmed },
+    })
+    revalidate()
+    return { ok: true, producer }
+  } catch {
+    return { error: 'Impossible de créer le producteur' }
+  }
 }
 
 export async function createProduct(input: ProductInput) {

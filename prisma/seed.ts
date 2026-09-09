@@ -29,8 +29,19 @@ async function main() {
   }
   console.log(`✓ ${categories.length} catégories créées`)
 
+  const producer = await prisma.producer.upsert({
+    where: { name: 'Jacques Perritaz' },
+    update: {},
+    create: { name: 'Jacques Perritaz' },
+  })
+  console.log(`✓ Producteur créé : ${producer.name}`)
+
   // Réglages typés — une seule ligne, valeurs par défaut du schéma
-  await prisma.setting.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } })
+  await prisma.setting.upsert({
+    where: { id: 1 },
+    update: { companyTagline: 'Vulcano Distribution' },
+    create: { id: 1, companyTagline: 'Vulcano Distribution' },
+  })
   console.log('✓ Paramètres initialisés (port, franco, taux pro, TVA, facturation)')
 
   // Catalogue de démonstration en centimes — à remplacer par le vrai catalogue

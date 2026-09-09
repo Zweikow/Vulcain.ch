@@ -11,6 +11,9 @@ export interface Product {
   isBio: boolean
   isVegan: boolean
   articleNumber: number
+  bottleSize?: '75cl' | '27.5cl'
+  origin?: 'CH' | 'FR'
+  producerName?: string
   // Badges calculés côté serveur — « Nouveau » ou « Derniers exemplaires », jamais les deux
   isNew?: boolean
   isLastUnits?: boolean

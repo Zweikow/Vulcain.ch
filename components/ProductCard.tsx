@@ -67,10 +67,24 @@ export default function ProductCard({
 
         {/* Info */}
         <div className="flex flex-col gap-0.5">
-          <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-tight group-hover:underline">
-            {product.name}
-          </h3>
-          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2">
+          <div className="flex items-start justify-between gap-1">
+            <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-tight group-hover:underline">
+              {product.name}
+            </h3>
+            <span
+              className="text-sm shrink-0"
+              title={product.origin === 'FR' ? 'France' : 'Suisse'}
+              aria-label={product.origin === 'FR' ? 'France' : 'Suisse'}
+            >
+              {product.origin === 'FR' ? '🇫🇷' : '🇨🇭'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
+            <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
+            {product.year && <span>· {product.year}</span>}
+            {product.producerName && <span>· {product.producerName}</span>}
+          </div>
+          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5">
             {product.description}
           </p>
         </div>
