@@ -103,6 +103,7 @@ export function FactureDocument({
             height={86}
             className="h-auto w-[150px] shrink-0"
             priority
+            unoptimized
           />
         </header>
 
