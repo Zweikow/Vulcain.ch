@@ -11,6 +11,7 @@ interface ProductOption {
   name: string
   priceCents: number
   stock: number
+  bottleSize?: string | null
   category?: { name: string }
 }
 
@@ -35,12 +36,15 @@ interface SettingsProps {
 }
 
 interface OrderLineItem {
+  id: string
   productId: string
   productName: string
   listPriceCents: number
   unitPriceCents: number
   quantity: number
   stock: number
+  bottleSize?: string | null
+  isFreePromo?: boolean
 }
 
 export function CreateOrderForm({
@@ -74,7 +78,9 @@ export function CreateOrderForm({
   const [addQuantity, setAddQuantity] = useState<number>(6)
 
   // 3. Expédition & Statut
-  const [shippingOption, setShippingOption] = useState<'STANDARD' | 'RETRAIT' | 'CUSTOM'>('STANDARD')
+  const [shippingOption, setShippingOption] = useState<'STANDARD' | 'RETRAIT' | 'CUSTOM'>(
+    'STANDARD'
+  )
   const [customShippingCHF, setCustomShippingCHF] = useState<string>('0.00')
   const [status, setStatus] = useState<OrderStatus>('A_TRAITER')
   const [deliveryDate, setDeliveryDate] = useState('')
@@ -109,15 +115,68 @@ export function CreateOrderForm({
     updateLinesForPro(newIsPro)
   }
 
+  function isSummerProduct(prod?: { bottleSize?: string | null; name: string }) {
+    if (!prod) return false
+    const name = prod.name.toLowerCase()
+    return (
+      prod.bottleSize === '27.5cl' ||
+      name.includes('effervescence') ||
+      name.includes('evervescence')
+    )
+  }
+
   const updateLinesForPro = (proActive: boolean) => {
     setLines((prev) =>
       prev.map((line) => {
+        if (line.isFreePromo || line.unitPriceCents === 0) return line
         const newUnitPrice = proActive
           ? proUnitPriceCents(line.listPriceCents, settings.proRatePercent)
           : line.listPriceCents
         return { ...line, unitPriceCents: newUnitPrice }
       })
     )
+  }
+
+  const handleApplySummerOffer = (lineId: string) => {
+    setLines((prev) => {
+      const line = prev.find((l) => l.id === lineId)
+      if (!line) return prev
+      const setsOfThree = Math.floor(line.quantity / 72)
+      if (setsOfThree <= 0) return prev
+
+      const freeBottles = setsOfThree * 24
+      const paidBottles = line.quantity - freeBottles
+      const unitPrice = isPro
+        ? proUnitPriceCents(line.listPriceCents, settings.proRatePercent)
+        : line.listPriceCents
+
+      const newLines: OrderLineItem[] = []
+      for (const l of prev) {
+        if (l.id === lineId) {
+          if (paidBottles > 0) {
+            newLines.push({
+              ...l,
+              quantity: paidBottles,
+              unitPriceCents: unitPrice,
+            })
+          }
+          newLines.push({
+            id: `${line.productId}-free-${Date.now()}`,
+            productId: line.productId,
+            productName: `${line.productName} — Offre estivale (carton offert)`,
+            listPriceCents: line.listPriceCents,
+            unitPriceCents: 0,
+            quantity: freeBottles,
+            stock: line.stock,
+            bottleSize: line.bottleSize,
+            isFreePromo: true,
+          })
+        } else {
+          newLines.push(l)
+        }
+      }
+      return newLines
+    })
   }
 
   // Ajout d'un article
@@ -130,48 +189,124 @@ export function CreateOrderForm({
       ? proUnitPriceCents(prod.priceCents, settings.proRatePercent)
       : prod.priceCents
 
+    const isSummer = isSummerProduct(prod)
+
+    if (isSummer && qty >= 72) {
+      const setsOfThree = Math.floor(qty / 72)
+      const freeBottles = setsOfThree * 24
+      const paidBottles = qty - freeBottles
+
+      setLines((prev) => {
+        const filtered = prev.filter((l) => l.productId !== prod.id)
+        const newLines: OrderLineItem[] = [...filtered]
+        if (paidBottles > 0) {
+          newLines.push({
+            id: `${prod.id}-paid-${Date.now()}`,
+            productId: prod.id,
+            productName: prod.name,
+            listPriceCents: prod.priceCents,
+            unitPriceCents: unitPrice,
+            quantity: paidBottles,
+            stock: prod.stock,
+            bottleSize: prod.bottleSize,
+          })
+        }
+        if (freeBottles > 0) {
+          newLines.push({
+            id: `${prod.id}-free-${Date.now()}`,
+            productId: prod.id,
+            productName: `${prod.name} — Offre estivale (carton offert)`,
+            listPriceCents: prod.priceCents,
+            unitPriceCents: 0,
+            quantity: freeBottles,
+            stock: prod.stock,
+            bottleSize: prod.bottleSize,
+            isFreePromo: true,
+          })
+        }
+        return newLines
+      })
+      return
+    }
+
     setLines((prev) => {
-      const existingIndex = prev.findIndex((l) => l.productId === prod.id)
+      const existingIndex = prev.findIndex((l) => l.productId === prod.id && !l.isFreePromo)
       if (existingIndex >= 0) {
+        const totalQty = prev[existingIndex].quantity + qty
+        if (isSummer && totalQty >= 72) {
+          const setsOfThree = Math.floor(totalQty / 72)
+          const freeBottles = setsOfThree * 24
+          const paidBottles = totalQty - freeBottles
+          const filtered = prev.filter((l) => l.productId !== prod.id)
+          const res: OrderLineItem[] = [...filtered]
+          if (paidBottles > 0) {
+            res.push({
+              id: `${prod.id}-paid-${Date.now()}`,
+              productId: prod.id,
+              productName: prod.name,
+              listPriceCents: prod.priceCents,
+              unitPriceCents: unitPrice,
+              quantity: paidBottles,
+              stock: prod.stock,
+              bottleSize: prod.bottleSize,
+            })
+          }
+          if (freeBottles > 0) {
+            res.push({
+              id: `${prod.id}-free-${Date.now()}`,
+              productId: prod.id,
+              productName: `${prod.name} — Offre estivale (carton offert)`,
+              listPriceCents: prod.priceCents,
+              unitPriceCents: 0,
+              quantity: freeBottles,
+              stock: prod.stock,
+              bottleSize: prod.bottleSize,
+              isFreePromo: true,
+            })
+          }
+          return res
+        }
+
         const updated = [...prev]
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + qty,
+          quantity: totalQty,
         }
         return updated
       }
+
       return [
         ...prev,
         {
+          id: `${prod.id}-${Date.now()}`,
           productId: prod.id,
           productName: prod.name,
           listPriceCents: prod.priceCents,
           unitPriceCents: unitPrice,
           quantity: qty,
           stock: prod.stock,
+          bottleSize: prod.bottleSize,
         },
       ]
     })
   }
 
-  const handleRemoveLine = (productId: string) => {
-    setLines((prev) => prev.filter((l) => l.productId !== productId))
+  const handleRemoveLine = (lineId: string) => {
+    setLines((prev) => prev.filter((l) => l.id !== lineId))
   }
 
-  const handleUpdateLineQuantity = (productId: string, quantity: number) => {
+  const handleUpdateLineQuantity = (lineId: string, quantity: number) => {
     if (quantity <= 0) {
-      handleRemoveLine(productId)
+      handleRemoveLine(lineId)
       return
     }
-    setLines((prev) =>
-      prev.map((l) => (l.productId === productId ? { ...l, quantity } : l))
-    )
+    setLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, quantity } : l)))
   }
 
-  const handleUpdateLinePrice = (productId: string, priceCHF: string) => {
+  const handleUpdateLinePrice = (lineId: string, priceCHF: string) => {
     const cents = Math.round(parseFloat(priceCHF || '0') * 100)
     setLines((prev) =>
-      prev.map((l) => (l.productId === productId ? { ...l, unitPriceCents: Math.max(0, cents) } : l))
+      prev.map((l) => (l.id === lineId ? { ...l, unitPriceCents: Math.max(0, cents) } : l))
     )
   }
 
@@ -213,7 +348,9 @@ export function CreateOrderForm({
     }
 
     if (hasStockWarning && !allowNegativeStock) {
-      setErrorMessage('Certains articles dépassent le stock disponible. Cochez la confirmation ci-dessous pour forcer le passage en stock négatif / précommande.')
+      setErrorMessage(
+        'Certains articles dépassent le stock disponible. Cochez la confirmation ci-dessous pour forcer le passage en stock négatif / précommande.'
+      )
       return
     }
 
@@ -232,6 +369,7 @@ export function CreateOrderForm({
         },
         items: lines.map((l) => ({
           productId: l.productId,
+          productName: l.productName,
           quantity: l.quantity,
           unitPriceCents: l.unitPriceCents,
         })),
@@ -463,6 +601,12 @@ export function CreateOrderForm({
                 </option>
               ))}
             </select>
+            {isSummerProduct(products.find((p) => p.id === selectedProductId)) && (
+              <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                🎁 Offre estivale : par tranche de 72 bout. (3 cartons de 24), 24 bout. sont
+                offertes automatiquement.
+              </p>
+            )}
           </div>
 
           <div className="w-24">
@@ -508,15 +652,40 @@ export function CreateOrderForm({
               <tbody className="divide-y divide-border dark:divide-border-dark">
                 {lines.map((line) => {
                   const isStockWarning = line.quantity > line.stock
+                  const isSummer = isSummerProduct({
+                    bottleSize: line.bottleSize,
+                    name: line.productName,
+                  })
+                  const canApplySummerOffer = !line.isFreePromo && isSummer && line.quantity >= 72
+
                   return (
-                    <tr key={line.productId}>
+                    <tr key={line.id}>
                       <td className="py-3">
                         <div className="font-medium text-text-primary dark:text-text-primary-dark">
                           {line.productName}
                         </div>
-                        {isPro && line.listPriceCents > line.unitPriceCents && (
-                          <div className="text-[11px] text-primary">
-                            Tarif Pro ({settings.proRatePercent}% remise)
+                        {line.isFreePromo ? (
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
+                            🎁 Carton offert (0.00 CHF)
+                          </span>
+                        ) : (
+                          isPro &&
+                          line.listPriceCents > line.unitPriceCents && (
+                            <div className="text-[11px] text-primary">
+                              Tarif Pro ({settings.proRatePercent}% remise)
+                            </div>
+                          )
+                        )}
+                        {canApplySummerOffer && (
+                          <div className="mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleApplySummerOffer(line.id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+                            >
+                              🎁 Appliquer l&apos;Offre Estivale (scinder{' '}
+                              {Math.floor(line.quantity / 72) * 24} bout. offertes)
+                            </button>
                           </div>
                         )}
                       </td>
@@ -537,10 +706,7 @@ export function CreateOrderForm({
                           min="1"
                           value={line.quantity}
                           onChange={(e) =>
-                            handleUpdateLineQuantity(
-                              line.productId,
-                              parseInt(e.target.value, 10) || 1
-                            )
+                            handleUpdateLineQuantity(line.id, parseInt(e.target.value, 10) || 1)
                           }
                           className="input-field w-16 text-center text-sm py-1 font-semibold"
                         />
@@ -552,9 +718,7 @@ export function CreateOrderForm({
                             type="number"
                             step="0.05"
                             value={(line.unitPriceCents / 100).toFixed(2)}
-                            onChange={(e) =>
-                              handleUpdateLinePrice(line.productId, e.target.value)
-                            }
+                            onChange={(e) => handleUpdateLinePrice(line.id, e.target.value)}
                             className="input-field w-20 text-right text-sm py-1 font-mono"
                           />
                         </div>
@@ -565,7 +729,7 @@ export function CreateOrderForm({
                       <td className="py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => handleRemoveLine(line.productId)}
+                          onClick={() => handleRemoveLine(line.id)}
                           className="text-text-tertiary hover:text-red-500 transition-colors p-1"
                           title="Supprimer la ligne"
                         >

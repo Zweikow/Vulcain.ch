@@ -19,6 +19,7 @@ export default async function NouvelleCommandePage() {
         name: true,
         priceCents: true,
         stock: true,
+        bottleSize: true,
         category: { select: { name: true } },
       },
     }),

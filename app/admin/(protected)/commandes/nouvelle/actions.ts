@@ -25,6 +25,7 @@ export interface CreateManualOrderInput {
   }
   items: Array<{
     productId: string
+    productName?: string
     quantity: number
     unitPriceCents: number
   }>
@@ -102,7 +103,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
 
         return {
           productId: prod.id,
-          productName: prod.name,
+          productName: item.productName || prod.name,
           listPriceCents: listPrice,
           purchasePriceCents: prod.purchasePriceCents,
           unitPriceCents: appliedPrice,
@@ -126,16 +127,26 @@ export async function createManualOrder(input: CreateManualOrderInput) {
       const vatCents = orderVatCents(totalCents, settings)
 
       // 4. Décrémentation des stocks (avec gestion stock négatif si autorisé)
+      const requestedByProduct = new Map<string, number>()
       for (const line of orderLines) {
-        if (!input.allowNegativeStock && line.currentStock < line.quantity) {
+        requestedByProduct.set(
+          line.productId,
+          (requestedByProduct.get(line.productId) || 0) + line.quantity
+        )
+      }
+
+      for (const [pId, totalQty] of requestedByProduct.entries()) {
+        const prod = productMap.get(pId)
+        if (!prod) continue
+        if (!input.allowNegativeStock && prod.stock < totalQty) {
           throw new Error(
-            `Stock insuffisant pour ${line.productName} (disponible : ${line.currentStock}, demandé : ${line.quantity})`
+            `Stock insuffisant pour ${prod.name} (disponible : ${prod.stock}, demandé : ${totalQty})`
           )
         }
 
         await tx.product.update({
-          where: { id: line.productId },
-          data: { stock: { decrement: line.quantity } },
+          where: { id: pId },
+          data: { stock: { decrement: totalQty } },
         })
       }
 
