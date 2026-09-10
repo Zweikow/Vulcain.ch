@@ -248,6 +248,21 @@
 - [x] Remplacement de l'en-tête par défaut par « Vulcano Distribution » en haut à gauche du document A4.
 - [x] Conservation des coordonnées bancaires et légales du créancier (Bertrand Baeriswyl / IBAN PostFinance) pour la QR-facture officielle.
 
+### US-ADM-32 — Système complet d'emails transactionnels, suivi DPD et envoi de factures
+
+**En tant qu'** administrateur et client,  
+**je veux** un système d'emails transactionnels fiable et soigné (confirmations de commandes, alertes admin à `commandes@cidrerie-vulcain.ch`, avis d'expédition avec suivi DPD, envoi de factures et historique d'envois),  
+**afin d'** assurer une communication irréprochable avec les clients et de faciliter le traitement quotidien des commandes.
+
+**Critères d'acceptation :**
+
+- [x] Email de confirmation au client avec charte graphique Vulcain, récapitulatif des cuvées, volumes et modalités de paiement à 30 jours.
+- [x] Notification administrateur instantanée à `commandes@cidrerie-vulcain.ch` avec bouton de redirection directe vers `/admin/commandes/[id]` et `Reply-To` pointant sur l'email du client.
+- [x] Gestion du transporteur DPD avec lien de tracking dynamique et différenciation du retrait convenu à la cave.
+- [x] Action d'envoi et de renvoi de la facture officielle avec lien direct vers le document A4 et le bulletin QR.
+- [x] Historique complet des emails tracés (`OrderEmailLog`) sur la fiche commande avec boutons de renvoi en un clic.
+- [x] Outil de test technique Amazon SES accessible depuis la page des Paramètres.
+
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
 **En tant que** préparateur de commande à la cave,  
@@ -494,9 +509,9 @@
 | **2. Prise de Commande**        |    3     |           3           |                —                 |
 | **3. Infos Légales & Histoire** |    2     |           2           |   _(Contenu final /histoire)_    |
 | **4. Gestion des Commandes**    |    4     |           4           |                —                 |
-| **5. Facturation & Expédition** |    4     |           3           | **US-ADM-06 (Bon de livraison)** |
+| **5. Facturation & Expédition** |    5     |           4           | **US-ADM-06 (Bon de livraison)** |
 | **6. Catalogue & Stocks**       |    5     |           5           |                —                 |
 | **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
 | **9. DevOps & Sécurité**        |    5     |           5           |                —                 |
-| **TOTAL**                       |  **33**  |        **32**         |          **1 en cours**          |
+| **TOTAL**                       |  **34**  |        **33**         |          **1 en cours**          |

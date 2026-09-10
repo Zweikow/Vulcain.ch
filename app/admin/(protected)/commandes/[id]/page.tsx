@@ -6,6 +6,7 @@ import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 import { OrderCancel } from '@/components/admin/OrderCancel'
 import { AssignSelect } from '@/components/admin/AssignSelect'
+import OrderEmailActions from '@/components/admin/OrderEmailActions'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -15,6 +16,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     include: {
       items: {
         include: { product: { select: { id: true, name: true } } },
+      },
+      emailLogs: {
+        orderBy: { sentAt: 'desc' },
       },
     },
   })
@@ -27,7 +31,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   if (!order) notFound()
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark mb-6">
         <Link href="/admin/commandes" className="hover:text-primary">
@@ -220,6 +224,18 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             )}
           </tfoot>
         </table>
+      </div>
+
+      <div className="mb-6">
+        <OrderEmailActions
+          orderId={order.id}
+          orderNumber={order.numero}
+          clientEmail={order.clientEmail}
+          trackingNumber={order.trackingNumber}
+          carrier={order.carrier}
+          isPickup={order.isPickup}
+          emailLogs={order.emailLogs}
+        />
       </div>
 
       <OrderCancel

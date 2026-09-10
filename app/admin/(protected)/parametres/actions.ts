@@ -43,3 +43,18 @@ export async function saveSettings(formData: FormData) {
   // Port, franco et taux pro se répercutent immédiatement sur la boutique.
   revalidatePath('/', 'layout')
 }
+
+export async function sendTestEmailAction(
+  toEmail: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth()
+  if (!session) return { success: false, error: 'Non autorisé' }
+
+  const trimmed = toEmail.trim()
+  if (!trimmed || !trimmed.includes('@')) {
+    return { success: false, error: 'Adresse email invalide' }
+  }
+
+  const { sendTestEmail } = await import('@/lib/notifications')
+  return sendTestEmail(trimmed)
+}

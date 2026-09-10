@@ -79,3 +79,78 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
   revalidate()
   redirect('/admin/commandes')
 }
+
+export async function sendInvoiceEmailAction(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  const result = await (await import('@/lib/notifications')).sendInvoiceEmail(orderId)
+  if (result.success) revalidate(orderId)
+  return result
+}
+
+export async function resendConfirmationAction(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  const result = await (await import('@/lib/notifications')).resendOrderConfirmation(orderId)
+  if (result.success) revalidate(orderId)
+  return result
+}
+
+export async function resendShippingNoticeAction(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  const result = await (await import('@/lib/notifications')).resendShippingNotice(orderId)
+  if (result.success) revalidate(orderId)
+  return result
+}
+
+export async function updateTrackingAction(
+  orderId: string,
+  trackingNumber: string,
+  carrier: string
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  try {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        trackingNumber: trackingNumber.trim() || null,
+        carrier: carrier.trim() || 'DPD',
+      },
+    })
+    revalidate(orderId)
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erreur lors de la mise à jour' }
+  }
+}
+
+export async function updatePickupAction(
+  orderId: string,
+  isPickup: boolean
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  try {
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { isPickup },
+    })
+    revalidate(orderId)
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erreur lors de la mise à jour' }
+  }
+}

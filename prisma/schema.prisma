@@ -170,8 +170,12 @@ model Order {
   shippedAt      DateTime?
   cancelledAt    DateTime?
   cancelReason   String? // motif consigné : le client rappelle souvent des mois après
+  trackingNumber String? // N° de suivi DPD ou transporteur
+  carrier        String?         @default("DPD") // DPD, Livraison directe, etc.
+  isPickup       Boolean         @default(false) // Retrait convenu à la cave (téléphone / pro)
   items          OrderItem[]
   stockMovements StockMovement[]
+  emailLogs      OrderEmailLog[]
   assignedToId   String?
   assignedTo     User?           @relation("OrderAssignedTo", fields: [assignedToId], references: [id])
   createdAt      DateTime        @default(now())
@@ -179,6 +183,20 @@ model Order {
 
   @@index([customerId])
   @@index([assignedToId])
+}
+
+model OrderEmailLog {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String   // "CONFIRMATION", "ADMIN_NOTIFICATION", "FACTURE", "EXPEDITION", "ANNULATION"
+  recipient String
+  subject   String
+  sentAt    DateTime @default(now())
+  success   Boolean  @default(true)
+  error     String?
+
+  @@index([orderId])
 }
 
 model OrderItem {
