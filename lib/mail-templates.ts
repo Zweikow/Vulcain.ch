@@ -510,6 +510,96 @@ ${settings.contactName}`
   }
 }
 
+/** 4b. Rappel bienveillant de paiement pour facture à échéance ou échue. */
+export function paymentReminderEmail(
+  order: MailOrder,
+  settings: MailSettings,
+  options?: {
+    dueDate?: Date | null
+    reminderCount?: number
+    customNote?: string | null
+  }
+): MailMessage {
+  const siteUrl = getSiteUrl()
+  const invoiceUrl = `${siteUrl}/admin/commandes/${order.id || ''}/facture`
+  const due = options?.dueDate || new Date()
+  const count = options?.reminderCount ?? 1
+  const reference = order.invoiceNumber
+    ? formatCreditorReference(creditorReference(order.invoiceNumber))
+    : null
+
+  const isSecondReminder = count >= 2
+  const reminderLabel = isSecondReminder ? 'Second rappel' : 'Rappel amical'
+
+  const body = `
+    <p style="margin:0 0 14px;font-size:15px;">Bonjour <strong>${escapeHtml(order.clientName)}</strong>,</p>
+    <p style="margin:0 0 14px;">
+      Sauf erreur ou omission de notre part, nous constatons que la facture n° <strong style="font-family:monospace;color:#153243;">${order.invoiceNumber || order.numero}</strong> relative à votre commande <strong style="font-family:monospace;color:#153243;">${order.numero}</strong> reste à ce jour en attente de règlement.
+    </p>
+
+    <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-left:4px solid #C49A45;border-radius:8px;padding:16px;font-size:13px;margin:16px 0;">
+      <div style="font-size:16px;font-weight:700;color:#153243;margin-bottom:8px;">
+        Facture n° ${order.invoiceNumber || order.numero} (${reminderLabel})
+      </div>
+      Montant en suspens : <strong style="font-size:16px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
+      Date d'échéance : <strong>${longDate.format(due)}</strong><br>
+      IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
+      Bénéficiaire : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (${escapeHtml(settings.contactName)})<br>
+      ${reference ? `Référence QR : <span style="font-family:monospace;">${reference}</span><br>` : ''}
+    </div>
+
+    ${
+      options?.customNote
+        ? `<div style="background:#FFFFFF;border:1px dashed #C49A45;border-radius:6px;padding:12px;font-size:13px;margin:14px 0;color:#153243;">
+             <strong>Message de la cidrerie :</strong><br>
+             ${escapeHtml(options.customNote).replace(/\n/g, '<br>')}
+           </div>`
+        : ''
+    }
+
+    <p style="margin:14px 0;">
+      Si votre versement a déjà été transmis entre-temps, veuillez ignorer ce message et nous vous en remercions chaleureusement.
+    </p>
+
+    <div style="margin:24px 0;text-align:center;">
+      <a href="${invoiceUrl}" style="background:#153243;color:#FFFFFF;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:8px;display:inline-block;font-size:14px;">
+        Consulter la facture avec QR-bulletin de paiement →
+      </a>
+    </div>
+
+    <p style="margin:16px 0 0;">Nous restons à votre disposition pour toute question ou si vous avez besoin d'un duplicata.</p>
+    <p style="margin:16px 0 0;">Cidricolement,</p>
+    <p style="margin:4px 0 0;font-weight:600;color:#153243;">${escapeHtml(settings.contactName)}<br><span style="font-weight:normal;font-size:12px;color:#7F8C8D;">${escapeHtml(SITE_CONFIG.legalName)}</span></p>`
+
+  const text = `Bonjour ${order.clientName},
+
+Sauf erreur de notre part, la facture n° ${order.invoiceNumber || order.numero} pour votre commande ${order.numero} est en attente de règlement.
+
+Montant à régler : ${formatCHF(order.totalCents)}
+Échéance initiale : ${longDate.format(due)}
+IBAN : ${settings.iban}
+Bénéficiaire : ${SITE_CONFIG.legalName} (${settings.contactName})
+${options?.customNote ? `\nMessage particulier :\n${options.customNote}\n` : ''}
+Si votre paiement a déjà été effectué, nous vous en remercions et vous prions de ne pas tenir compte de ce rappel.
+
+Lien vers la facture : ${invoiceUrl}
+
+Cidricolement,
+${settings.contactName}`
+
+  return {
+    to: order.clientEmail,
+    replyTo: settings.contactEmail,
+    subject: `Rappel amical : Facture n° ${order.invoiceNumber || order.numero} en attente — ${SITE_CONFIG.name}`,
+    html: shell(
+      `Rappel de paiement — Facture ${order.invoiceNumber || order.numero}`,
+      body,
+      settings
+    ),
+    text,
+  }
+}
+
 /** 5. Confirmation d'annulation. */
 export function orderCancellation(order: MailOrder, settings: MailSettings): MailMessage {
   const invoiced = order.invoiceNumber !== null

@@ -24,6 +24,12 @@ type FactureOrder = {
   shippingCents: number
   totalCents: number
   vatCents: number
+  proRatePercent?: number | null
+  paidAt?: Date | null
+  paymentMethod?: string | null
+  customer?: {
+    customerNumber?: number | null
+  } | null
   items: {
     id: string
     productName: string
@@ -128,6 +134,7 @@ export function FactureDocument({
   settings: FactureSettings
 }) {
   const isPro = order.clientType === ClientType.PRO
+  const effectiveProRate = order.proRatePercent ?? settings.proRatePercent
   const emptyRows = Math.max(0, EMPTY_ROWS_MIN - order.items.length)
   // Le délai de paiement court depuis l'émission de la facture, pas depuis la commande.
   const dueDate = new Date(order.invoicedAt ?? order.createdAt)
@@ -192,7 +199,12 @@ export function FactureDocument({
           </span>
         </div>
 
-        <div className="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-[#4A6278]">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-6 gap-y-1 text-[11px] text-[#4A6278]">
+          {order.customer?.customerNumber && (
+            <span className="font-semibold text-[#153243]">
+              Client N° <span className="font-mono">{order.customer.customerNumber}</span>
+            </span>
+          )}
           <span>
             Votre commande : <span className="font-mono">{order.numero}</span>
           </span>
@@ -206,7 +218,12 @@ export function FactureDocument({
           </span>
           {isPro && (
             <span className="font-medium text-[#6B4F68]">
-              Tarif professionnel (−{settings.proRatePercent}%)
+              Tarif professionnel (−{effectiveProRate}%)
+            </span>
+          )}
+          {order.paidAt && (
+            <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+              ✓ Facture acquittée {order.paymentMethod ? `(${order.paymentMethod})` : ''}
             </span>
           )}
         </div>
@@ -292,7 +309,7 @@ export function FactureDocument({
                 </tr>
                 <tr>
                   <td className={`${cellBase} text-right text-[#6B4F68]`} colSpan={6}>
-                    Remise professionnelle (−{settings.proRatePercent}%)
+                    Remise professionnelle (−{effectiveProRate}%)
                   </td>
                   <td className={`${cellBase} text-right text-[#6B4F68]`}>
                     −{formatInvoiceAmount(order.discountCents)}
@@ -335,10 +352,17 @@ export function FactureDocument({
             <p className="font-semibold">Coordonnées bancaires</p>
             <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
             <p>{settings.bankName}</p>
-            <p className="mt-1 font-medium">
-              Facture payable à {settings.paymentTermsDays} jours net, au {longDate.format(dueDate)}
-              .
-            </p>
+            {order.paidAt ? (
+              <p className="mt-1 font-semibold text-green-700">
+                ✓ Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+              </p>
+            ) : (
+              <p className="mt-1 font-medium">
+                Facture payable à {settings.paymentTermsDays} jours net, au{' '}
+                {longDate.format(dueDate)}.
+              </p>
+            )}
           </div>
 
           <div className="text-right">

@@ -33,6 +33,9 @@ export const can = {
   /** Réglages de la cidrerie : tarifs, port, facturation, TVA. */
   manageSettings: (role: Role) => role === Role.ADMIN,
 
+  /** Gestion des fiches clients et de leurs remises négociées. */
+  manageCustomers: (role: Role) => role !== Role.PREPARATEUR,
+
   /** Comptes utilisateurs. */
   manageUsers: (role: Role) => role === Role.ADMIN,
 

@@ -35,6 +35,8 @@ export default async function NouvelleCommandePage() {
         npa: true,
         city: true,
         isPro: true,
+        proRatePercent: true,
+        customerNumber: true,
       },
     }),
     getSettings(),

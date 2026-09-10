@@ -17,6 +17,7 @@ interface ProductOption {
 
 interface CustomerOption {
   id: string
+  customerNumber?: number | null
   firstName: string
   lastName: string
   email: string
@@ -25,6 +26,7 @@ interface CustomerOption {
   npa: string
   city: string
   isPro: boolean
+  proRatePercent?: number | null
 }
 
 interface SettingsProps {
@@ -44,6 +46,7 @@ interface OrderLineItem {
   quantity: number
   stock: number
   bottleSize?: string | null
+  categoryName?: string
   isFreePromo?: boolean
 }
 
@@ -63,6 +66,7 @@ export function CreateOrderForm({
   // 1. Client
   const [customerMode, setCustomerMode] = useState<'EXISTING' | 'NEW'>('NEW')
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('')
+  const [customProRate, setCustomProRate] = useState<number | null>(null)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -101,10 +105,13 @@ export function CreateOrderForm({
       setNpa(cust.npa)
       setCity(cust.city)
       setIsPro(cust.isPro)
+      setCustomProRate(cust.proRatePercent ?? null)
 
-      // Recalcule les prix unitaires si le client est pro
-      if (cust.isPro !== isPro) {
-        updateLinesForPro(cust.isPro)
+      // Recalcule les prix unitaires selon le taux pro du client
+      if (cust.isPro) {
+        updateLinesForPro(true, cust.proRatePercent)
+      } else {
+        updateLinesForPro(false)
       }
     }
   }
@@ -125,12 +132,17 @@ export function CreateOrderForm({
     )
   }
 
-  const updateLinesForPro = (proActive: boolean) => {
+  const updateLinesForPro = (proActive: boolean, specificRate?: number | null) => {
+    const rateToUse =
+      specificRate !== undefined
+        ? (specificRate ?? settings.proRatePercent)
+        : (customProRate ?? settings.proRatePercent)
+
     setLines((prev) =>
       prev.map((line) => {
         if (line.isFreePromo || line.unitPriceCents === 0) return line
         const newUnitPrice = proActive
-          ? proUnitPriceCents(line.listPriceCents, settings.proRatePercent)
+          ? proUnitPriceCents(line.listPriceCents, rateToUse)
           : line.listPriceCents
         return { ...line, unitPriceCents: newUnitPrice }
       })
@@ -449,8 +461,9 @@ export function CreateOrderForm({
               <option value="">-- Choisir un client ({customers.length}) --</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
+                  {c.customerNumber ? `N° ${c.customerNumber} · ` : ''}
                   {c.lastName.toUpperCase()} {c.firstName} ({c.city || 'Suisse'}) — {c.email}{' '}
-                  {c.isPro ? '★ PRO' : ''}
+                  {c.isPro ? `★ PRO (${c.proRatePercent ?? settings.proRatePercent}%)` : ''}
                 </option>
               ))}
             </select>

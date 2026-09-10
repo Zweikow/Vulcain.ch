@@ -124,6 +124,7 @@ model Product {
 // Le tarif pro appartient au client, pas à la commande (DESIGN.md §2).
 model Customer {
   id               String   @id @default(cuid())
+  customerNumber   Int      @unique @default(autoincrement())
   email            String   @unique
   firstName        String
   lastName         String
@@ -132,8 +133,11 @@ model Customer {
   npa              String
   city             String
   isPro            Boolean  @default(false)
+  proRatePercent   Int?     // Taux de remise pro personnalisé (ex: 25). Si null, Setting.proRatePercent s'applique
+  notes            String?  // Notes internes de la cave
   acceptsMarketing Boolean  @default(false)
   createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
   orders           Order[]
 }
 
@@ -150,6 +154,13 @@ model Order {
   // annulée ne doit pas créer de trou dans la numérotation des factures.
   invoiceNumber String?   @unique // FAC-2026-0007
   invoicedAt    DateTime?
+  // Suivi des paiements et relances (factures à 30 jours)
+  paidAt         DateTime?
+  paymentMethod  String?   // Virement bancaire, Espèces, QR-facture, etc.
+  proRatePercent Int?      // Taux effectif appliqué figé lors de la commande
+  reminderCount  Int       @default(0)
+  lastReminderAt DateTime?
+
   clientType     ClientType      @default(PRIVE) // figé au moment de la commande
   customer       Customer?       @relation(fields: [customerId], references: [id])
   customerId     String?

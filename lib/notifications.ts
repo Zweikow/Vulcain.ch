@@ -8,6 +8,7 @@ import {
   shippingNotice,
   orderCancellation,
   invoiceEmail,
+  paymentReminderEmail,
   testEmail,
   type MailOrder,
   type MailSettings,
@@ -240,6 +241,105 @@ export async function resendShippingNotice(
     }
   } catch (error: any) {
     return { success: false, error: error?.message || 'Erreur lors du renvoi' }
+  }
+}
+
+/** Envoi d'un rappel de paiement courtois avec incrément du compteur de rappels. */
+export async function sendPaymentReminderNotification(
+  orderId: string,
+  customNote?: string
+): Promise<{ success: boolean; reminderCount?: number; error?: string }> {
+  try {
+    const [orderData, settings] = await Promise.all([
+      prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            select: {
+              productName: true,
+              quantity: true,
+              unitPriceCents: true,
+              product: { select: { bottleSize: true } },
+            },
+          },
+        },
+      }),
+      getSettings(),
+    ])
+
+    if (!orderData) return { success: false, error: 'Commande introuvable' }
+    if (orderData.paidAt)
+      return { success: false, error: 'Cette commande est déjà marquée comme payée' }
+    if (orderData.status === 'ANNULEE')
+      return { success: false, error: 'Cette commande est annulée' }
+
+    const mailOrder: MailOrder = {
+      id: orderData.id,
+      numero: orderData.numero,
+      invoiceNumber: orderData.invoiceNumber,
+      clientName: orderData.clientName,
+      clientEmail: orderData.clientEmail,
+      clientPhone: orderData.clientPhone,
+      address: orderData.address,
+      npa: orderData.npa,
+      city: orderData.city,
+      deliveryDate: orderData.deliveryDate,
+      message: orderData.message,
+      subtotalCents: orderData.subtotalCents,
+      discountCents: orderData.discountCents,
+      shippingCents: orderData.shippingCents,
+      totalCents: orderData.totalCents,
+      trackingNumber: orderData.trackingNumber,
+      carrier: orderData.carrier,
+      isPickup: orderData.isPickup,
+      items: orderData.items.map((i) => ({
+        productName: i.productName,
+        quantity: i.quantity,
+        unitPriceCents: i.unitPriceCents,
+        bottleSize: i.product?.bottleSize ?? null,
+      })),
+    }
+
+    const baseDate = orderData.invoicedAt || orderData.createdAt
+    const dueDate = new Date(baseDate)
+    dueDate.setDate(dueDate.getDate() + settings.paymentTermsDays)
+
+    const nextCount = orderData.reminderCount + 1
+    const msg = paymentReminderEmail(mailOrder, mailSettings(settings), {
+      dueDate,
+      reminderCount: nextCount,
+      customNote: customNote?.trim() || null,
+    })
+
+    const res = await sendMail(msg)
+
+    await recordLog(
+      orderId,
+      `RAPPEL_PAIEMENT_${nextCount}`,
+      msg.to,
+      msg.subject,
+      res.success,
+      res.error
+    )
+
+    if (res.success) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          reminderCount: nextCount,
+          lastReminderAt: new Date(),
+        },
+      })
+    }
+
+    return {
+      success: res.success,
+      reminderCount: nextCount,
+      error: res.error,
+    }
+  } catch (error: any) {
+    console.error('Envoi de rappel impossible', { orderId, error })
+    return { success: false, error: error?.message || "Erreur lors de l'envoi du rappel" }
   }
 }
 

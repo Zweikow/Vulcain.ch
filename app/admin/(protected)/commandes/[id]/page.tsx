@@ -2,31 +2,36 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
+import { getSettings } from '@/lib/settings'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
 import { OrderCancel } from '@/components/admin/OrderCancel'
 import { AssignSelect } from '@/components/admin/AssignSelect'
 import OrderEmailActions from '@/components/admin/OrderEmailActions'
+import { OrderPaymentPanel } from '@/components/admin/OrderPaymentPanel'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      items: {
-        include: { product: { select: { id: true, name: true } } },
+  const [order, users, settings] = await Promise.all([
+    prisma.order.findUnique({
+      where: { id },
+      include: {
+        customer: { select: { id: true, customerNumber: true, isPro: true, proRatePercent: true } },
+        items: {
+          include: { product: { select: { id: true, name: true } } },
+        },
+        emailLogs: {
+          orderBy: { sentAt: 'desc' },
+        },
       },
-      emailLogs: {
-        orderBy: { sentAt: 'desc' },
-      },
-    },
-  })
-
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
-  })
+    }),
+    prisma.user.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+    getSettings(),
+  ])
 
   if (!order) notFound()
 
@@ -83,12 +88,65 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
+      {/* Suivi du paiement & Facture */}
+      <OrderPaymentPanel
+        orderId={order.id}
+        orderNumero={order.numero}
+        invoiceNumber={order.invoiceNumber}
+        totalCents={order.totalCents}
+        clientName={order.clientName}
+        clientEmail={order.clientEmail}
+        paidAt={order.paidAt}
+        paymentMethod={order.paymentMethod}
+        invoicedAt={order.invoicedAt}
+        createdAt={order.createdAt}
+        reminderCount={order.reminderCount}
+        lastReminderAt={order.lastReminderAt}
+        paymentTermsDays={settings.paymentTermsDays}
+      />
+
       {/* Infos client */}
       <div className="card p-5 mb-4">
-        <h2 className="font-medium text-text-primary dark:text-text-primary-dark mb-3">Client</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-medium text-text-primary dark:text-text-primary-dark">Client</h2>
+          {order.customerId && (
+            <Link
+              href={`/admin/clients/${order.customerId}`}
+              className="text-xs text-primary hover:underline font-medium"
+            >
+              Voir la fiche client →
+            </Link>
+          )}
+        </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          {order.customer?.customerNumber && (
+            <>
+              <dt className="text-text-secondary dark:text-text-secondary-dark">Numéro client</dt>
+              <dd className="text-text-primary dark:text-text-primary-dark font-mono font-semibold">
+                N° {order.customer.customerNumber}
+              </dd>
+            </>
+          )}
+
           <dt className="text-text-secondary dark:text-text-secondary-dark">Nom</dt>
-          <dd className="text-text-primary dark:text-text-primary-dark">{order.clientName}</dd>
+          <dd className="text-text-primary dark:text-text-primary-dark">
+            {order.customerId ? (
+              <Link
+                href={`/admin/clients/${order.customerId}`}
+                className="hover:text-primary hover:underline font-medium"
+              >
+                {order.clientName}
+              </Link>
+            ) : (
+              order.clientName
+            )}
+            {order.customer?.isPro && (
+              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                PRO (
+                {order.proRatePercent ?? order.customer.proRatePercent ?? settings.proRatePercent}%)
+              </span>
+            )}
+          </dd>
 
           <dt className="text-text-secondary dark:text-text-secondary-dark">Email</dt>
           <dd className="text-text-primary dark:text-text-primary-dark">{order.clientEmail}</dd>

@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
         },
       })
       const isPro = customer.isPro
+      const effectiveProRate = isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null
 
       const products = await tx.product.findMany({
         where: {
@@ -123,9 +124,10 @@ export async function POST(request: NextRequest) {
         if (product.stock < item.quantity)
           throw new OrderConflictError(`Stock insuffisant pour ${product.name}`)
 
-        const unitPriceCents = isPro
-          ? proUnitPriceCents(product.priceCents, settings.proRatePercent)
-          : product.priceCents
+        const unitPriceCents =
+          isPro && effectiveProRate !== null
+            ? proUnitPriceCents(product.priceCents, effectiveProRate)
+            : product.priceCents
 
         // Offre estivale : pour les 27.5cl / Evervescence / Offre Estivale, 1 carton (24 bout.) offert par tranche de 3 cartons (72 bout.)
         const isSummerOffer =
@@ -186,6 +188,7 @@ export async function POST(request: NextRequest) {
           numero,
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
+          proRatePercent: effectiveProRate,
           clientName: `${data.firstName} ${data.lastName}`,
           clientEmail: data.email,
           clientPhone: data.phone ?? null,

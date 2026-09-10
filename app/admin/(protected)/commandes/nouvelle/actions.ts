@@ -159,6 +159,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           numero,
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
+          proRatePercent: isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null,
           clientName: `${input.customer.firstName} ${input.customer.lastName}`.trim(),
           clientEmail: input.customer.email,
           clientPhone: input.customer.phone || null,
