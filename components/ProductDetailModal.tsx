@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
+import { OriginBadge } from '@/components/OriginBadge'
 
 interface ProductDetailModalProps {
   product: Product
@@ -98,10 +99,11 @@ export default function ProductDetailModal({
             <span className="font-semibold text-text-primary dark:text-text-primary-dark">
               {product.producerName || 'Jacques Perritaz'}
             </span>
-            <span>
-              {product.origin === 'FR' ? '🇫🇷 France' : '🇨🇭 Suisse'} ·{' '}
-              {product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}
-            </span>
+            <div className="flex items-center gap-2">
+              <OriginBadge origin={product.origin} showLabel className="w-4 h-4" />
+              <span>·</span>
+              <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
+            </div>
             <span>{product.category}</span>
           </div>
 

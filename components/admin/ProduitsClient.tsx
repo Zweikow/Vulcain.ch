@@ -8,6 +8,7 @@ import {
 } from '@/app/admin/(protected)/produits/actions'
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { useRouter } from 'next/navigation'
+import { OriginBadge } from '@/components/OriginBadge'
 
 type Row = AdminProduct & {
   categoryName: string
@@ -182,9 +183,10 @@ export function ProduitsClient({
                     className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50"
                   >
                     <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
-                      <div>
-                        {p.origin === 'FR' ? '🇫🇷' : '🇨🇭'} {p.name}
-                        <span className="ml-1.5 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <OriginBadge origin={p.origin} className="w-4 h-4" />
+                        <span>{p.name}</span>
+                        <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
                           {p.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}
                         </span>
                         {p.year && (

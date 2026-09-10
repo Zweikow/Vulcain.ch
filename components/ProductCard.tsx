@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
+import { OriginBadge } from '@/components/OriginBadge'
 
 interface ProductCardProps {
   product: Product
@@ -71,13 +72,7 @@ export default function ProductCard({
             <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-tight group-hover:underline">
               {product.name}
             </h3>
-            <span
-              className="text-sm shrink-0"
-              title={product.origin === 'FR' ? 'France' : 'Suisse'}
-              aria-label={product.origin === 'FR' ? 'France' : 'Suisse'}
-            >
-              {product.origin === 'FR' ? '🇫🇷' : '🇨🇭'}
-            </span>
+            <OriginBadge origin={product.origin} className="w-4 h-4" />
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
             <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
