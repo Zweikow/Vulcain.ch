@@ -8,7 +8,11 @@ import BoutiqueClient from '@/components/BoutiqueClient'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [dbProducts, settings] = await Promise.all([
+  const [dbCategories, dbProducts, settings] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { position: 'asc' },
+      select: { name: true },
+    }),
     prisma.product.findMany({
       where: { active: true, archived: false },
       include: {
@@ -47,7 +51,11 @@ export default async function Home() {
   return (
     <>
       <JsonLd products={products} />
-      <BoutiqueClient products={products} settings={settings} />
+      <BoutiqueClient
+        products={products}
+        settings={settings}
+        categories={dbCategories.map((c) => c.name)}
+      />
     </>
   )
 }

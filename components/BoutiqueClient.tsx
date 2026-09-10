@@ -14,9 +14,14 @@ import { PublicSettings } from '@/lib/settings'
 interface BoutiqueClientProps {
   products: Product[]
   settings: PublicSettings
+  categories?: string[]
 }
 
-export default function BoutiqueClient({ products, settings }: BoutiqueClientProps) {
+export default function BoutiqueClient({
+  products,
+  settings,
+  categories: propCategories,
+}: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [confirmation, setConfirmation] = useState<{
@@ -72,7 +77,11 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
     setCart([])
   }
 
-  const categories = Array.from(new Set(products.map((p) => p.category)))
+  // Catégories ordonnées selon la position définie dans l'admin (Category.position)
+  const categories =
+    propCategories && propCategories.length > 0
+      ? Array.from(new Set([...propCategories, ...products.map((p) => p.category)]))
+      : Array.from(new Set(products.map((p) => p.category)))
 
   return (
     <div className="min-h-screen">

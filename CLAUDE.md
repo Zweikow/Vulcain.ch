@@ -125,6 +125,7 @@ US-12 (auth — fait) → US-01 (dashboard) → US-04/05 (commandes) → US-07 (
 ## Conventions
 
 - Messages de commit en **français**
+- **Pas de push sans validation explicite** : chaque push sur `develop` ou `sandbox` déclenche un pipeline CI/CD complet (SST / AWS). Ne jamais exécuter `git push` sans l'accord préalable d'Hugo.
 - Pas de push direct sur `main`
 - Les MR passent toujours par : `develop → sandbox → main`
 - Un seul développeur actif (Zweikow)
