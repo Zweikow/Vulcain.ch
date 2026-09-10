@@ -437,8 +437,10 @@
 **Critères d'acceptation :**
 
 - [x] GitLab Runner configuré sur machine dédiée (HP Elitedesk G5, Docker).
-- [x] Pipeline multi-étapes (`.gitlab-ci.yml`) avec génération des types Prisma et SST.
-- [x] Déploiement automatique sur la Sandbox lors de la fusion sur la branche `sandbox`.
+- [x] Pipeline multi-environnements (`.gitlab-ci.yml`) avec génération des types Prisma et SST.
+- [x] Déploiement automatique sur l'environnement Dev (`dev.cidrerie-vulcain.ch`) à chaque push sur la branche `develop`.
+- [x] Déploiement automatique sur la Sandbox (`sandbox.cidrerie-vulcain.ch`) lors de la fusion sur la branche `sandbox`.
+- [x] Blocage automatique du crawling SEO sur l'environnement Dev via `robots.txt`.
 - [x] Détection et affichage de la version du commit déployé en direct sur le site.
 
 ### US-OPS-03 — Sécurité et limitation du débit (Rate Limiting)
