@@ -356,7 +356,7 @@ export function OrderPaymentPanel({
               <textarea
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
-                placeholder="Ex. Cher Jacques, suite à notre échange téléphonique... ou laissez vide pour le modèle standard."
+                placeholder="Ex. Suite à notre échange téléphonique... ou laissez vide pour le modèle standard."
                 rows={3}
                 className="input-field w-full text-sm resize-none"
               />

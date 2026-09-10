@@ -301,7 +301,7 @@ export function CustomerDetailForm({
         </div>
       </div>
 
-      {/* Notes internes pour Jacques & l'équipe */}
+      {/* Notes internes pour Bertrand & l'équipe */}
       <div className="card p-5">
         <h3 className="font-semibold text-text-primary dark:text-text-primary-dark mb-1">
           Notes internes
