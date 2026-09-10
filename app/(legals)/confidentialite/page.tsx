@@ -1,6 +1,7 @@
 export const metadata = {
-  title: 'Protection des Données | Cidrerie du Vulcain',
-  description: 'Politique de protection des données (nLPD) de la Cidrerie du Vulcain.',
+  title: 'Protection des Données (nLPD)',
+  description:
+    'Politique de protection des données personnelles (nLPD) de la Cidrerie du Vulcain et Vulcano Distribution.',
 }
 
 export default function ConfidentialitePage() {

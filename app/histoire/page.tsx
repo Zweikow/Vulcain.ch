@@ -1,6 +1,7 @@
 export const metadata = {
-  title: 'Notre Histoire - Cidrerie de Vulcain',
-  description: "Découvrez l'histoire de la Cidrerie de Vulcain",
+  title: 'Notre Histoire',
+  description:
+    "Découvrez l'histoire de la Cidrerie du Vulcain, Jacques Perritaz et nos méthodes artisanales.",
 }
 
 export default function HistoirePage() {

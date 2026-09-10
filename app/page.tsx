@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getPublicSettings } from '@/lib/settings'
 import { Product } from '@/types'
+import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
 
 // Catalogue lu en base à chaque requête — un produit désactivé disparaît aussitôt.
@@ -43,5 +44,10 @@ export default async function Home() {
     }
   })
 
-  return <BoutiqueClient products={products} settings={settings} />
+  return (
+    <>
+      <JsonLd products={products} />
+      <BoutiqueClient products={products} settings={settings} />
+    </>
+  )
 }

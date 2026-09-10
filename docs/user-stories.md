@@ -467,6 +467,21 @@
 - [x] Politique de référence stricte (`Referrer-Policy: strict-origin-when-cross-origin`).
 - [x] Politique de permissions matérielles (`Permissions-Policy: camera=(), microphone=(), geolocation=()`).
 
+### US-OPS-05 — Optimisation du Référencement Naturel (SEO, Open Graph, Sitemap & Schema.org)
+
+**En tant que** gérant et exploitant de la boutique,  
+**je veux** que le site dispose d'une infrastructure SEO complète (robots.txt, sitemap.xml, balises Open Graph, métadonnées sémantiques et données structurées JSON-LD),  
+**afin d'** assurer un référencement optimal sur Google/Bing, de protéger l'espace d'administration de l'indexation, et d'offrir des partages enrichis sur les réseaux sociaux et messageries.
+
+**Critères d'acceptation :**
+
+- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Vulcano Distribution.
+- [x] Balises Open Graph et Twitter Cards pour des aperçus visuels enrichis lors du partage de liens (WhatsApp, iMessage, LinkedIn, etc.).
+- [x] Fichier `robots.txt` dynamique interdisant l'exploration des répertoires `/admin` et `/api`.
+- [x] Fichier `sitemap.xml` dynamique listant les routes publiques avec priorités et fréquences de mise à jour.
+- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Vulcano Distribution) et `Product` (offres en CHF, stocks).
+- [x] Modèle de titres dynamique (`%s | Cidrerie du Vulcain`) et URL canonique automatique.
+
 ---
 
 ## Tableau de Bord de Couverture des User Stories
@@ -481,5 +496,5 @@
 | **6. Catalogue & Stocks**       |    5     |           5           |                —                 |
 | **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
-| **9. DevOps & Sécurité**        |    4     |           4           |                —                 |
-| **TOTAL**                       |  **32**  |        **31**         |          **1 en cours**          |
+| **9. DevOps & Sécurité**        |    5     |           5           |                —                 |
+| **TOTAL**                       |  **33**  |        **32**         |          **1 en cours**          |

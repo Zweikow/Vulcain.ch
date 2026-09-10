@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Mentions Légales | Cidrerie du Vulcain',
-  description: 'Mentions légales de la Cidrerie du Vulcain.',
+  title: 'Mentions Légales',
+  description: 'Mentions légales de la Cidrerie du Vulcain et Vulcano Distribution.',
 }
 
 export default function MentionsLegalesPage() {
