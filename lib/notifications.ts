@@ -113,12 +113,26 @@ export async function notifyOrderPlaced(orderId: string): Promise<void> {
     const mail = mailSettings(settings)
 
     const clientMsg = orderConfirmation(order, mail)
-    const clientOk = await sendMail(clientMsg)
-    await recordLog(orderId, 'CONFIRMATION', clientMsg.to, clientMsg.subject, clientOk)
+    const clientRes = await sendMail(clientMsg)
+    await recordLog(
+      orderId,
+      'CONFIRMATION',
+      clientMsg.to,
+      clientMsg.subject,
+      clientRes.success,
+      clientRes.error
+    )
 
     const adminMsg = shopNotification(order, mail, adminUrl)
-    const adminOk = await sendMail(adminMsg)
-    await recordLog(orderId, 'NOTIFICATION_ADMIN', adminMsg.to, adminMsg.subject, adminOk)
+    const adminRes = await sendMail(adminMsg)
+    await recordLog(
+      orderId,
+      'NOTIFICATION_ADMIN',
+      adminMsg.to,
+      adminMsg.subject,
+      adminRes.success,
+      adminRes.error
+    )
   } catch (error) {
     console.error('Notification de commande impossible', { orderId, error })
   }
@@ -131,15 +145,16 @@ export async function notifyOrderShipped(orderId: string): Promise<boolean> {
     if (!order) return false
 
     const msg = shippingNotice(order, mailSettings(settings))
-    const ok = await sendMail(msg)
+    const res = await sendMail(msg)
     await recordLog(
       orderId,
       order.isPickup ? 'RETRAIT_DISPONIBLE' : 'EXPEDITION',
       msg.to,
       msg.subject,
-      ok
+      res.success,
+      res.error
     )
-    return ok
+    return res.success
   } catch (error) {
     console.error("Avis d'expédition impossible", { orderId, error })
     return false
@@ -153,8 +168,8 @@ export async function notifyOrderCancelled(orderId: string): Promise<void> {
     if (!order) return
 
     const msg = orderCancellation(order, mailSettings(settings))
-    const ok = await sendMail(msg)
-    await recordLog(orderId, 'ANNULATION', msg.to, msg.subject, ok)
+    const res = await sendMail(msg)
+    await recordLog(orderId, 'ANNULATION', msg.to, msg.subject, res.success, res.error)
   } catch (error) {
     console.error("Confirmation d'annulation impossible", { orderId, error })
   }
@@ -169,11 +184,11 @@ export async function sendInvoiceEmail(
     if (!order) return { success: false, error: 'Commande introuvable' }
 
     const msg = invoiceEmail(order, mailSettings(settings))
-    const ok = await sendMail(msg)
-    await recordLog(orderId, 'FACTURE', msg.to, msg.subject, ok)
+    const res = await sendMail(msg)
+    await recordLog(orderId, 'FACTURE', msg.to, msg.subject, res.success, res.error)
     return {
-      success: ok,
-      error: ok ? undefined : "Échec de l'envoi de la facture via Amazon SES",
+      success: res.success,
+      error: res.error,
     }
   } catch (error: any) {
     console.error('Envoi de facture impossible', { orderId, error })
@@ -190,11 +205,11 @@ export async function resendOrderConfirmation(
     if (!order) return { success: false, error: 'Commande introuvable' }
 
     const msg = orderConfirmation(order, mailSettings(settings))
-    const ok = await sendMail(msg)
-    await recordLog(orderId, 'CONFIRMATION (RENVOI)', msg.to, msg.subject, ok)
+    const res = await sendMail(msg)
+    await recordLog(orderId, 'CONFIRMATION (RENVOI)', msg.to, msg.subject, res.success, res.error)
     return {
-      success: ok,
-      error: ok ? undefined : 'Échec du renvoi via Amazon SES',
+      success: res.success,
+      error: res.error,
     }
   } catch (error: any) {
     return { success: false, error: error?.message || 'Erreur lors du renvoi' }
@@ -210,17 +225,18 @@ export async function resendShippingNotice(
     if (!order) return { success: false, error: 'Commande introuvable' }
 
     const msg = shippingNotice(order, mailSettings(settings))
-    const ok = await sendMail(msg)
+    const res = await sendMail(msg)
     await recordLog(
       orderId,
       order.isPickup ? 'RETRAIT_DISPONIBLE (RENVOI)' : 'EXPEDITION (RENVOI)',
       msg.to,
       msg.subject,
-      ok
+      res.success,
+      res.error
     )
     return {
-      success: ok,
-      error: ok ? undefined : 'Échec du renvoi via Amazon SES',
+      success: res.success,
+      error: res.error,
     }
   } catch (error: any) {
     return { success: false, error: error?.message || 'Erreur lors du renvoi' }
@@ -234,10 +250,10 @@ export async function sendTestEmail(
   try {
     const settings = await getSettings()
     const msg = testEmail(toEmail, mailSettings(settings))
-    const ok = await sendMail(msg)
+    const res = await sendMail(msg)
     return {
-      success: ok,
-      error: ok ? undefined : "Échec de l'envoi via Amazon SES. Vérifiez MAIL_FROM.",
+      success: res.success,
+      error: res.error,
     }
   } catch (error: any) {
     return { success: false, error: error?.message || "Erreur lors de l'envoi du test" }
