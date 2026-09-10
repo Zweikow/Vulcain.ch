@@ -92,7 +92,22 @@ export default function ProductCard({
 
       {/* Price + quantity */}
       <div className="flex items-center justify-between mt-auto pt-1">
-        <span className="font-semibold text-sm text-primary">{formatCHF(product.priceCents)}</span>
+        <div>
+          <span className="font-semibold text-sm text-primary">
+            {formatCHF(product.priceCents)}
+            {product.bottleSize === '27.5cl' && (
+              <span className="text-[11px] font-normal text-text-secondary dark:text-text-secondary-dark">
+                {' '}
+                / bout.
+              </span>
+            )}
+          </span>
+          {product.bottleSize === '27.5cl' && (
+            <span className="block text-[10px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
+              Carton 24 : {formatCHF(product.priceCents * 24)}
+            </span>
+          )}
+        </div>
 
         {isOutOfStock ? (
           <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
@@ -130,6 +145,27 @@ export default function ProductCard({
           </div>
         )}
       </div>
+
+      {/* Détail cartons pour les 27.5cl */}
+      {product.bottleSize === '27.5cl' && quantity > 0 && (
+        <div className="flex flex-col gap-0.5 mt-1 text-[11px]">
+          <span className="text-text-secondary dark:text-text-secondary-dark font-medium">
+            {Math.floor(quantity / 24)} carton{Math.floor(quantity / 24) > 1 ? 's' : ''} ({quantity}{' '}
+            bout.)
+          </span>
+          {quantity === 48 && (
+            <span className="text-amber-600 dark:text-amber-400 font-semibold text-[10px]">
+              🎁 +1 carton = le 3ᵉ est offert !
+            </span>
+          )}
+          {quantity >= 72 && (
+            <span className="text-green-700 dark:text-green-400 font-semibold text-[10px]">
+              🎉 Offre estivale : {Math.floor(quantity / 72)} carton offert !
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Alert max stock */}
       {quantity > 0 && quantity >= product.stock && (
         <span className="text-[10px] text-text-warning font-medium mt-1">

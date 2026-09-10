@@ -30,7 +30,10 @@ type FactureOrder = {
     quantity: number
     unitPriceCents: number
     listPriceCents: number
-    product: { articleNumber: number }
+    product: {
+      articleNumber: number
+      bottleSize?: string | null
+    }
   }[]
 }
 
@@ -61,6 +64,61 @@ const longDate = new Intl.DateTimeFormat('fr-CH', {
 // Colonnes du modèle papier : les trois colonnes « cartons » sont remplies à la
 // main à la cave (le conditionnement n'est pas encore modélisé par produit).
 const EMPTY_ROWS_MIN = 2
+
+function getCartonCounts(
+  quantity: number,
+  bottleSize?: string | null,
+  productName?: string,
+  unitPriceCents?: number
+) {
+  // Détection d'un pack estival historique (1 pack = 3 cartons de 24 = 72 bouteilles)
+  const isSummerPack =
+    productName?.includes('Pack Été 3 cartons') || productName?.includes('3 cartons (2+1')
+  if (isSummerPack) {
+    const totalBottles = 72 * quantity
+    const bottlePrice = Math.round(unitPriceCents ? unitPriceCents / 48 : 360)
+    return {
+      c24: 3 * quantity,
+      c6: null,
+      c12: null,
+      bottles: totalBottles,
+      displayPriceCents: bottlePrice,
+    }
+  }
+
+  const isSmallBottle =
+    bottleSize === '27.5cl' ||
+    bottleSize === '33cl' ||
+    productName?.includes('27.5') ||
+    productName?.includes('Evervescence')
+
+  if (isSmallBottle) {
+    const c24 = Math.floor(quantity / 24)
+    return {
+      c24: c24 > 0 ? c24 : null,
+      c6: null,
+      c12: null,
+      bottles: quantity,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+
+  // Bouteilles de 75cl (ou standard)
+  let c12: number | null = null
+  let c6: number | null = null
+
+  if (quantity >= 12) {
+    c12 = Math.floor(quantity / 12)
+    const rem = quantity % 12
+    if (rem >= 6) {
+      c6 = Math.floor(rem / 6)
+    }
+  } else if (quantity >= 6) {
+    c6 = Math.floor(quantity / 6)
+  }
+
+  return { c24: null, c6, c12, bottles: quantity, displayPriceCents: unitPriceCents }
+}
 
 export function FactureDocument({
   order,
@@ -167,31 +225,46 @@ export function FactureDocument({
             </tr>
           </thead>
           <tbody>
-            {order.items.map((item) => (
-              <tr key={item.id}>
-                <td className={`${cellBase} font-medium`}>
-                  {item.productName}
-                  <div className="mt-0.5 font-mono text-[9px] font-normal text-[#7A95A5]">
-                    Article-Nr. {item.product.articleNumber.toString().padStart(5, '0')}
-                  </div>
-                </td>
-                <td className={handFill} />
-                <td className={handFill} />
-                <td className={handFill} />
-                <td className={`${cellBase} text-right`}>{item.quantity}</td>
-                <td className={`${cellBase} text-right`}>
-                  {isPro && item.listPriceCents !== item.unitPriceCents && (
-                    <span className="mr-1.5 text-[#7A95A5] line-through">
-                      {formatInvoiceAmount(item.listPriceCents)}
-                    </span>
-                  )}
-                  {formatInvoiceAmount(item.unitPriceCents)}
-                </td>
-                <td className={`${cellBase} text-right`}>
-                  {formatInvoiceAmount(item.unitPriceCents * item.quantity)}
-                </td>
-              </tr>
-            ))}
+            {order.items.map((item) => {
+              const cartons = getCartonCounts(
+                item.quantity,
+                item.product?.bottleSize,
+                item.productName,
+                item.unitPriceCents
+              )
+              const isFreeItem = item.unitPriceCents === 0
+              return (
+                <tr key={item.id}>
+                  <td className={`${cellBase} font-medium`}>
+                    {item.productName}
+                    <div className="mt-0.5 font-mono text-[9px] font-normal text-[#7A95A5]">
+                      Article-Nr. {item.product.articleNumber.toString().padStart(5, '0')}
+                    </div>
+                  </td>
+                  <td className={`${cellBase} text-center font-medium`}>{cartons.c24 ?? ''}</td>
+                  <td className={`${cellBase} text-center font-medium`}>{cartons.c6 ?? ''}</td>
+                  <td className={`${cellBase} text-center font-medium`}>{cartons.c12 ?? ''}</td>
+                  <td className={`${cellBase} text-right font-medium`}>{cartons.bottles}</td>
+                  <td className={`${cellBase} text-right`}>
+                    {isFreeItem ? (
+                      <span className="font-semibold text-green-700">Offert</span>
+                    ) : (
+                      <>
+                        {isPro && item.listPriceCents !== item.unitPriceCents && (
+                          <span className="mr-1.5 text-[#7A95A5] line-through">
+                            {formatInvoiceAmount(item.listPriceCents)}
+                          </span>
+                        )}
+                        {formatInvoiceAmount(cartons.displayPriceCents ?? item.unitPriceCents)}
+                      </>
+                    )}
+                  </td>
+                  <td className={`${cellBase} text-right`}>
+                    {isFreeItem ? '0.--' : formatInvoiceAmount(item.unitPriceCents * item.quantity)}
+                  </td>
+                </tr>
+              )
+            })}
 
             {/* Lignes vierges : le modèle papier laisse de la place à la main */}
             {Array.from({ length: emptyRows }).map((_, i) => (
@@ -208,14 +281,24 @@ export function FactureDocument({
           </tbody>
           <tfoot>
             {isPro && order.discountCents > 0 && (
-              <tr>
-                <td className={`${cellBase} text-right text-[#6B4F68]`} colSpan={6}>
-                  Remise professionnelle
-                </td>
-                <td className={`${cellBase} text-right text-[#6B4F68]`}>
-                  −{formatInvoiceAmount(order.discountCents)}
-                </td>
-              </tr>
+              <>
+                <tr>
+                  <td className={`${cellBase} text-right`} colSpan={6}>
+                    Total brut
+                  </td>
+                  <td className={`${cellBase} text-right`}>
+                    {formatInvoiceAmount(order.subtotalCents + order.discountCents)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className={`${cellBase} text-right text-[#6B4F68]`} colSpan={6}>
+                    Remise professionnelle (−{settings.proRatePercent}%)
+                  </td>
+                  <td className={`${cellBase} text-right text-[#6B4F68]`}>
+                    −{formatInvoiceAmount(order.discountCents)}
+                  </td>
+                </tr>
+              </>
             )}
             <tr>
               <td className={`${cellBase} text-right`} colSpan={6}>

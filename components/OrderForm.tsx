@@ -37,10 +37,21 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
   }, [])
 
   // Estimation en centimes — le total qui fait foi est recalculé par le serveur.
-  const subtotalCents = items.reduce(
+  const grossSubtotalCents = items.reduce(
     (sum, item) => sum + item.product.priceCents * item.quantity,
     0
   )
+  const promoDiscountCents = items.reduce((sum, item) => {
+    const isSummer =
+      item.product.bottleSize === '27.5cl' ||
+      item.product.name.toLowerCase().includes('evervescence')
+    if (isSummer && item.quantity >= 72) {
+      const setsOfThree = Math.floor(item.quantity / 72)
+      return sum + setsOfThree * 24 * item.product.priceCents
+    }
+    return sum
+  }, 0)
+  const subtotalCents = grossSubtotalCents - promoDiscountCents
   const estimatedTotalCents =
     subtotalCents + (items.length > 0 ? shippingCentsFor(subtotalCents, false, settings) : 0)
 

@@ -29,7 +29,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     prisma.order.findUnique({
       where: { id },
       include: {
-        items: { include: { product: { select: { articleNumber: true } } } },
+        items: { include: { product: { select: { articleNumber: true, bottleSize: true } } } },
       },
     }),
     getSettings(),

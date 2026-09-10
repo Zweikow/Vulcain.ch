@@ -30,22 +30,24 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
   const addToCart = (productId: string) => {
     setCart((prev) => {
       const product = products.find((p) => p.id === productId)!
+      const step = product.bottleSize === '27.5cl' ? 24 : 1
       const existing = prev.find((i) => i.product.id === productId)
       if (existing) {
-        return prev.map((i) =>
-          i.product.id === productId ? { ...i, quantity: i.quantity + 1 } : i
-        )
+        const nextQty = Math.min(existing.quantity + step, product.stock)
+        return prev.map((i) => (i.product.id === productId ? { ...i, quantity: nextQty } : i))
       }
-      return [...prev, { product, quantity: 1 }]
+      return [...prev, { product, quantity: Math.min(step, product.stock) }]
     })
   }
 
   const removeFromCart = (productId: string) => {
-    setCart((prev) =>
-      prev
-        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i))
+    setCart((prev) => {
+      const product = products.find((p) => p.id === productId)!
+      const step = product.bottleSize === '27.5cl' ? 24 : 1
+      return prev
+        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - step } : i))
         .filter((i) => i.quantity > 0)
-    )
+    })
   }
 
   const setProductQuantity = (productId: string, quantity: number) => {
@@ -162,7 +164,8 @@ export default function BoutiqueClient({ products, settings }: BoutiqueClientPro
             <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain</p>
             {process.env.NEXT_PUBLIC_COMMIT_SHA && (
               <p className="mt-1 font-mono text-[11px] text-white/40">
-                version: {process.env.NEXT_PUBLIC_COMMIT_SHA} {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
+                version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}
+                {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
