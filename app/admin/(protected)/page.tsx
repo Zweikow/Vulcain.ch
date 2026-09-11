@@ -4,6 +4,13 @@ import { getDashboard, PERIODES, type DashboardData, type Periode } from '@/lib/
 import { RevenueChart } from '@/components/admin/RevenueChart'
 import { requireCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
+import {
+  RevenueIcon,
+  MarginIcon,
+  PreparationIcon,
+  BottleIcon,
+  CommandesIcon,
+} from '@/components/admin/AdminIcons'
 
 const EMPTY: DashboardData = {
   revenueCents: 0,
@@ -51,7 +58,7 @@ export default async function DashboardPage({
   const kpis = [
     {
       label: "Chiffre d'affaires",
-      icon: '💰',
+      icon: RevenueIcon,
       value: formatCHF(data.revenueCents),
       detail:
         data.shippedCount === 0
@@ -63,14 +70,14 @@ export default async function DashboardPage({
     },
     {
       label: 'Marge brute',
-      icon: '📈',
+      icon: MarginIcon,
       value: formatCHF(data.marginCents),
       detail: `Achats : ${formatCHF(data.purchaseTotalCents)}`,
       href: '/admin/commandes?statut=EXPEDIEE',
     },
     {
       label: 'Commandes à traiter',
-      icon: '📦',
+      icon: PreparationIcon,
       value: String(data.openOrders),
       detail:
         data.urgentOrders > 0
@@ -80,7 +87,7 @@ export default async function DashboardPage({
     },
     {
       label: 'Bouteilles à sortir',
-      icon: '🍾',
+      icon: BottleIcon,
       value: String(data.bottlesToPick),
       detail:
         data.openOrders === 0
@@ -90,7 +97,7 @@ export default async function DashboardPage({
     },
     {
       label: 'Panier moyen',
-      icon: '🧾',
+      icon: CommandesIcon,
       value: formatCHF(data.averageBasketCents),
       detail: `${data.productCount} référence${data.productCount > 1 ? 's' : ''} au catalogue`,
       href: '/admin/produits',
@@ -143,26 +150,31 @@ export default async function DashboardPage({
 
       {/* Indicateurs */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi) => (
-          <Link
-            key={kpi.label}
-            href={kpi.href}
-            className="card p-5 transition-colors hover:border-text-tertiary dark:hover:border-text-tertiary-dark"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
-                {kpi.label}
-              </span>
-              <span aria-hidden>{kpi.icon}</span>
-            </div>
-            <p className="tabular mt-2 font-display text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
-              {kpi.value}
-            </p>
-            <p className="mt-1 text-xs text-text-secondary dark:text-text-secondary-dark">
-              {kpi.detail}
-            </p>
-          </Link>
-        ))}
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon
+          return (
+            <Link
+              key={kpi.label}
+              href={kpi.href}
+              className="card p-5 transition-colors hover:border-text-tertiary dark:hover:border-text-tertiary-dark"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
+                  {kpi.label}
+                </span>
+                <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary/10 dark:bg-primary/15 text-primary shrink-0">
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="tabular mt-2 font-display text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+                {kpi.value}
+              </p>
+              <p className="mt-1 text-xs text-text-secondary dark:text-text-secondary-dark">
+                {kpi.detail}
+              </p>
+            </Link>
+          )
+        })}
       </div>
 
       {/* Graphique et alertes */}

@@ -8,62 +8,81 @@ import { Role } from '@prisma/client'
 import { can, ROLE_LABELS } from '@/lib/permissions'
 
 import { useState } from 'react'
+import {
+  DashboardIcon,
+  PreparationIcon,
+  CommandesIcon,
+  ClientsIcon,
+  ProduitsIcon,
+  CategoriesIcon,
+  UtilisateursIcon,
+  JournalIcon,
+  ParametresIcon,
+  UserIcon,
+  LogoutIcon,
+} from '@/components/admin/AdminIcons'
 
 const NAV_LINKS = [
   {
     href: '/admin',
     label: 'Tableau de bord',
-    icon: '📊',
+    icon: DashboardIcon,
     exact: true,
     capability: can.seeDashboard,
   },
   {
     href: '/admin/preparation',
     label: 'Préparation',
-    icon: '📦',
+    icon: PreparationIcon,
     exact: false,
     capability: () => true,
   },
   {
     href: '/admin/commandes',
     label: 'Commandes',
-    icon: '🧾',
+    icon: CommandesIcon,
     exact: false,
     capability: () => true,
   },
   {
     href: '/admin/clients',
     label: 'Clients',
-    icon: '👤',
+    icon: ClientsIcon,
     exact: false,
     capability: () => true,
   },
-  { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false, capability: () => true },
+  {
+    href: '/admin/produits',
+    label: 'Produits',
+    icon: ProduitsIcon,
+    exact: false,
+    capability: () => true,
+  },
   {
     href: '/admin/categories',
     label: 'Catégories',
-    icon: '📁',
+    icon: CategoriesIcon,
     exact: false,
     capability: () => true,
   },
   {
     href: '/admin/utilisateurs',
     label: 'Utilisateurs',
-    icon: '👥',
+    icon: UtilisateursIcon,
     exact: false,
     capability: can.manageUsers,
   },
   {
     href: '/admin/journal',
     label: 'Journal',
-    icon: '📜',
+    icon: JournalIcon,
     exact: false,
     capability: can.seeJournal,
   },
   {
     href: '/admin/parametres',
     label: 'Paramètres',
-    icon: '⚙️',
+    icon: ParametresIcon,
     exact: false,
     capability: can.manageSettings,
   },
@@ -116,6 +135,7 @@ export function AdminSidebar({ user }: { user: any }) {
         fixed md:static inset-y-0 left-0 z-50
         w-64 md:w-56 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white 
         flex flex-col shrink-0 transition-transform duration-200 ease-in-out print:hidden
+        border-r border-white/5 dark:border-white/10
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}
       >
@@ -126,22 +146,30 @@ export function AdminSidebar({ user }: { user: any }) {
           <div className="text-xs opacity-60 mt-0.5">{ROLE_LABELS[role]}</div>
         </div>
 
-        <nav className="flex-1 p-3 overflow-y-auto flex flex-col gap-1">
-          {links.map(({ href, label, icon, exact }) => {
+        <nav className="flex-1 p-3 overflow-y-auto flex flex-col gap-1.5">
+          {links.map(({ href, label, icon: Icon, exact }) => {
             const isActive = exact ? pathname === href : pathname.startsWith(href)
             return (
               <Link
                 key={href}
                 href={href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all ${
+                className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
                   isActive
-                    ? 'bg-white/15 font-medium'
-                    : 'opacity-70 hover:opacity-100 hover:bg-white/10'
+                    ? 'bg-white/15 dark:bg-white/10 text-white font-medium shadow-sm'
+                    : 'text-slate-300 dark:text-slate-400 hover:text-white hover:bg-white/10 dark:hover:bg-white/5'
                 }`}
               >
-                <span>{icon}</span>
-                <span>{label}</span>
+                <div
+                  className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors shrink-0 ${
+                    isActive
+                      ? 'bg-primary/20 text-primary dark:bg-primary/25 dark:text-primary shadow-sm'
+                      : 'bg-white/5 text-slate-300 dark:text-slate-400 group-hover:text-white group-hover:bg-white/10'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="truncate">{label}</span>
               </Link>
             )
           })}
@@ -152,13 +180,13 @@ export function AdminSidebar({ user }: { user: any }) {
             <Link
               href="/admin/profil"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm opacity-90 hover:opacity-100 hover:bg-white/10 transition-all mb-2"
+              className="group flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 dark:text-slate-400 hover:text-white hover:bg-white/10 dark:hover:bg-white/5 transition-all mb-1"
             >
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                👤
+              <div className="w-7 h-7 rounded-md bg-white/10 text-white flex items-center justify-center shrink-0">
+                <UserIcon className="w-4 h-4" />
               </div>
               <div className="flex flex-col truncate">
-                <span className="truncate">{user.name}</span>
+                <span className="truncate font-medium text-white">{user.name}</span>
                 <span className="text-[10px] opacity-70 uppercase tracking-wider">
                   {ROLE_LABELS[role]}
                 </span>
@@ -168,9 +196,11 @@ export function AdminSidebar({ user }: { user: any }) {
           <ThemeToggle />
           <button
             onClick={() => signOut({ callbackUrl: '/admin/login' })}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm opacity-70 hover:opacity-100 hover:bg-white/10 transition-all"
+            className="group w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 dark:text-slate-400 hover:text-red-300 hover:bg-red-500/10 dark:hover:bg-red-500/15 transition-all"
           >
-            <span>🚪</span>
+            <div className="w-7 h-7 rounded-md flex items-center justify-center bg-white/5 group-hover:bg-red-500/20 group-hover:text-red-300 transition-colors shrink-0">
+              <LogoutIcon className="w-4 h-4" />
+            </div>
             <span>Déconnexion</span>
           </button>
         </div>

@@ -1,3 +1,10 @@
+workflow:
+  rules:
+    # Ne jamais exécuter de pipeline CI/CD sur les branches créées par Renovate
+    - if: '$CI_COMMIT_BRANCH =~ /^renovate\//'
+      when: never
+    - when: always
+
 stages:
   - deploy
 
