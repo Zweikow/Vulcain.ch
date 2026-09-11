@@ -64,3 +64,66 @@ export function chfInputToCents(value: string | number): number {
   if (!Number.isFinite(n) || n < 0) return 0
   return Math.round(n * 100)
 }
+
+export type InvoicePaymentStatus = {
+  isPaid: boolean
+  paidAt: Date | null
+  paymentMethod: string | null
+  dueDate: Date
+  isOverdue: boolean
+  daysOverdue: number
+}
+
+/**
+ * Détermine le statut d'encaissement et de retard d'une facture.
+ * L'échéance court à partir de l'émission de la facture (invoicedAt)
+ * ou de la date de commande (createdAt).
+ */
+export function getInvoicePaymentStatus(
+  order: {
+    paidAt: Date | string | null
+    paymentMethod?: string | null
+    invoicedAt?: Date | string | null
+    createdAt: Date | string
+  },
+  paymentTermsDays = 30
+): InvoicePaymentStatus {
+  const isPaid = Boolean(order.paidAt)
+  const paidAt = order.paidAt ? new Date(order.paidAt) : null
+  const paymentMethod = order.paymentMethod ?? null
+
+  const baseDate = order.invoicedAt ? new Date(order.invoicedAt) : new Date(order.createdAt)
+  const dueDate = new Date(baseDate)
+  dueDate.setDate(dueDate.getDate() + paymentTermsDays)
+
+  if (isPaid) {
+    return {
+      isPaid: true,
+      paidAt,
+      paymentMethod,
+      dueDate,
+      isOverdue: false,
+      daysOverdue: 0,
+    }
+  }
+
+  const now = new Date()
+  const dueMidnight = new Date(
+    dueDate.getFullYear(),
+    dueDate.getMonth(),
+    dueDate.getDate()
+  ).getTime()
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+
+  const diffDays = Math.floor((todayMidnight - dueMidnight) / (1000 * 60 * 60 * 24))
+  const isOverdue = diffDays > 0
+
+  return {
+    isPaid: false,
+    paidAt: null,
+    paymentMethod: null,
+    dueDate,
+    isOverdue,
+    daysOverdue: Math.max(0, diffDays),
+  }
+}

@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { requireAdmin } from '@/lib/guards'
 import { PasswordChange } from '@/components/admin/PasswordChange'
 import { NumberField } from '@/components/admin/NumberField'
+import { TestEmailCard } from '@/components/admin/TestEmailCard'
 import { saveSettings } from './actions'
 
 const EXAMPLE_PRICE_CENTS = 2400
@@ -224,6 +225,9 @@ export default async function ParametresPage() {
           <button className="btn-primary">Enregistrer les paramètres</button>
         </div>
       </form>
+
+      {/* Test de notification SES */}
+      <TestEmailCard defaultEmail={s.contactEmail} />
 
       {/* Formulaire distinct : le mot de passe ne s'enregistre pas avec le reste */}
       {account && (

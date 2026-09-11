@@ -248,6 +248,21 @@
 - [x] Remplacement de l'en-tête par défaut par « Vulcano Distribution » en haut à gauche du document A4.
 - [x] Conservation des coordonnées bancaires et légales du créancier (Bertrand Baeriswyl / IBAN PostFinance) pour la QR-facture officielle.
 
+### US-ADM-32 — Système complet d'emails transactionnels, suivi DPD et envoi de factures
+
+**En tant qu'** administrateur et client,  
+**je veux** un système d'emails transactionnels fiable et soigné (confirmations de commandes, alertes admin à `commandes@cidrerie-vulcain.ch`, avis d'expédition avec suivi DPD, envoi de factures et historique d'envois),  
+**afin d'** assurer une communication irréprochable avec les clients et de faciliter le traitement quotidien des commandes.
+
+**Critères d'acceptation :**
+
+- [x] Email de confirmation au client avec charte graphique Vulcain, récapitulatif des cuvées, volumes et modalités de paiement à 30 jours.
+- [x] Notification administrateur instantanée à `commandes@cidrerie-vulcain.ch` avec bouton de redirection directe vers `/admin/commandes/[id]` et `Reply-To` pointant sur l'email du client.
+- [x] Gestion du transporteur DPD avec lien de tracking dynamique et différenciation du retrait convenu à la cave.
+- [x] Action d'envoi et de renvoi de la facture officielle avec lien direct vers le document A4 et le bulletin QR.
+- [x] Historique complet des emails tracés (`OrderEmailLog`) sur la fiche commande avec boutons de renvoi en un clic.
+- [x] Outil de test technique Amazon SES accessible depuis la page des Paramètres.
+
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
 **En tant que** préparateur de commande à la cave,  
@@ -437,8 +452,10 @@
 **Critères d'acceptation :**
 
 - [x] GitLab Runner configuré sur machine dédiée (HP Elitedesk G5, Docker).
-- [x] Pipeline multi-étapes (`.gitlab-ci.yml`) avec génération des types Prisma et SST.
-- [x] Déploiement automatique sur la Sandbox lors de la fusion sur la branche `sandbox`.
+- [x] Pipeline multi-environnements (`.gitlab-ci.yml`) avec génération des types Prisma et SST.
+- [x] Déploiement automatique sur l'environnement Dev (`dev.cidrerie-vulcain.ch`) à chaque push sur la branche `develop`.
+- [x] Déploiement automatique sur la Sandbox (`sandbox.cidrerie-vulcain.ch`) lors de la fusion sur la branche `sandbox`.
+- [x] Blocage automatique du crawling SEO sur l'environnement Dev via `robots.txt`.
 - [x] Détection et affichage de la version du commit déployé en direct sur le site.
 
 ### US-OPS-03 — Sécurité et limitation du débit (Rate Limiting)
@@ -467,6 +484,21 @@
 - [x] Politique de référence stricte (`Referrer-Policy: strict-origin-when-cross-origin`).
 - [x] Politique de permissions matérielles (`Permissions-Policy: camera=(), microphone=(), geolocation=()`).
 
+### US-OPS-05 — Optimisation du Référencement Naturel (SEO, Open Graph, Sitemap & Schema.org)
+
+**En tant que** gérant et exploitant de la boutique,  
+**je veux** que le site dispose d'une infrastructure SEO complète (robots.txt, sitemap.xml, balises Open Graph, métadonnées sémantiques et données structurées JSON-LD),  
+**afin d'** assurer un référencement optimal sur Google/Bing, de protéger l'espace d'administration de l'indexation, et d'offrir des partages enrichis sur les réseaux sociaux et messageries.
+
+**Critères d'acceptation :**
+
+- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Vulcano Distribution.
+- [x] Balises Open Graph et Twitter Cards pour des aperçus visuels enrichis lors du partage de liens (WhatsApp, iMessage, LinkedIn, etc.).
+- [x] Fichier `robots.txt` dynamique interdisant l'exploration des répertoires `/admin` et `/api`.
+- [x] Fichier `sitemap.xml` dynamique listant les routes publiques avec priorités et fréquences de mise à jour.
+- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Vulcano Distribution) et `Product` (offres en CHF, stocks).
+- [x] Modèle de titres dynamique (`%s | Cidrerie du Vulcain`) et URL canonique automatique.
+
 ---
 
 ## Tableau de Bord de Couverture des User Stories
@@ -477,9 +509,9 @@
 | **2. Prise de Commande**        |    3     |           3           |                —                 |
 | **3. Infos Légales & Histoire** |    2     |           2           |   _(Contenu final /histoire)_    |
 | **4. Gestion des Commandes**    |    4     |           4           |                —                 |
-| **5. Facturation & Expédition** |    4     |           3           | **US-ADM-06 (Bon de livraison)** |
+| **5. Facturation & Expédition** |    5     |           4           | **US-ADM-06 (Bon de livraison)** |
 | **6. Catalogue & Stocks**       |    5     |           5           |                —                 |
 | **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
-| **9. DevOps & Sécurité**        |    4     |           4           |                —                 |
-| **TOTAL**                       |  **32**  |        **31**         |          **1 en cours**          |
+| **9. DevOps & Sécurité**        |    5     |           5           |                —                 |
+| **TOTAL**                       |  **34**  |        **33**         |          **1 en cours**          |

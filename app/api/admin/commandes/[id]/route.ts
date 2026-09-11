@@ -12,6 +12,9 @@ import { STATUS_LABELS } from '@/components/admin/StatusBadge'
 const patchSchema = z.object({
   status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']).optional(),
   assignedToId: z.string().nullable().optional(),
+  trackingNumber: z.string().nullable().optional(),
+  carrier: z.string().nullable().optional(),
+  isPickup: z.boolean().optional(),
 })
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -53,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: 'Statut invalide' }, { status: 422 })
   }
 
-  const { status, assignedToId } = result.data
+  const { status, assignedToId, trackingNumber, carrier, isPickup } = result.data
 
   // If assignedToId is provided and status is not explicitly sent, default to EN_PREPARATION
   let newStatus = status
@@ -71,6 +74,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(newStatus ? { status: newStatus } : {}),
         ...(shippedAt !== null ? { shippedAt } : {}),
         ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(trackingNumber !== undefined ? { trackingNumber: trackingNumber?.trim() || null } : {}),
+        ...(carrier !== undefined ? { carrier: carrier?.trim() || 'DPD' } : {}),
+        ...(isPickup !== undefined ? { isPickup } : {}),
       },
       select: {
         id: true,

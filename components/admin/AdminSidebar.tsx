@@ -31,6 +31,13 @@ const NAV_LINKS = [
     exact: false,
     capability: () => true,
   },
+  {
+    href: '/admin/clients',
+    label: 'Clients',
+    icon: '👤',
+    exact: false,
+    capability: () => true,
+  },
   { href: '/admin/produits', label: 'Produits', icon: '🍎', exact: false, capability: () => true },
   {
     href: '/admin/categories',

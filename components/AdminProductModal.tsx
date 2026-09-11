@@ -10,6 +10,7 @@ import {
   ProductInput,
 } from '@/app/admin/(protected)/produits/actions'
 import { chfInputToCents, formatCHF, proUnitPriceCents } from '@/lib/money'
+import { OriginBadge } from '@/components/OriginBadge'
 
 export type AdminProduct = {
   id: string
@@ -324,24 +325,26 @@ export default function AdminProductModal({
                 <button
                   type="button"
                   onClick={() => update('origin', 'CH')}
-                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-md border text-xs font-semibold transition-colors ${
                     form.origin === 'CH'
                       ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
                       : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                   }`}
                 >
-                  🇨🇭 CH
+                  <OriginBadge origin="CH" className="w-4 h-4" />
+                  <span>CH</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => update('origin', 'FR')}
-                  className={`rounded-md border text-xs font-semibold transition-colors ${
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-md border text-xs font-semibold transition-colors ${
                     form.origin === 'FR'
                       ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
                       : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                   }`}
                 >
-                  🇫🇷 FR
+                  <OriginBadge origin="FR" className="w-4 h-4" />
+                  <span>FR</span>
                 </button>
               </div>
             </div>

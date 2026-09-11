@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Conditions Générales de Vente | Cidrerie du Vulcain',
-  description: 'Conditions générales de vente de la Cidrerie du Vulcain.',
+  title: 'Conditions Générales de Vente (CGV)',
+  description: 'Conditions générales de vente de la Cidrerie du Vulcain (Vulcano Distribution).',
 }
 
 export default function CGVPage() {

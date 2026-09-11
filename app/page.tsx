@@ -1,13 +1,18 @@
 import { prisma } from '@/lib/prisma'
 import { getPublicSettings } from '@/lib/settings'
 import { Product } from '@/types'
+import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
 
 // Catalogue lu en base à chaque requête — un produit désactivé disparaît aussitôt.
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [dbProducts, settings] = await Promise.all([
+  const [dbCategories, dbProducts, settings] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { position: 'asc' },
+      select: { name: true },
+    }),
     prisma.product.findMany({
       where: { active: true, archived: false },
       include: {
@@ -43,5 +48,14 @@ export default async function Home() {
     }
   })
 
-  return <BoutiqueClient products={products} settings={settings} />
+  return (
+    <>
+      <JsonLd products={products} />
+      <BoutiqueClient
+        products={products}
+        settings={settings}
+        categories={dbCategories.map((c) => c.name)}
+      />
+    </>
+  )
 }

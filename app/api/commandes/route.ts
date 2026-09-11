@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
         },
       })
       const isPro = customer.isPro
+      const effectiveProRate = isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null
 
       const products = await tx.product.findMany({
         where: {
@@ -94,44 +95,88 @@ export async function POST(request: NextRequest) {
           active: true,
           archived: false,
         },
-        select: { id: true, name: true, priceCents: true, purchasePriceCents: true, stock: true },
+        select: {
+          id: true,
+          name: true,
+          priceCents: true,
+          purchasePriceCents: true,
+          stock: true,
+          bottleSize: true,
+          category: { select: { name: true } },
+        },
       })
       const byId = new Map(products.map((p) => [p.id, p]))
 
       let subtotalCents = 0
       let discountCents = 0
-      const lines = data.items.map((item) => {
+      const orderItemsToCreate: {
+        productId: string
+        productName: string
+        listPriceCents: number
+        purchasePriceCents: number
+        unitPriceCents: number
+        quantity: number
+      }[] = []
+
+      for (const item of data.items) {
         const product = byId.get(item.productId)
         if (!product) throw new OrderConflictError('Un ou plusieurs produits sont indisponibles')
         if (product.stock < item.quantity)
           throw new OrderConflictError(`Stock insuffisant pour ${product.name}`)
-        const unitPriceCents = isPro
-          ? proUnitPriceCents(product.priceCents, settings.proRatePercent)
-          : product.priceCents
-        subtotalCents += unitPriceCents * item.quantity
-        discountCents += (product.priceCents - unitPriceCents) * item.quantity
-        return {
-          productId: product.id,
-          productName: product.name,
-          listPriceCents: product.priceCents,
-          purchasePriceCents: product.purchasePriceCents,
-          unitPriceCents,
-          quantity: item.quantity,
+
+        const unitPriceCents =
+          isPro && effectiveProRate !== null
+            ? proUnitPriceCents(product.priceCents, effectiveProRate)
+            : product.priceCents
+
+        // Offre estivale : pour les 27.5cl / Evervescence / Offre Estivale, 1 carton (24 bout.) offert par tranche de 3 cartons (72 bout.)
+        const isSummerOffer =
+          product.bottleSize === '27.5cl' ||
+          product.name.includes('Evervescence') ||
+          product.category?.name === 'Offre Estivale'
+
+        const freeBottles = isSummerOffer ? Math.floor(item.quantity / 72) * 24 : 0
+        const paidBottles = item.quantity - freeBottles
+
+        if (paidBottles > 0) {
+          orderItemsToCreate.push({
+            productId: product.id,
+            productName: product.name,
+            listPriceCents: product.priceCents,
+            purchasePriceCents: product.purchasePriceCents,
+            unitPriceCents,
+            quantity: paidBottles,
+          })
+          subtotalCents += unitPriceCents * paidBottles
+          discountCents += (product.priceCents - unitPriceCents) * paidBottles
         }
-      })
+
+        if (freeBottles > 0) {
+          orderItemsToCreate.push({
+            productId: product.id,
+            productName: `${product.name} — Offre estivale (carton offert)`,
+            listPriceCents: product.priceCents,
+            purchasePriceCents: product.purchasePriceCents,
+            unitPriceCents: 0,
+            quantity: freeBottles,
+          })
+          discountCents += product.priceCents * freeBottles
+        }
+      }
 
       const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
       const totalCents = subtotalCents + shippingCents
       const vatCents = orderVatCents(totalCents, settings)
 
       // Décrément conditionnel : échoue si une commande concurrente a vidé le stock.
-      for (const line of lines) {
+      for (const item of data.items) {
+        const product = byId.get(item.productId)!
         const updated = await tx.product.updateMany({
-          where: { id: line.productId, stock: { gte: line.quantity } },
-          data: { stock: { decrement: line.quantity } },
+          where: { id: product.id, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
         })
         if (updated.count === 0)
-          throw new OrderConflictError(`Stock insuffisant pour ${line.productName}`)
+          throw new OrderConflictError(`Stock insuffisant pour ${product.name}`)
       }
 
       // Numérotation CMD-AAAA-NNNN — atomique, remplace order.count().
@@ -143,6 +188,7 @@ export async function POST(request: NextRequest) {
           numero,
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
+          proRatePercent: effectiveProRate,
           clientName: `${data.firstName} ${data.lastName}`,
           clientEmail: data.email,
           clientPhone: data.phone ?? null,
@@ -156,16 +202,18 @@ export async function POST(request: NextRequest) {
           vatCents,
           deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
           message: data.message || null,
-          items: { create: lines },
+          items: {
+            create: orderItemsToCreate,
+          },
         },
         select: { id: true, numero: true, totalCents: true },
       })
 
       await tx.stockMovement.createMany({
-        data: lines.map((l) => ({
-          productId: l.productId,
+        data: data.items.map((item) => ({
+          productId: item.productId,
           orderId: created.id,
-          delta: -l.quantity,
+          delta: -item.quantity,
           reason: StockMovementReason.COMMANDE,
         })),
       })

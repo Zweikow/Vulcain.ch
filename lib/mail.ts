@@ -17,41 +17,48 @@ export type MailMessage = {
   replyTo?: string
 }
 
+export type SendMailResult = {
+  success: boolean
+  error?: string
+}
+
 let client: SESv2Client | null = null
 
 function getClient(): SESv2Client {
-  if (!client) client = new SESv2Client({ region: process.env.AWS_REGION ?? 'eu-central-2' })
+  // Priorité à SES_REGION (par défaut Zurich eu-central-2, comme prévu par docs/aws-setup-ses.md)
+  // Ne pas dépendre de AWS_REGION qui vaut eu-central-1 (Francfort) sur le runtime Lambda Next.js.
+  const region = process.env.SES_REGION || process.env.AWS_SES_REGION || 'eu-central-2'
+  if (!client) client = new SESv2Client({ region })
   return client
 }
 
-function isConfigured(): boolean {
-  return Boolean(process.env.MAIL_FROM)
+function getMailFrom(): string {
+  return process.env.MAIL_FROM || 'commandes@cidrerie-vulcain.ch'
 }
 
 /**
- * Envoie un message. Sans configuration SES, écrit le message dans la console
- * en développement (le travail local ne dépend pas d'AWS) et échoue bruyamment
- * en production, où un email perdu est un client perdu.
- *
- * Ne lève jamais : l'appelant décide quoi faire d'un échec. Une commande ne doit
- * pas être perdue parce que la notification n'est pas partie.
+ * Envoie un message via Amazon SES.
+ * Sans configuration SES ou en dev local, écrit le message dans la console.
+ * Retourne le statut et le message d'erreur AWS exact en cas d'échec.
  */
-export async function sendMail(message: MailMessage): Promise<boolean> {
-  if (!isConfigured()) {
+export async function sendMail(message: MailMessage): Promise<SendMailResult> {
+  const mailFrom = getMailFrom()
+  if (!mailFrom) {
     if (process.env.NODE_ENV === 'production') {
-      console.error('MAIL_FROM manquant : aucun email envoyé.', { to: message.to })
-      return false
+      const err = 'MAIL_FROM manquant : aucun email envoyé.'
+      console.error(err, { to: message.to })
+      return { success: false, error: err }
     }
     console.info(
       `\n--- Email (non envoyé, SES non configuré) ---\nÀ      : ${message.to}\nObjet  : ${message.subject}\n\n${message.text}\n--- fin ---\n`
     )
-    return true
+    return { success: true }
   }
 
   try {
     await getClient().send(
       new SendEmailCommand({
-        FromEmailAddress: process.env.MAIL_FROM,
+        FromEmailAddress: mailFrom,
         Destination: { ToAddresses: [message.to] },
         ReplyToAddresses: message.replyTo ? [message.replyTo] : undefined,
         Content: {
@@ -65,13 +72,14 @@ export async function sendMail(message: MailMessage): Promise<boolean> {
         },
       })
     )
-    return true
-  } catch (error) {
-    console.error("Échec de l'envoi de l'email", {
+    return { success: true }
+  } catch (error: any) {
+    const errorMsg = error?.message || error?.name || String(error)
+    console.error("Échec de l'envoi de l'email via Amazon SES", {
       to: message.to,
       subject: message.subject,
       error,
     })
-    return false
+    return { success: false, error: errorMsg }
   }
 }

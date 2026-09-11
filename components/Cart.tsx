@@ -12,11 +12,22 @@ interface CartProps {
 
 export default function Cart({ items, settings, onCheckout }: CartProps) {
   const hasItems = items.length > 0
-  // Estimation en centimes — le montant qui fait foi est recalculé par le serveur.
-  const subtotalCents = items.reduce(
+  const grossSubtotalCents = items.reduce(
     (sum, item) => sum + item.product.priceCents * item.quantity,
     0
   )
+  const promoDiscountCents = items.reduce((sum, item) => {
+    const isSummer =
+      item.product.bottleSize === '27.5cl' ||
+      item.product.name.toLowerCase().includes('evervescence')
+    if (isSummer && item.quantity >= 72) {
+      const setsOfThree = Math.floor(item.quantity / 72)
+      return sum + setsOfThree * 24 * item.product.priceCents
+    }
+    return sum
+  }, 0)
+  const subtotalCents = grossSubtotalCents - promoDiscountCents
+
   const shippingCents =
     hasItems && subtotalCents < settings.francoCents ? settings.shippingCents : 0
   const totalCents = subtotalCents + shippingCents
@@ -50,6 +61,12 @@ export default function Cart({ items, settings, onCheckout }: CartProps) {
             ))}
 
             <div className="border-t border-border dark:border-border-dark pt-2 flex flex-col gap-1">
+              {promoDiscountCents > 0 && (
+                <div className="flex justify-between text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                  <span>Offre estivale (carton offert)</span>
+                  <span>−{formatCHF(promoDiscountCents)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-text-secondary dark:text-text-secondary-dark">
                 <span>Frais de port</span>
                 <span>{shippingCents === 0 ? 'Offerts' : formatCHF(shippingCents)}</span>
