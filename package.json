@@ -24,7 +24,7 @@
     "next": "^15.5.23",
     "next-auth": "^5.0.0-beta.31",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0",
+    "react-dom": "^19.0.0",
     "sst": "^4.17.1",
     "swissqrbill": "^4.4.1",
     "zod": "^4.4.1"
@@ -43,7 +43,7 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.0.1",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.0.0",
