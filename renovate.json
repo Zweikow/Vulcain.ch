@@ -1,0 +1,57 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Configuration Renovate optimisée pour Cidrerie du Vulcain (GitLab / Next.js / SST / Prisma)",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "baseBranches": ["develop"],
+  "timezone": "Europe/Zurich",
+  "schedule": ["before 7am on monday"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 7am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Regrouper tous les modules AWS SDK dans une seule Merge Request",
+      "matchPackagePatterns": ["^@aws-sdk/"],
+      "groupName": "AWS SDK monorepo",
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Garder React, React-DOM et leurs types parfaitement synchronisés",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "React core & types"
+    },
+    {
+      "description": "Regrouper Prisma et son client",
+      "matchPackageNames": ["prisma", "@prisma/client"],
+      "groupName": "Prisma ORM"
+    },
+    {
+      "description": "Regrouper les outils de linting et de formatage en dev",
+      "matchPackagePatterns": ["^eslint", "^prettier"],
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "Linters & formatters (ESLint / Prettier)",
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Mises à jour majeures : jamais groupées, toujours isolées pour revue manuelle",
+      "matchUpdateTypes": ["major"],
+      "groupName": null,
+      "schedule": ["before 7am on monday"]
+    },
+    {
+      "description": "Alertes de vulnérabilité de sécurité : priorité immédiate sans attendre le lundi",
+      "matchDatasources": ["npm"],
+      "vulnerabilityAlerts": {
+        "enabled": true,
+        "schedule": ["at any time"]
+      }
+    }
+  ]
+}
