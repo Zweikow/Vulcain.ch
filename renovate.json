@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Configuration Renovate optimisée pour Cidrerie du Vulcain (GitLab / Next.js / SST / Prisma)",
+  "enabled": false,
+  "description": "Configuration Renovate (en pause)",
   "extends": ["config:recommended", ":dependencyDashboard"],
   "baseBranches": ["develop"],
   "timezone": "Europe/Zurich",
