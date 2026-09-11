@@ -204,6 +204,11 @@ export function ProduitsClient({
                             🌿
                           </span>
                         )}
+                        {p.bottlesPerUnit > 1 && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-accent-navy/10 dark:bg-accent-navy/40 text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark">
+                            Carton {p.bottlesPerUnit} bout.
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-[10px] text-text-tertiary dark:text-text-tertiary-dark font-mono mt-0.5 opacity-75">
                         <span>Article-Nr. {p.articleNumber.toString().padStart(5, '0')}</span>
@@ -215,8 +220,17 @@ export function ProduitsClient({
                     </td>
                     {showMoney && (
                       <>
-                        <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
-                          {formatCHF(p.priceCents)}
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-text-primary dark:text-text-primary-dark font-medium">
+                              {formatCHF(p.priceCents)}
+                            </span>
+                            {p.compareAtPriceCents && p.compareAtPriceCents > p.priceCents && (
+                              <span className="text-[10px] line-through text-text-tertiary dark:text-text-tertiary-dark font-mono">
+                                {formatCHF(p.compareAtPriceCents)}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right text-accent-mauve-dark dark:text-accent-mauve">
                           {formatCHF(proUnitPriceCents(p.priceCents, proRatePercent))}

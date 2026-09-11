@@ -12,7 +12,17 @@ interface ProductOption {
   priceCents: number
   stock: number
   bottleSize?: string | null
+  bottlesPerUnit?: number
   category?: { name: string }
+  promotions?: Array<{
+    id: string
+    name: string
+    type: 'BUY_X_GET_Y_FREE' | 'PERCENTAGE' | 'FIXED_DISCOUNT'
+    buyQuantity?: number | null
+    getFreeQuantity?: number | null
+    discountPercent?: number | null
+    discountCents?: number | null
+  }>
 }
 
 interface CustomerOption {
@@ -44,6 +54,7 @@ interface OrderLineItem {
   listPriceCents: number
   unitPriceCents: number
   quantity: number
+  bottlesPerUnit?: number
   stock: number
   bottleSize?: string | null
   categoryName?: string
@@ -122,16 +133,6 @@ export function CreateOrderForm({
     updateLinesForPro(newIsPro)
   }
 
-  function isSummerProduct(prod?: { bottleSize?: string | null; name: string }) {
-    if (!prod) return false
-    const name = prod.name.toLowerCase()
-    return (
-      prod.bottleSize === '27.5cl' ||
-      name.includes('effervescence') ||
-      name.includes('evervescence')
-    )
-  }
-
   const updateLinesForPro = (proActive: boolean, specificRate?: number | null) => {
     const rateToUse =
       specificRate !== undefined
@@ -149,15 +150,25 @@ export function CreateOrderForm({
     )
   }
 
-  const handleApplySummerOffer = (lineId: string) => {
+  const handleApplyPromo = (lineId: string) => {
     setLines((prev) => {
       const line = prev.find((l) => l.id === lineId)
       if (!line) return prev
-      const setsOfThree = Math.floor(line.quantity / 72)
-      if (setsOfThree <= 0) return prev
+      const prod = products.find((p) => p.id === line.productId)
+      const promo = prod?.promotions?.[0]
+      if (
+        !promo ||
+        promo.type !== 'BUY_X_GET_Y_FREE' ||
+        !promo.buyQuantity ||
+        !promo.getFreeQuantity
+      )
+        return prev
 
-      const freeBottles = setsOfThree * 24
-      const paidBottles = line.quantity - freeBottles
+      const sets = Math.floor(line.quantity / promo.buyQuantity)
+      if (sets <= 0) return prev
+
+      const freeUnits = sets * promo.getFreeQuantity
+      const paidUnits = line.quantity - freeUnits
       const unitPrice = isPro
         ? proUnitPriceCents(line.listPriceCents, settings.proRatePercent)
         : line.listPriceCents
@@ -165,22 +176,23 @@ export function CreateOrderForm({
       const newLines: OrderLineItem[] = []
       for (const l of prev) {
         if (l.id === lineId) {
-          if (paidBottles > 0) {
+          if (paidUnits > 0) {
             newLines.push({
               ...l,
-              quantity: paidBottles,
+              quantity: paidUnits,
               unitPriceCents: unitPrice,
             })
           }
           newLines.push({
             id: `${line.productId}-free-${Date.now()}`,
             productId: line.productId,
-            productName: `${line.productName} — Offre estivale (carton offert)`,
+            productName: `${line.productName} — ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
             listPriceCents: line.listPriceCents,
             unitPriceCents: 0,
-            quantity: freeBottles,
+            quantity: freeUnits,
             stock: line.stock,
             bottleSize: line.bottleSize,
+            bottlesPerUnit: line.bottlesPerUnit,
             isFreePromo: true,
           })
         } else {
@@ -201,39 +213,63 @@ export function CreateOrderForm({
       ? proUnitPriceCents(prod.priceCents, settings.proRatePercent)
       : prod.priceCents
 
-    const isSummer = isSummerProduct(prod)
+    const promo = prod.promotions?.[0]
+    const bpu = prod.bottlesPerUnit || 1
 
-    if (isSummer && qty >= 72) {
-      const setsOfThree = Math.floor(qty / 72)
-      const freeBottles = setsOfThree * 24
-      const paidBottles = qty - freeBottles
+    if (promo && promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity) {
+      const buyQty = promo.buyQuantity
+      const freeQty = promo.getFreeQuantity
 
       setLines((prev) => {
+        const existingLine = prev.find((l) => l.productId === prod.id && !l.isFreePromo)
+        const totalQty = (existingLine ? existingLine.quantity : 0) + qty
+
         const filtered = prev.filter((l) => l.productId !== prod.id)
         const newLines: OrderLineItem[] = [...filtered]
-        if (paidBottles > 0) {
+
+        if (totalQty >= buyQty) {
+          const sets = Math.floor(totalQty / buyQty)
+          const freeUnits = sets * freeQty
+          const paidUnits = totalQty - freeUnits
+
+          if (paidUnits > 0) {
+            newLines.push({
+              id: `${prod.id}-paid-${Date.now()}`,
+              productId: prod.id,
+              productName: prod.name,
+              listPriceCents: prod.priceCents,
+              unitPriceCents: unitPrice,
+              quantity: paidUnits,
+              stock: prod.stock,
+              bottleSize: prod.bottleSize,
+              bottlesPerUnit: bpu,
+            })
+          }
+          if (freeUnits > 0) {
+            newLines.push({
+              id: `${prod.id}-free-${Date.now()}`,
+              productId: prod.id,
+              productName: `${prod.name} — ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
+              listPriceCents: prod.priceCents,
+              unitPriceCents: 0,
+              quantity: freeUnits,
+              stock: prod.stock,
+              bottleSize: prod.bottleSize,
+              bottlesPerUnit: bpu,
+              isFreePromo: true,
+            })
+          }
+        } else {
           newLines.push({
-            id: `${prod.id}-paid-${Date.now()}`,
+            id: `${prod.id}-${Date.now()}`,
             productId: prod.id,
             productName: prod.name,
             listPriceCents: prod.priceCents,
             unitPriceCents: unitPrice,
-            quantity: paidBottles,
+            quantity: totalQty,
             stock: prod.stock,
             bottleSize: prod.bottleSize,
-          })
-        }
-        if (freeBottles > 0) {
-          newLines.push({
-            id: `${prod.id}-free-${Date.now()}`,
-            productId: prod.id,
-            productName: `${prod.name} — Offre estivale (carton offert)`,
-            listPriceCents: prod.priceCents,
-            unitPriceCents: 0,
-            quantity: freeBottles,
-            stock: prod.stock,
-            bottleSize: prod.bottleSize,
-            isFreePromo: true,
+            bottlesPerUnit: bpu,
           })
         }
         return newLines
@@ -244,45 +280,10 @@ export function CreateOrderForm({
     setLines((prev) => {
       const existingIndex = prev.findIndex((l) => l.productId === prod.id && !l.isFreePromo)
       if (existingIndex >= 0) {
-        const totalQty = prev[existingIndex].quantity + qty
-        if (isSummer && totalQty >= 72) {
-          const setsOfThree = Math.floor(totalQty / 72)
-          const freeBottles = setsOfThree * 24
-          const paidBottles = totalQty - freeBottles
-          const filtered = prev.filter((l) => l.productId !== prod.id)
-          const res: OrderLineItem[] = [...filtered]
-          if (paidBottles > 0) {
-            res.push({
-              id: `${prod.id}-paid-${Date.now()}`,
-              productId: prod.id,
-              productName: prod.name,
-              listPriceCents: prod.priceCents,
-              unitPriceCents: unitPrice,
-              quantity: paidBottles,
-              stock: prod.stock,
-              bottleSize: prod.bottleSize,
-            })
-          }
-          if (freeBottles > 0) {
-            res.push({
-              id: `${prod.id}-free-${Date.now()}`,
-              productId: prod.id,
-              productName: `${prod.name} — Offre estivale (carton offert)`,
-              listPriceCents: prod.priceCents,
-              unitPriceCents: 0,
-              quantity: freeBottles,
-              stock: prod.stock,
-              bottleSize: prod.bottleSize,
-              isFreePromo: true,
-            })
-          }
-          return res
-        }
-
         const updated = [...prev]
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: totalQty,
+          quantity: updated[existingIndex].quantity + qty,
         }
         return updated
       }
@@ -298,6 +299,7 @@ export function CreateOrderForm({
           quantity: qty,
           stock: prod.stock,
           bottleSize: prod.bottleSize,
+          bottlesPerUnit: bpu,
         },
       ]
     })
@@ -614,12 +616,21 @@ export function CreateOrderForm({
                 </option>
               ))}
             </select>
-            {isSummerProduct(products.find((p) => p.id === selectedProductId)) && (
-              <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                🎁 Offre estivale : par tranche de 72 bout. (3 cartons de 24), 24 bout. sont
-                offertes automatiquement.
-              </p>
-            )}
+            {(() => {
+              const selProd = products.find((p) => p.id === selectedProductId)
+              const promo = selProd?.promotions?.[0]
+              if (!promo) return null
+              return (
+                <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  🎁 {promo.name} :{' '}
+                  {promo.type === 'BUY_X_GET_Y_FREE'
+                    ? `pour ${promo.buyQuantity} unité(s) achetée(s), ${promo.getFreeQuantity} est offerte.`
+                    : promo.type === 'PERCENTAGE'
+                      ? `remise de ${promo.discountPercent}%.`
+                      : `rabais de ${formatCHF(promo.discountCents ?? 0)}.`}
+                </p>
+              )
+            })()}
           </div>
 
           <div className="w-24">
@@ -665,11 +676,14 @@ export function CreateOrderForm({
               <tbody className="divide-y divide-border dark:divide-border-dark">
                 {lines.map((line) => {
                   const isStockWarning = line.quantity > line.stock
-                  const isSummer = isSummerProduct({
-                    bottleSize: line.bottleSize,
-                    name: line.productName,
-                  })
-                  const canApplySummerOffer = !line.isFreePromo && isSummer && line.quantity >= 72
+                  const prod = products.find((p) => p.id === line.productId)
+                  const promo = prod?.promotions?.[0]
+                  const canApplyPromo =
+                    !line.isFreePromo &&
+                    promo?.type === 'BUY_X_GET_Y_FREE' &&
+                    promo.buyQuantity &&
+                    promo.getFreeQuantity &&
+                    line.quantity >= promo.buyQuantity
 
                   return (
                     <tr key={line.id}>
@@ -679,7 +693,7 @@ export function CreateOrderForm({
                         </div>
                         {line.isFreePromo ? (
                           <span className="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
-                            🎁 Carton offert (0.00 CHF)
+                            🎁 Offre appliquée (0.00 CHF)
                           </span>
                         ) : (
                           isPro &&
@@ -689,15 +703,26 @@ export function CreateOrderForm({
                             </div>
                           )
                         )}
-                        {canApplySummerOffer && (
+                        {canApplyPromo && promo && (
                           <div className="mt-1.5">
                             <button
                               type="button"
-                              onClick={() => handleApplySummerOffer(line.id)}
+                              onClick={() => handleApplyPromo(line.id)}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
                             >
-                              🎁 Appliquer l&apos;Offre Estivale (scinder{' '}
-                              {Math.floor(line.quantity / 72) * 24} bout. offertes)
+                              🎁 Appliquer {promo.name} (scinder{' '}
+                              {Math.floor(line.quantity / promo.buyQuantity!) *
+                                promo.getFreeQuantity!}{' '}
+                              {line.bottlesPerUnit && line.bottlesPerUnit > 1
+                                ? 'carton(s)'
+                                : 'bout.'}{' '}
+                              offert
+                              {Math.floor(line.quantity / promo.buyQuantity!) *
+                                promo.getFreeQuantity! >
+                              1
+                                ? 's'
+                                : ''}
+                              )
                             </button>
                           </div>
                         )}

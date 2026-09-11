@@ -34,11 +34,13 @@ type FactureOrder = {
     id: string
     productName: string
     quantity: number
+    bottlesPerUnit?: number
     unitPriceCents: number
     listPriceCents: number
     product: {
       articleNumber: number
       bottleSize?: string | null
+      bottlesPerUnit?: number
     }
   }[]
 }
@@ -75,8 +77,37 @@ function getCartonCounts(
   quantity: number,
   bottleSize?: string | null,
   productName?: string,
-  unitPriceCents?: number
+  unitPriceCents?: number,
+  bottlesPerUnit: number = 1
 ) {
+  if (bottlesPerUnit === 24) {
+    return {
+      c24: quantity,
+      c6: null,
+      c12: null,
+      bottles: quantity * 24,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+  if (bottlesPerUnit === 12) {
+    return {
+      c24: null,
+      c6: null,
+      c12: quantity,
+      bottles: quantity * 12,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+  if (bottlesPerUnit === 6) {
+    return {
+      c24: null,
+      c6: quantity,
+      c12: null,
+      bottles: quantity * 6,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+
   // Détection d'un pack estival historique (1 pack = 3 cartons de 24 = 72 bouteilles)
   const isSummerPack =
     productName?.includes('Pack Été 3 cartons') || productName?.includes('3 cartons (2+1')
@@ -243,11 +274,13 @@ export function FactureDocument({
           </thead>
           <tbody>
             {order.items.map((item) => {
+              const bpu = item.bottlesPerUnit ?? (item.product as any)?.bottlesPerUnit ?? 1
               const cartons = getCartonCounts(
                 item.quantity,
-                item.product?.bottleSize,
+                item.product.bottleSize,
                 item.productName,
-                item.unitPriceCents
+                item.unitPriceCents,
+                bpu
               )
               const isFreeItem = item.unitPriceCents === 0
               return (

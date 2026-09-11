@@ -227,3 +227,37 @@ export function MarginIcon({ className = 'w-4 h-4' }: IconProps) {
     </svg>
   )
 }
+
+/**
+ * Offres & Promotions : Étiquette de remise avec découpe
+ */
+export function PromoIcon({ className = 'w-4 h-4' }: IconProps) {
+  return (
+    <svg className={className} {...baseProps}>
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <line x1="7" y1="7" x2="7.01" y2="7" />
+    </svg>
+  )
+}
+
+/**
+ * Pictogramme Pack / Carton de bouteilles avec compteur
+ */
+export function PackBadgeIcon({
+  count = 6,
+  className = 'w-7 h-7',
+}: IconProps & { count?: number }) {
+  return (
+    <div className={`relative inline-flex items-center justify-center ${className}`}>
+      <svg className="w-full h-full text-current" {...baseProps}>
+        <path d="M5 9h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9Z" />
+        <path d="M7 9V5a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1v4" />
+        <path d="M13.5 9V5a1 1 0 0 1 1-1H16a1 1 0 0 1 1 1v4" />
+        <line x1="5" y1="14" x2="19" y2="14" />
+      </svg>
+      <span className="absolute -top-1 -right-1 bg-primary text-text-on-primary text-[10px] font-bold font-mono px-1 rounded-full leading-tight border border-bg-card dark:border-bg-card-dark shadow-sm">
+        {count}
+      </span>
+    </div>
+  )
+}

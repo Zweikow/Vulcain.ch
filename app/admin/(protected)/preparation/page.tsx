@@ -26,14 +26,21 @@ export default async function PreparationPage() {
 
   // Liste de picking : total à sortir de la cave, agrégé toutes commandes
   // ouvertes, trié par quantité décroissante. Une liste de cave, pas de commandes.
-  const picking = new Map<string, number>()
+  const picking = new Map<string, { quantity: number; bottles: number; bottlesPerUnit: number }>()
   for (const order of orders) {
     for (const item of order.items) {
-      picking.set(item.productName, (picking.get(item.productName) ?? 0) + item.quantity)
+      const bpu = item.bottlesPerUnit || 1
+      const totalItemBottles = item.quantity * bpu
+      const prev = picking.get(item.productName) ?? { quantity: 0, bottles: 0, bottlesPerUnit: bpu }
+      picking.set(item.productName, {
+        quantity: prev.quantity + item.quantity,
+        bottles: prev.bottles + totalItemBottles,
+        bottlesPerUnit: bpu,
+      })
     }
   }
-  const pickingList = [...picking.entries()].sort((a, b) => b[1] - a[1])
-  const totalBottles = pickingList.reduce((n, [, q]) => n + q, 0)
+  const pickingList = [...picking.entries()].sort((a, b) => b[1].bottles - a[1].bottles)
+  const totalBottles = pickingList.reduce((n, [, data]) => n + data.bottles, 0)
 
   return (
     <div>
@@ -63,15 +70,24 @@ export default async function PreparationPage() {
               Total à sortir de la cave
             </p>
             <ul className="tabular flex flex-col text-sm">
-              {pickingList.map(([name, qty]) => (
+              {pickingList.map(([name, data]) => (
                 <li
                   key={name}
-                  className="flex justify-between rounded-md px-2 py-1.5 odd:bg-bg-page dark:odd:bg-bg-page-dark"
+                  className="flex justify-between items-center rounded-md px-2 py-1.5 odd:bg-bg-page dark:odd:bg-bg-page-dark"
                 >
-                  <span className="text-text-secondary dark:text-text-secondary-dark">{name}</span>
-                  <span className="font-bold text-text-primary dark:text-text-primary-dark">
-                    {qty}
+                  <span className="text-text-secondary dark:text-text-secondary-dark pr-2">
+                    {name}
                   </span>
+                  <div className="text-right shrink-0">
+                    <span className="font-bold text-text-primary dark:text-text-primary-dark">
+                      {data.bottles} bout.
+                    </span>
+                    {data.bottlesPerUnit > 1 && (
+                      <span className="text-[11px] text-text-tertiary block font-normal">
+                        ({data.quantity} cart.)
+                      </span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -116,14 +132,21 @@ export default async function PreparationPage() {
 
                 {/* Articles en pastilles lisibles à distance */}
                 <ul className="mt-3 flex flex-wrap gap-2">
-                  {order.items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="rounded-pill bg-bg-page dark:bg-bg-page-dark px-3 py-1.5 text-sm font-medium text-text-primary dark:text-text-primary-dark"
-                    >
-                      {item.quantity} × {item.productName}
-                    </li>
-                  ))}
+                  {order.items.map((item) => {
+                    const bpu = item.bottlesPerUnit || 1
+                    return (
+                      <li
+                        key={item.id}
+                        className="rounded-pill bg-bg-page dark:bg-bg-page-dark px-3 py-1.5 text-sm font-medium text-text-primary dark:text-text-primary-dark"
+                      >
+                        <span className="font-bold">{item.quantity}</span>
+                        {bpu > 1
+                          ? ` carton${item.quantity > 1 ? 's' : ''} (${item.quantity * bpu} bout.)`
+                          : ' ×'}{' '}
+                        {item.productName}
+                      </li>
+                    )
+                  })}
                 </ul>
 
                 {order.message && (

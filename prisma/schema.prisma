@@ -99,6 +99,8 @@ model Product {
   purchasePriceCents Int @default(0) // prix d'achat payé au producteur
   stock          Int             @default(0)
   stockSeuil     Int             @default(5)
+  bottlesPerUnit Int             @default(1) // nombre de bouteilles vendues par unité (+1 boutique)
+  compareAtPriceCents Int?       // prix d'origine barré (ex: pour afficher un rabais)
   active         Boolean         @default(true) // visibilité boutique
   archived       Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
   imageUrl       String?
@@ -113,6 +115,7 @@ model Product {
   producer       Producer?       @relation(fields: [producerId], references: [id])
   producerId     String?
   orderItems     OrderItem[]
+  promotions     Promotion[]
   stockMovements StockMovement[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -221,6 +224,7 @@ model OrderItem {
   purchasePriceCents Int @default(0) // prix d'achat figé au moment de la commande
   unitPriceCents Int // prix appliqué (public ou pro)
   quantity       Int
+  bottlesPerUnit Int     @default(1) // fige le nombre de bouteilles par unité vendue
 
   @@index([orderId])
   @@index([productId])
@@ -293,4 +297,32 @@ model DocumentCounter {
   value  Int    @default(0)
 
   @@id([series, year])
+}
+
+enum PromoType {
+  BUY_X_GET_Y_FREE
+  PERCENTAGE
+  FIXED_DISCOUNT
+}
+
+model Promotion {
+  id              String    @id @default(cuid())
+  name            String    // Ex: "Offre Estivale", "Promotion Découverte"
+  badgeText       String?   // Ex: "-19%", "3+1 OFFERT"
+  description     String?
+  type            PromoType @default(BUY_X_GET_Y_FREE)
+  buyQuantity     Int?      @default(3)
+  getFreeQuantity Int?      @default(1)
+  discountPercent Int?
+  discountCents   Int?
+  active          Boolean   @default(true)
+  startDate       DateTime?
+  endDate         DateTime?
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([active])
 }

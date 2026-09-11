@@ -1,10 +1,24 @@
+export interface ProductPromotion {
+  id: string
+  name: string
+  badgeText?: string | null
+  description?: string | null
+  type: 'BUY_X_GET_Y_FREE' | 'PERCENTAGE' | 'FIXED_DISCOUNT'
+  buyQuantity?: number | null
+  getFreeQuantity?: number | null
+  discountPercent?: number | null
+  discountCents?: number | null
+}
+
 export interface Product {
   id: string
   name: string
   category: 'Cidre' | 'Eau-de-vie' | 'Liqueur' | 'Cuisine'
   year?: number
   priceCents: number // centimes entiers — jamais de flottant pour l'argent
+  compareAtPriceCents?: number | null // prix d'origine barré
   stock: number
+  bottlesPerUnit: number // nombre de bouteilles par unité (+1)
   description: string
   image?: string
   active: boolean
@@ -17,6 +31,7 @@ export interface Product {
   // Badges calculés côté serveur — « Nouveau » ou « Derniers exemplaires », jamais les deux
   isNew?: boolean
   isLastUnits?: boolean
+  activePromotion?: ProductPromotion | null
 }
 
 export interface CartItem {

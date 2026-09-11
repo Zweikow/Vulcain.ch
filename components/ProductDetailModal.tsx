@@ -17,7 +17,7 @@ export default function ProductDetailModal({
   quantity,
   onAdd,
   onRemove,
-  onSetQuantity,
+  onSetQuantity: _onSetQuantity,
   onClose,
 }: ProductDetailModalProps) {
   const isOutOfStock = product.stock === 0
@@ -103,12 +103,69 @@ export default function ProductDetailModal({
               <OriginBadge origin={product.origin} showLabel className="w-4 h-4" />
               <span>·</span>
               <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
+              {product.bottlesPerUnit > 1 && (
+                <>
+                  <span>·</span>
+                  <span className="font-semibold text-text-primary dark:text-text-primary-dark">
+                    Carton de {product.bottlesPerUnit} bouteilles
+                  </span>
+                </>
+              )}
             </div>
             <span>{product.category}</span>
           </div>
 
-          <div className="font-semibold text-2xl text-primary mb-6">
-            {formatCHF(product.priceCents)}
+          {/* Prix & Promotion */}
+          <div className="mb-6 flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-3xl text-primary tabular">
+                {formatCHF(
+                  product.bottlesPerUnit > 1
+                    ? Math.round(product.priceCents / product.bottlesPerUnit)
+                    : product.priceCents
+                )}
+              </span>
+              <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
+                / bouteille
+              </span>
+            </div>
+
+            {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents && (
+              <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark tabular">
+                au lieu de{' '}
+                <span className="line-through">
+                  {formatCHF(
+                    product.bottlesPerUnit > 1
+                      ? Math.round(product.compareAtPriceCents / product.bottlesPerUnit)
+                      : product.compareAtPriceCents
+                  )}
+                </span>{' '}
+                {product.bottlesPerUnit > 1 && (
+                  <span>(soit {formatCHF(product.compareAtPriceCents)} le carton)</span>
+                )}
+              </div>
+            )}
+
+            {product.bottlesPerUnit > 1 && (
+              <div className="text-sm font-semibold text-text-primary dark:text-text-primary-dark mt-1 tabular">
+                Total : {formatCHF(product.priceCents)} / carton de {product.bottlesPerUnit}{' '}
+                bouteilles
+              </div>
+            )}
+
+            {product.activePromotion && (
+              <div className="mt-2 p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 text-xs text-text-primary dark:text-text-primary-dark flex items-center gap-2">
+                <span className="text-sm">🎁</span>
+                <div>
+                  <span className="font-bold">{product.activePromotion.name}</span>
+                  {product.activePromotion.description && (
+                    <p className="text-[11px] text-text-secondary dark:text-text-secondary-dark">
+                      {product.activePromotion.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Add to cart / Quantity */}
@@ -128,19 +185,9 @@ export default function ProductDetailModal({
                     >
                       −
                     </button>
-                    <input
-                      type="number"
-                      min="0"
-                      max={product.stock}
-                      value={quantity === 0 ? '' : quantity}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0
-                        onSetQuantity(Math.min(val, product.stock))
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="0"
-                      className="w-12 h-full text-center text-base font-semibold text-text-primary dark:text-text-primary-dark bg-transparent border-none p-0 focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none tabular-nums"
-                    />
+                    <span className="px-3 text-sm font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[70px] text-center">
+                      {quantity} {product.bottlesPerUnit > 1 ? 'carton(s)' : 'bouteille(s)'}
+                    </span>
                     <button
                       onClick={onAdd}
                       disabled={quantity >= product.stock}

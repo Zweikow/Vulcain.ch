@@ -20,6 +20,7 @@ import {
   ParametresIcon,
   UserIcon,
   LogoutIcon,
+  PromoIcon,
 } from '@/components/admin/AdminIcons'
 
 const NAV_LINKS = [
@@ -57,6 +58,13 @@ const NAV_LINKS = [
     icon: ProduitsIcon,
     exact: false,
     capability: () => true,
+  },
+  {
+    href: '/admin/promotions',
+    label: 'Offres & Promos',
+    icon: PromoIcon,
+    exact: false,
+    capability: can.manageCatalogue,
   },
   {
     href: '/admin/categories',

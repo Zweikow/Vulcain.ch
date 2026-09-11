@@ -20,7 +20,11 @@ export default async function NouvelleCommandePage() {
         priceCents: true,
         stock: true,
         bottleSize: true,
+        bottlesPerUnit: true,
         category: { select: { name: true } },
+        promotions: {
+          where: { active: true },
+        },
       },
     }),
     prisma.customer.findMany({
