@@ -40,8 +40,16 @@
       "matchUpdateTypes": ["minor", "patch"]
     },
     {
-      "description": "Mises à jour majeures : jamais groupées, toujours isolées pour revue manuelle",
+      "description": "Mises à jour majeures : jamais groupées, sauf pour les couples inséparables (React, Prisma)",
       "matchUpdateTypes": ["major"],
+      "excludePackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "prisma",
+        "@prisma/client"
+      ],
       "groupName": null,
       "schedule": ["before 7am on monday"]
     },
