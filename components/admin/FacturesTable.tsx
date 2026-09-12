@@ -11,6 +11,7 @@ import {
   sendPaymentReminderAction,
 } from '@/app/admin/(protected)/commandes/paiements/actions'
 import { sendInvoiceEmailAction } from '@/app/admin/(protected)/commandes/[id]/actions'
+import { FileTextIcon, SearchIcon, EyeIcon, MailIcon } from '@/components/admin/AdminIcons'
 
 export interface FactureItem {
   id: string
@@ -338,7 +339,7 @@ export function FacturesTable({
               rel="noopener noreferrer"
               className="btn-secondary text-xs sm:text-sm py-1.5 px-3.5 flex items-center gap-1.5 font-semibold bg-white text-primary hover:bg-slate-100 dark:bg-secondary dark:text-primary dark:hover:brightness-110 rounded-lg shadow-sm"
             >
-              <span>📄</span>
+              <FileTextIcon className="w-4 h-4" />
               <span>Exporter la sélection en un seul PDF</span>
             </a>
           </div>
@@ -438,7 +439,7 @@ export function FacturesTable({
               placeholder="N° commande, facture, client..."
               className="input text-sm w-full pl-9 pr-3 py-1.5"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary">🔍</span>
+            <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
           </div>
           <button type="submit" className="btn-secondary text-sm py-1.5 px-3 shrink-0">
             Filtrer
@@ -450,7 +451,7 @@ export function FacturesTable({
       <div className="card overflow-hidden">
         {orders.length === 0 ? (
           <div className="p-12 text-center text-text-secondary dark:text-text-secondary-dark flex flex-col items-center gap-2">
-            <span className="text-3xl">📑</span>
+            <FileTextIcon className="w-10 h-10 text-text-tertiary mb-1" />
             <p className="font-semibold text-base">Aucune facture ne correspond à ces critères.</p>
             <p className="text-xs text-text-tertiary">
               Modifiez votre recherche ou sélectionnez un autre statut.
@@ -601,7 +602,7 @@ export function FacturesTable({
                             className="p-1.5 rounded hover:bg-bg-page dark:hover:bg-bg-page-dark text-text-secondary hover:text-text-primary transition-colors"
                             title="Voir et imprimer la facture A4"
                           >
-                            👁️
+                            <EyeIcon className="w-4 h-4" />
                           </Link>
 
                           {/* Renvoyer par email */}
@@ -611,7 +612,7 @@ export function FacturesTable({
                             className="p-1.5 rounded hover:bg-bg-page dark:hover:bg-bg-page-dark text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50"
                             title="Renvoyer la facture officielle par email au client"
                           >
-                            ✉️
+                            <MailIcon className="w-4 h-4" />
                           </button>
 
                           {/* Action de paiement */}

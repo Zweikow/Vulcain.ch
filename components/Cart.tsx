@@ -3,6 +3,7 @@
 import { CartItem } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
+import { InfoIcon } from '@/components/Icons'
 
 interface CartProps {
   items: CartItem[]
@@ -67,7 +68,7 @@ export default function Cart({ items, settings }: CartProps) {
         <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
           Votre commande
         </h2>
-        <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">ℹ️</span>
+        <InfoIcon className="w-4 h-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
       </div>
 
       {!hasItems ? (

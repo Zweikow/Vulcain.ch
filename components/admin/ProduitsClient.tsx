@@ -9,6 +9,7 @@ import {
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 import { OriginBadge } from '@/components/OriginBadge'
+import { AlertCircleIcon, LeafIcon, SproutIcon } from '@/components/admin/AdminIcons'
 
 type Row = AdminProduct & {
   categoryName: string
@@ -123,7 +124,7 @@ export function ProduitsClient({
 
       {stockBasCount > 0 && (
         <div className="flex items-center gap-3 bg-[#FFF8E1] dark:bg-[#3d2a0a] border border-[#FFB300] dark:border-[#FF9800]/40 rounded-lg px-4 py-3 mb-6 text-sm text-text-warning dark:text-[#FF9800]">
-          <span>⚠️</span>
+          <AlertCircleIcon className="w-5 h-5 shrink-0 text-[#FF9800]" />
           <span>
             <span className="font-semibold">
               {stockBasCount} produit{stockBasCount > 1 ? 's' : ''}
@@ -195,13 +196,19 @@ export function ProduitsClient({
                           </span>
                         )}
                         {p.isBio && (
-                          <span className="ml-2" title="Certifié Bio">
-                            🌱
+                          <span
+                            className="ml-2 inline-flex items-center text-emerald-600"
+                            title="Certifié Bio"
+                          >
+                            <LeafIcon className="w-3.5 h-3.5" />
                           </span>
                         )}
                         {p.isVegan && (
-                          <span className="ml-1" title="Certifié Vegan">
-                            🌿
+                          <span
+                            className="ml-1 inline-flex items-center text-emerald-500"
+                            title="Certifié Vegan"
+                          >
+                            <SproutIcon className="w-3.5 h-3.5" />
                           </span>
                         )}
                         {p.bottlesPerUnit > 1 && (

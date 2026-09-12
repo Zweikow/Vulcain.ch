@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { ClientType, OrderStatus } from '@prisma/client'
 import { formatInvoiceAmount } from '@/lib/money'
 import { SwissQRBill } from '@/components/admin/SwissQRBill'
+import { CheckIcon } from '@/components/admin/AdminIcons'
 
 // Le document est du papier : couleurs fixes, indépendantes du thème sombre.
 
@@ -254,7 +255,8 @@ export function FactureDocument({
           )}
           {order.paidAt && (
             <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
-              ✓ Facture acquittée {order.paymentMethod ? `(${order.paymentMethod})` : ''}
+              <CheckIcon className="w-3 h-3 text-green-700 inline" /> Facture acquittée{' '}
+              {order.paymentMethod ? `(${order.paymentMethod})` : ''}
             </span>
           )}
         </div>
@@ -386,9 +388,12 @@ export function FactureDocument({
             <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
             <p>{settings.bankName}</p>
             {order.paidAt ? (
-              <p className="mt-1 font-semibold text-green-700">
-                ✓ Facture acquittée le {longDate.format(new Date(order.paidAt))}
-                {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+              <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
+                <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
+                <span>
+                  Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                  {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+                </span>
               </p>
             ) : (
               <p className="mt-1 font-medium">

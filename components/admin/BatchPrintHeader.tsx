@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { formatCHF } from '@/lib/money'
+import { PrinterIcon, SparklesIcon } from '@/components/admin/AdminIcons'
 
 interface BatchPrintHeaderProps {
   count: number
@@ -29,12 +30,15 @@ export function BatchPrintHeader({ count, totalAmountCents }: BatchPrintHeaderPr
           <h1 className="text-lg font-bold font-display text-white dark:text-text-primary-dark">
             Export & Impression Groupée A4
           </h1>
-          <p className="text-xs text-white/70 dark:text-text-secondary-dark">
-            💡 Astuce : Dans la fenêtre d&apos;impression, choisissez la destination{' '}
-            <strong className="text-white font-semibold underline">
-              « Enregistrer au format PDF »
-            </strong>{' '}
-            pour télécharger un fichier unique regroupant toutes les factures.
+          <p className="text-xs text-white/70 dark:text-text-secondary-dark flex items-center gap-1.5 mt-0.5">
+            <SparklesIcon className="w-3.5 h-3.5 text-secondary shrink-0" />
+            <span>
+              Astuce : Dans la fenêtre d&apos;impression, choisissez la destination{' '}
+              <strong className="text-white font-semibold underline">
+                « Enregistrer au format PDF »
+              </strong>{' '}
+              pour télécharger un fichier unique regroupant toutes les factures.
+            </span>
           </p>
         </div>
 
@@ -42,7 +46,7 @@ export function BatchPrintHeader({ count, totalAmountCents }: BatchPrintHeaderPr
           onClick={() => window.print()}
           className="btn-secondary py-2.5 px-5 text-sm font-bold bg-white text-primary hover:bg-slate-100 dark:bg-secondary dark:text-primary dark:hover:brightness-110 rounded-lg shadow shrink-0 flex items-center gap-2"
         >
-          <span className="text-base">🖨️</span>
+          <PrinterIcon className="w-4 h-4 text-primary" />
           <span>Imprimer / Télécharger en un seul PDF</span>
         </button>
       </div>

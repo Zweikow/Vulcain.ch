@@ -8,7 +8,7 @@ import AdminPromoModal, {
 } from '@/components/admin/AdminPromoModal'
 import { togglePromotionActive, deletePromotion } from '@/app/admin/(protected)/promotions/actions'
 import { formatCHF } from '@/lib/money'
-import { PromoIcon } from '@/components/admin/AdminIcons'
+import { PromoIcon, GiftIcon, CoinsIcon } from '@/components/admin/AdminIcons'
 
 export type PromotionRow = AdminPromotion & {
   productName: string
@@ -159,18 +159,23 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                   {/* Règle */}
                   <td className="px-4 py-3">
                     {promo.type === 'BUY_X_GET_Y_FREE' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-primary/15 text-text-primary dark:text-text-primary-dark">
-                        🎁 {promo.buyQuantity} achetés = {promo.getFreeQuantity} offert
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-semibold bg-primary/15 text-text-primary dark:text-text-primary-dark">
+                        <GiftIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span>
+                          {promo.buyQuantity} achetés = {promo.getFreeQuantity} offert
+                        </span>
                       </span>
                     )}
                     {promo.type === 'PERCENTAGE' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-accent-rose/30 dark:bg-accent-rose-dark/30 text-accent-rose-dark dark:text-accent-rose">
-                        🏷️ −{promo.discountPercent}%
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-semibold bg-accent-rose/30 dark:bg-accent-rose-dark/30 text-accent-rose-dark dark:text-accent-rose">
+                        <PromoIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span>−{promo.discountPercent}%</span>
                       </span>
                     )}
                     {promo.type === 'FIXED_DISCOUNT' && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-secondary/15 text-secondary dark:text-text-secondary-dark">
-                        💰 −{formatCHF(promo.discountCents ?? 0)}
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-semibold bg-secondary/15 text-secondary dark:text-text-secondary-dark">
+                        <CoinsIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span>−{formatCHF(promo.discountCents ?? 0)}</span>
                       </span>
                     )}
                   </td>

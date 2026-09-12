@@ -5,6 +5,7 @@ import { CustomerInfo, CartItem } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
 import { shippingCentsFor } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
+import { UserIcon } from '@/components/Icons'
 
 interface OrderFormProps {
   items: CartItem[]
@@ -136,7 +137,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
   return (
     <form onSubmit={handleSubmit} className="card p-5 flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <span className="text-text-secondary dark:text-text-secondary-dark">👤</span>
+        <UserIcon className="w-5 h-5 text-text-secondary dark:text-text-secondary-dark" />
         <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
           Vos coordonnées
         </h2>

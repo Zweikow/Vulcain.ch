@@ -8,6 +8,7 @@ import Cart from '@/components/Cart'
 import OrderForm from '@/components/OrderForm'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import ProductDetailModal from '@/components/ProductDetailModal'
+import { ProduitsIcon, BottleIcon } from '@/components/Icons'
 import { CartItem, CustomerInfo, Product } from '@/types'
 import { PublicSettings } from '@/lib/settings'
 
@@ -119,7 +120,11 @@ export default function BoutiqueClient({
                 <section key={category}>
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-primary">
-                      {category.toLowerCase().includes('cidre') ? '🍎' : '🍶'}
+                      {category.toLowerCase().includes('cidre') ? (
+                        <ProduitsIcon className="w-5 h-5" />
+                      ) : (
+                        <BottleIcon className="w-5 h-5" />
+                      )}
                     </span>
                     <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
                       {category}

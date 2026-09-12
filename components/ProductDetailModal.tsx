@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
+import { CloseIcon, LeafIcon, SproutIcon, GiftIcon } from '@/components/Icons'
 
 interface ProductDetailModalProps {
   product: Product
@@ -51,7 +52,7 @@ export default function ProductDetailModal({
           className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-text-primary dark:text-text-primary-dark backdrop-blur-sm"
           aria-label="Fermer"
         >
-          ✕
+          <CloseIcon className="w-4 h-4" />
         </button>
 
         {/* Left side: Image */}
@@ -98,13 +99,13 @@ export default function ProductDetailModal({
               </span>
             )}
             {product.isBio && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <span>🌱</span> Bio
+              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
+                <LeafIcon className="w-3.5 h-3.5 text-emerald-600" /> Bio
               </span>
             )}
             {product.isVegan && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <span>🌿</span> Vegan
+              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
+                <SproutIcon className="w-3.5 h-3.5 text-emerald-500" /> Vegan
               </span>
             )}
           </div>
@@ -169,7 +170,7 @@ export default function ProductDetailModal({
 
             {product.activePromotion && (
               <div className="mt-2 p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 text-xs text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-                <span className="text-sm">🎁</span>
+                <GiftIcon className="w-4 h-4 text-primary shrink-0" />
                 <div>
                   <span className="font-bold">{product.activePromotion.name}</span>
                   {product.activePromotion.description && (

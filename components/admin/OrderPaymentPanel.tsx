@@ -9,6 +9,7 @@ import {
 } from '@/app/admin/(protected)/commandes/paiements/actions'
 import { getInvoicePaymentStatus, formatCHF } from '@/lib/money'
 import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
+import { CoinsIcon, CheckIcon, MailIcon } from '@/components/admin/AdminIcons'
 
 interface OrderPaymentPanelProps {
   orderId: string
@@ -128,7 +129,7 @@ export function OrderPaymentPanel({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border dark:border-border-dark pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-lg">💰</span>
+            <CoinsIcon className="w-5 h-5 text-secondary dark:text-secondary-dark" />
             <h2 className="font-medium text-text-primary dark:text-text-primary-dark">
               Suivi du paiement &amp; Facturation
             </h2>
@@ -167,9 +168,12 @@ export function OrderPaymentPanel({
         <div className="text-xs text-text-secondary dark:text-text-secondary-dark space-y-1">
           {status.isPaid ? (
             <div>
-              <p className="font-medium text-emerald-700 dark:text-emerald-400">
-                ✓ Règlement reçu le {status.paidAt?.toLocaleDateString('fr-CH')} via{' '}
-                <strong>{status.paymentMethod || 'Virement bancaire'}</strong>
+              <p className="font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                <CheckIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span>
+                  Règlement reçu le {status.paidAt?.toLocaleDateString('fr-CH')} via{' '}
+                  <strong>{status.paymentMethod || 'Virement bancaire'}</strong>
+                </span>
               </p>
               <p className="text-text-tertiary dark:text-text-tertiary-dark mt-0.5">
                 Facture n° {invoiceNumber || orderNumero} acquittée.
@@ -215,7 +219,7 @@ export function OrderPaymentPanel({
                 disabled={isPending}
                 className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
               >
-                <span>✓</span>
+                <CheckIcon className="w-3.5 h-3.5 text-current" />
                 <span>Encaisser / Marquer payée</span>
               </button>
 
@@ -224,7 +228,7 @@ export function OrderPaymentPanel({
                 disabled={isPending}
                 className="text-xs px-3 py-1.5 rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 hover:bg-amber-100 flex items-center gap-1.5 transition-colors"
               >
-                <span>✉️</span>
+                <MailIcon className="w-3.5 h-3.5 text-current" />
                 <span>
                   {reminderCount === 0
                     ? 'Envoyer un rappel amical'

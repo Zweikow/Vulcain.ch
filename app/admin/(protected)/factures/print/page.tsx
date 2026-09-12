@@ -6,6 +6,7 @@ import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { FactureDocument } from '@/components/admin/FactureDocument'
 import { BatchPrintHeader } from '@/components/admin/BatchPrintHeader'
+import { FileTextIcon } from '@/components/admin/AdminIcons'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +29,7 @@ export default async function FacturesBatchPrintPage({
   if (idList.length === 0) {
     return (
       <div className="p-12 max-w-xl mx-auto text-center flex flex-col items-center gap-4">
-        <span className="text-4xl">📄</span>
+        <FileTextIcon className="w-12 h-12 text-text-tertiary" />
         <h1 className="text-xl font-bold font-display text-text-primary dark:text-text-primary-dark">
           Aucune facture sélectionnée
         </h1>

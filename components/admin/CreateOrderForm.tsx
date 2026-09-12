@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation'
 import { formatCHF, proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
 import { createManualOrder } from '@/app/admin/(protected)/commandes/nouvelle/actions'
 import { OrderStatus } from '@prisma/client'
+import {
+  AlertCircleIcon,
+  UserIcon,
+  BottleIcon,
+  GiftIcon,
+  CloseIcon,
+  TruckIcon,
+  MailIcon,
+  CheckIcon,
+} from '@/components/admin/AdminIcons'
 
 interface ProductOption {
   id: string
@@ -407,8 +417,9 @@ export function CreateOrderForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {errorMessage && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-600 dark:text-red-400">
-          ⚠️ {errorMessage}
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+          <AlertCircleIcon className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
 
@@ -416,8 +427,8 @@ export function CreateOrderForm({
       <section className="card p-6">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark">
-              👤 Coordonnées du client
+            <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark flex items-center gap-2">
+              <UserIcon className="w-5 h-5 text-primary" /> Coordonnées du client
             </h2>
             <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
               Renseignez les coordonnées ou chargez un client existant
@@ -465,7 +476,7 @@ export function CreateOrderForm({
                 <option key={c.id} value={c.id}>
                   {c.customerNumber ? `N° ${c.customerNumber} · ` : ''}
                   {c.lastName.toUpperCase()} {c.firstName} ({c.city || 'Suisse'}) — {c.email}{' '}
-                  {c.isPro ? `★ PRO (${c.proRatePercent ?? settings.proRatePercent}%)` : ''}
+                  {c.isPro ? `[PRO -${c.proRatePercent ?? settings.proRatePercent}%]` : ''}
                 </option>
               ))}
             </select>
@@ -592,8 +603,8 @@ export function CreateOrderForm({
 
       {/* 2. SÉLECTION DES ARTICLES */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-1">
-          🍾 Articles de la commande
+        <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-1 flex items-center gap-2">
+          <BottleIcon className="w-5 h-5 text-primary" /> Articles de la commande
         </h2>
         <p className="text-xs text-text-secondary dark:text-text-secondary-dark mb-4">
           Ajoutez les bouteilles et spécifiez les quantités
@@ -621,13 +632,16 @@ export function CreateOrderForm({
               const promo = selProd?.promotions?.[0]
               if (!promo) return null
               return (
-                <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  🎁 {promo.name} :{' '}
-                  {promo.type === 'BUY_X_GET_Y_FREE'
-                    ? `pour ${promo.buyQuantity} unité(s) achetée(s), ${promo.getFreeQuantity} est offerte.`
-                    : promo.type === 'PERCENTAGE'
-                      ? `remise de ${promo.discountPercent}%.`
-                      : `rabais de ${formatCHF(promo.discountCents ?? 0)}.`}
+                <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+                  <GiftIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    {promo.name} :{' '}
+                    {promo.type === 'BUY_X_GET_Y_FREE'
+                      ? `pour ${promo.buyQuantity} unité(s) achetée(s), ${promo.getFreeQuantity} est offerte.`
+                      : promo.type === 'PERCENTAGE'
+                        ? `remise de ${promo.discountPercent}%.`
+                        : `rabais de ${formatCHF(promo.discountCents ?? 0)}.`}
+                  </span>
                 </p>
               )
             })()}
@@ -692,8 +706,8 @@ export function CreateOrderForm({
                           {line.productName}
                         </div>
                         {line.isFreePromo ? (
-                          <span className="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
-                            🎁 Offre appliquée (0.00 CHF)
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
+                            <GiftIcon className="w-3 h-3 shrink-0" /> Offre appliquée (0.00 CHF)
                           </span>
                         ) : (
                           isPro &&
@@ -708,21 +722,24 @@ export function CreateOrderForm({
                             <button
                               type="button"
                               onClick={() => handleApplyPromo(line.id)}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+                              className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
                             >
-                              🎁 Appliquer {promo.name} (scinder{' '}
-                              {Math.floor(line.quantity / promo.buyQuantity!) *
-                                promo.getFreeQuantity!}{' '}
-                              {line.bottlesPerUnit && line.bottlesPerUnit > 1
-                                ? 'carton(s)'
-                                : 'bout.'}{' '}
-                              offert
-                              {Math.floor(line.quantity / promo.buyQuantity!) *
-                                promo.getFreeQuantity! >
-                              1
-                                ? 's'
-                                : ''}
-                              )
+                              <GiftIcon className="w-3.5 h-3.5 shrink-0" />
+                              <span>
+                                Appliquer {promo.name} (scinder{' '}
+                                {Math.floor(line.quantity / promo.buyQuantity!) *
+                                  promo.getFreeQuantity!}{' '}
+                                {line.bottlesPerUnit && line.bottlesPerUnit > 1
+                                  ? 'carton(s)'
+                                  : 'bout.'}{' '}
+                                offert
+                                {Math.floor(line.quantity / promo.buyQuantity!) *
+                                  promo.getFreeQuantity! >
+                                1
+                                  ? 's'
+                                  : ''}
+                                )
+                              </span>
                             </button>
                           </div>
                         )}
@@ -770,8 +787,9 @@ export function CreateOrderForm({
                           onClick={() => handleRemoveLine(line.id)}
                           className="text-text-tertiary hover:text-red-500 transition-colors p-1"
                           title="Supprimer la ligne"
+                          aria-label="Supprimer la ligne"
                         >
-                          ✕
+                          <CloseIcon className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
@@ -784,7 +802,7 @@ export function CreateOrderForm({
 
         {hasStockWarning && (
           <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
-            <span className="text-lg">⚠️</span>
+            <AlertCircleIcon className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-800 dark:text-amber-300">
               <p className="font-semibold">Stock physique insuffisant pour certains articles.</p>
               <label className="flex items-center gap-2 mt-1.5 cursor-pointer font-medium">
@@ -803,8 +821,8 @@ export function CreateOrderForm({
 
       {/* 3. EXPÉDITION & OPTIONS */}
       <section className="card p-6">
-        <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-4">
-          🚚 Livraison & Finalisation
+        <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-4 flex items-center gap-2">
+          <TruckIcon className="w-5 h-5 text-primary" /> Livraison & Finalisation
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -934,8 +952,9 @@ export function CreateOrderForm({
               onChange={(e) => setNotifyCustomer(e.target.checked)}
               className="rounded text-primary focus:ring-primary"
             />
-            <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
-              ✉️ Envoyer un email de confirmation de commande au client
+            <span className="text-sm text-text-secondary dark:text-text-secondary-dark flex items-center gap-2">
+              <MailIcon className="w-4 h-4 text-primary" /> Envoyer un email de confirmation de
+              commande au client
             </span>
           </label>
         </div>
@@ -977,9 +996,16 @@ export function CreateOrderForm({
             <button
               type="submit"
               disabled={isPending || lines.length === 0}
-              className="btn-primary px-8 py-3 text-sm font-semibold disabled:opacity-50"
+              className="btn-primary px-8 py-3 text-sm font-semibold disabled:opacity-50 inline-flex items-center gap-2"
             >
-              {isPending ? 'Enregistrement en cours…' : '✓ Créer la commande'}
+              {isPending ? (
+                'Enregistrement en cours…'
+              ) : (
+                <>
+                  <CheckIcon className="w-4 h-4 text-current" />
+                  <span>Créer la commande</span>
+                </>
+              )}
             </button>
           </div>
         </div>

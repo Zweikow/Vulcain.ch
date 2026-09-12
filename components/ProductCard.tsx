@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
-import { PackBadgeIcon } from '@/components/admin/AdminIcons'
+import { PackBadgeIcon, SparklesIcon, GiftIcon } from '@/components/admin/AdminIcons'
 
 interface ProductCardProps {
   product: Product
@@ -231,14 +231,18 @@ export default function ProductCard({
           {promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity && (
             <>
               {quantity >= promo.buyQuantity ? (
-                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                  🎉 {Math.floor(quantity / promo.buyQuantity) * promo.getFreeQuantity}{' '}
-                  {isCarton ? 'carton(s)' : 'bouteille(s)'} offert(s) !
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <SparklesIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    {Math.floor(quantity / promo.buyQuantity) * promo.getFreeQuantity}{' '}
+                    {isCarton ? 'carton(s)' : 'bouteille(s)'} offert(s) !
+                  </span>
                 </span>
               ) : (
                 quantity === promo.buyQuantity - 1 && (
-                  <span className="text-amber-700 dark:text-amber-400 font-medium">
-                    🎁 +1 {isCarton ? 'carton' : 'bouteille'} = le suivant est offert !
+                  <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
+                    <GiftIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span>+1 {isCarton ? 'carton' : 'bouteille'} = le suivant est offert !</span>
                   </span>
                 )
               )}

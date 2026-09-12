@@ -9,6 +9,7 @@ import {
   PromoInput,
 } from '@/app/admin/(protected)/promotions/actions'
 import { formatCHF, chfInputToCents } from '@/lib/money'
+import { CloseIcon } from '@/components/admin/AdminIcons'
 
 export type PromoProductItem = {
   id: string
@@ -143,8 +144,9 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-text-tertiary hover:text-text-primary dark:hover:text-text-primary-dark transition-colors"
+            aria-label="Fermer"
           >
-            ✕
+            <CloseIcon className="w-4 h-4" />
           </button>
         </div>
 

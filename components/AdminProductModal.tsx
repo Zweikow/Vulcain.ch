@@ -11,6 +11,7 @@ import {
 } from '@/app/admin/(protected)/produits/actions'
 import { chfInputToCents, formatCHF, proUnitPriceCents } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
+import { CloseIcon, LeafIcon, SproutIcon } from '@/components/admin/AdminIcons'
 
 export type AdminProduct = {
   id: string
@@ -204,10 +205,10 @@ export default function AdminProductModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-primary dark:hover:text-text-primary-dark transition-colors"
+            className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-primary dark:hover:text-text-primary-dark transition-colors p-1"
             aria-label="Fermer"
           >
-            ✕
+            <CloseIcon className="w-4 h-4" />
           </button>
         </div>
 
@@ -614,7 +615,7 @@ export default function AdminProductModal({
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
                   <span>Certifié Bio</span>
-                  <span className="text-[10px] opacity-70">🌱</span>
+                  <LeafIcon className="w-3.5 h-3.5 text-emerald-600" />
                 </label>
                 <button
                   type="button"
@@ -635,7 +636,7 @@ export default function AdminProductModal({
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
                   <span>Certifié Vegan</span>
-                  <span className="text-[10px] opacity-70">🌿</span>
+                  <SproutIcon className="w-3.5 h-3.5 text-emerald-500" />
                 </label>
                 <button
                   type="button"

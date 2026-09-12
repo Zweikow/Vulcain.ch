@@ -6,6 +6,8 @@ import { ClientType } from '@prisma/client'
 import { toggleClientType } from '@/app/admin/(protected)/commandes/[id]/facture/actions'
 import { sendInvoiceEmailAction } from '@/app/admin/(protected)/commandes/[id]/actions'
 
+import { MailIcon, CheckIcon, CloseIcon } from '@/components/admin/AdminIcons'
+
 interface FactureControlsProps {
   orderId: string
   clientType: ClientType
@@ -16,7 +18,10 @@ export function FactureControls({ orderId, clientType, proRatePercent }: Facture
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [sendingMail, setSendingMail] = useState(false)
-  const [mailStatus, setMailStatus] = useState<string | null>(null)
+  const [mailFeedback, setMailFeedback] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
   const isPro = clientType === ClientType.PRO
 
   const handleToggle = () => {
@@ -28,13 +33,13 @@ export function FactureControls({ orderId, clientType, proRatePercent }: Facture
 
   const handleSendInvoiceEmail = async () => {
     setSendingMail(true)
-    setMailStatus(null)
+    setMailFeedback(null)
     try {
       const res = await sendInvoiceEmailAction(orderId)
       if (res.success) {
-        setMailStatus('✓ Facture envoyée avec succès par email !')
+        setMailFeedback({ type: 'success', message: 'Facture envoyée avec succès par email !' })
       } else {
-        setMailStatus(`✕ Erreur : ${res.error || "Échec de l'envoi"}`)
+        setMailFeedback({ type: 'error', message: res.error || "Échec de l'envoi" })
       }
     } finally {
       setSendingMail(false)
@@ -75,19 +80,24 @@ export function FactureControls({ orderId, clientType, proRatePercent }: Facture
           disabled={sendingMail}
           className="btn-primary text-sm flex items-center justify-center gap-2 py-2"
         >
-          <span>✉️</span>
-          {sendingMail ? 'Envoi en cours…' : 'Envoyer la facture par email'}
+          <MailIcon className="w-4 h-4 text-current" />
+          <span>{sendingMail ? 'Envoi en cours…' : 'Envoyer la facture par email'}</span>
         </button>
-        {mailStatus && (
-          <p
-            className={`text-xs font-medium ${
-              mailStatus.startsWith('✓')
+        {mailFeedback && (
+          <div
+            className={`text-xs font-medium flex items-center gap-1.5 ${
+              mailFeedback.type === 'success'
                 ? 'text-green-600 dark:text-green-400'
                 : 'text-red-600 dark:text-red-400'
             }`}
           >
-            {mailStatus}
-          </p>
+            {mailFeedback.type === 'success' ? (
+              <CheckIcon className="w-3.5 h-3.5 shrink-0" />
+            ) : (
+              <CloseIcon className="w-3.5 h-3.5 shrink-0" />
+            )}
+            <span>{mailFeedback.message}</span>
+          </div>
         )}
       </div>
     </div>
