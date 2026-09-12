@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const rawPeriode = searchParams.get('periode')
   const periode: Periode = (
-    ['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'
+    ['1M', '4M', '6M', 'YTD', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'
   ) as Periode
 
   const since = periodStart(periode)

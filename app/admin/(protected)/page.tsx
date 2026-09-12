@@ -10,19 +10,36 @@ import {
   PreparationIcon,
   BottleIcon,
   CommandesIcon,
+  FacturesIcon,
+  CoinsIcon,
+  TruckIcon,
+  AlertCircleIcon,
+  CheckIcon,
 } from '@/components/admin/AdminIcons'
 
 const EMPTY: DashboardData = {
   revenueCents: 0,
+  previousRevenueCents: 0,
+  revenueTrend: null,
+  marginCents: 0,
+  previousMarginCents: 0,
+  marginTrend: null,
+  purchaseTotalCents: 0,
   shippedCount: 0,
   proShippedCount: 0,
+  paidRevenueCents: 0,
+  unpaidRevenueCents: 0,
+  overdueInvoiceCount: 0,
+  overdueTotalCents: 0,
+  overdueInvoices: [],
   openOrders: 0,
+  pickupOrdersCount: 0,
+  shippingOrdersCount: 0,
+  missingTrackingCount: 0,
   urgentOrders: 0,
   bottlesToPick: 0,
   averageBasketCents: 0,
   productCount: 0,
-  marginCents: 0,
-  purchaseTotalCents: 0,
   buckets: [],
   alerts: [],
   topSales: [],
@@ -40,9 +57,10 @@ export default async function DashboardPage({
   await requireCapability(can.seeDashboard)
 
   const { periode: rawPeriode } = await searchParams
-  const periode: Periode = (
-    ['1M', '4M', '6M', '1A'].includes(rawPeriode ?? '') ? rawPeriode : '1M'
-  ) as Periode
+  const validPeriodes = PERIODES.map((p) => p.value)
+  const periode: Periode = validPeriodes.includes(rawPeriode as Periode)
+    ? (rawPeriode as Periode)
+    : '1M'
 
   let data = EMPTY
   let unavailable = false
@@ -53,60 +71,95 @@ export default async function DashboardPage({
     unavailable = true
   }
 
-  // Chaque indicateur porte une seconde ligne qui le qualifie : un chiffre sans
-  // référent ne dit rien (DESIGN.md §3).
+  // Grille 2x3 : 3 cartes Finance/Ventes + 3 cartes Logistique/Cave
   const kpis = [
     {
       label: "Chiffre d'affaires",
       icon: RevenueIcon,
       value: formatCHF(data.revenueCents),
+      trend: data.revenueTrend,
       detail:
         data.shippedCount === 0
           ? 'aucune expédition sur la période'
           : `${data.shippedCount} expédiée${data.shippedCount > 1 ? 's' : ''}${
-              data.proShippedCount > 0 ? `, dont ${data.proShippedCount} pro` : ''
+              data.proShippedCount > 0 ? ` (dont ${data.proShippedCount} pro)` : ''
             }`,
+      badge: null,
       href: '/admin/commandes?statut=EXPEDIEE',
     },
     {
       label: 'Marge brute',
       icon: MarginIcon,
       value: formatCHF(data.marginCents),
-      detail: `Achats : ${formatCHF(data.purchaseTotalCents)}`,
+      trend: data.marginTrend,
+      detail:
+        data.revenueCents > 0
+          ? `${Math.round((data.marginCents / data.revenueCents) * 100)}% de marge · Achats : ${formatCHF(data.purchaseTotalCents)}`
+          : `Achats : ${formatCHF(data.purchaseTotalCents)}`,
+      badge: null,
       href: '/admin/commandes?statut=EXPEDIEE',
+    },
+    {
+      label: 'Trésorerie encaissée',
+      icon: CoinsIcon,
+      value: formatCHF(data.paidRevenueCents),
+      trend: null,
+      badge:
+        data.overdueInvoiceCount > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded bg-[#FDF2F2] px-1.5 py-0.5 text-[11px] font-semibold text-[#C62828] dark:bg-[#2a1717] dark:text-[#EF5350]">
+            <AlertCircleIcon className="w-3 h-3" />
+            {data.overdueInvoiceCount} en retard
+          </span>
+        ) : null,
+      detail:
+        data.overdueInvoiceCount > 0
+          ? `${data.overdueInvoiceCount} retard${data.overdueInvoiceCount > 1 ? 's' : ''} (${formatCHF(data.overdueTotalCents)}) · En attente : ${formatCHF(data.unpaidRevenueCents)}`
+          : `En attente de règlement : ${formatCHF(data.unpaidRevenueCents)}`,
+      href: '/admin/factures',
     },
     {
       label: 'Commandes à traiter',
       icon: PreparationIcon,
       value: String(data.openOrders),
+      trend: null,
+      badge:
+        data.urgentOrders > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded bg-[#FFF8E1] px-1.5 py-0.5 text-[11px] font-semibold text-text-warning dark:bg-[#3d2a0a] dark:text-[#FF9800]">
+            {data.urgentOrders} &lt; 48h
+          </span>
+        ) : null,
       detail:
-        data.urgentOrders > 0
-          ? `${data.urgentOrders} livraison${data.urgentOrders > 1 ? 's' : ''} sous 48 h`
-          : 'aucune échéance proche',
+        data.openOrders === 0
+          ? 'aucune commande en attente'
+          : `${data.shippingOrdersCount} DPD · ${data.pickupOrdersCount} retrait${data.pickupOrdersCount > 1 ? 's' : ''} cave`,
       href: '/admin/preparation',
     },
     {
       label: 'Bouteilles à sortir',
       icon: BottleIcon,
       value: String(data.bottlesToPick),
+      trend: null,
+      badge: null,
       detail:
         data.openOrders === 0
           ? 'plus rien à préparer'
-          : `pour ${data.openOrders} commande${data.openOrders > 1 ? 's' : ''} ouverte${data.openOrders > 1 ? 's' : ''}`,
+          : `pour ${data.openOrders} commande${data.openOrders > 1 ? 's' : ''} en cours`,
       href: '/admin/preparation',
     },
     {
       label: 'Panier moyen',
       icon: CommandesIcon,
       value: formatCHF(data.averageBasketCents),
-      detail: `${data.productCount} référence${data.productCount > 1 ? 's' : ''} au catalogue`,
+      trend: null,
+      badge: null,
+      detail: `${data.productCount} référence${data.productCount > 1 ? 's' : ''} actives au catalogue`,
       href: '/admin/produits',
     },
   ]
 
   return (
     <div>
-      {/* En-tête */}
+      {/* En-tête avec titre et actions rapides */}
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-[26px] font-semibold text-text-primary dark:text-text-primary-dark">
@@ -115,8 +168,44 @@ export default async function DashboardPage({
           <p className="mt-1 text-sm text-text-secondary dark:text-text-secondary-dark">
             Aperçu de l&apos;activité artisanale · mis à jour à {heure.format(new Date())}
           </p>
+
+          {/* Raccourcis d'actions rapides */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/commandes/nouvelle"
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-text-on-primary shadow-sm hover:bg-primary/90 transition-colors"
+            >
+              <span className="text-sm leading-none font-bold">+</span>
+              <span>Nouvelle commande</span>
+            </Link>
+            <Link
+              href="/admin/preparation"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-card px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-primary/10 transition-colors dark:border-border-dark dark:bg-bg-card-dark dark:text-text-primary-dark"
+            >
+              <PreparationIcon className="w-3.5 h-3.5 text-primary" />
+              <span>Préparation cave</span>
+              {data.openOrders > 0 && (
+                <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.2 text-[11px] font-semibold text-primary">
+                  {data.openOrders}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/admin/factures"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-card px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-primary/10 transition-colors dark:border-border-dark dark:bg-bg-card-dark dark:text-text-primary-dark"
+            >
+              <FacturesIcon className="w-3.5 h-3.5 text-primary" />
+              <span>Factures & Règlements</span>
+              {data.overdueInvoiceCount > 0 && (
+                <span className="ml-0.5 rounded-full bg-[#FDF2F2] px-1.5 py-0.2 text-[11px] font-semibold text-[#C62828] dark:bg-[#2a1717] dark:text-[#EF5350]">
+                  {data.overdueInvoiceCount}
+                </span>
+              )}
+            </Link>
+          </div>
         </div>
 
+        {/* Sélecteur de période et export CSV */}
         <div className="flex flex-col items-start md:items-end gap-3">
           <div className="flex flex-wrap gap-2">
             {PERIODES.map(({ label, value }) => (
@@ -148,28 +237,46 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Indicateurs */}
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Grille d'indicateurs 2x3 */}
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
           return (
             <Link
               key={kpi.label}
               href={kpi.href}
-              className="card p-5 transition-colors hover:border-text-tertiary dark:hover:border-text-tertiary-dark"
+              className="card p-5 transition-colors hover:border-text-tertiary dark:hover:border-text-tertiary-dark flex flex-col justify-between"
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
-                  {kpi.label}
-                </span>
-                <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary/10 dark:bg-primary/15 text-primary shrink-0">
-                  <Icon className="w-4 h-4" />
+              <div>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
+                    {kpi.label}
+                  </span>
+                  <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary/10 dark:bg-primary/15 text-primary shrink-0">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+                  <p className="tabular font-display text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
+                    {kpi.value}
+                  </p>
+                  {kpi.trend !== null && (
+                    <span
+                      className={`text-xs font-semibold ${
+                        kpi.trend > 0
+                          ? 'text-text-success'
+                          : kpi.trend < 0
+                            ? 'text-text-error'
+                            : 'text-text-tertiary dark:text-text-tertiary-dark'
+                      }`}
+                    >
+                      {kpi.trend > 0 ? '↑' : kpi.trend < 0 ? '↓' : '—'} {Math.abs(kpi.trend)}%
+                    </span>
+                  )}
+                  {kpi.badge}
                 </div>
               </div>
-              <p className="tabular mt-2 font-display text-2xl font-semibold text-text-primary dark:text-text-primary-dark">
-                {kpi.value}
-              </p>
-              <p className="mt-1 text-xs text-text-secondary dark:text-text-secondary-dark">
+              <p className="mt-2 text-xs text-text-secondary dark:text-text-secondary-dark">
                 {kpi.detail}
               </p>
             </Link>
@@ -177,7 +284,7 @@ export default async function DashboardPage({
         })}
       </div>
 
-      {/* Graphique et alertes */}
+      {/* Graphique et panneau d'alertes */}
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="card p-5 lg:col-span-2">
           <h2 className="mb-4 font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
@@ -186,52 +293,150 @@ export default async function DashboardPage({
           <RevenueChart buckets={data.buckets} />
         </section>
 
-        <section className="card flex flex-col p-5">
-          <h2 className="mb-4 font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
-            Alerte de stock
-          </h2>
-          {/* N'apparaît que si un produit actif passe sous son seuil (DESIGN.md §3) */}
-          {data.alerts.length === 0 ? (
-            <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-              Aucun produit actif sous son seuil d&apos;alerte.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {data.alerts.map((a) => {
-                const critical = a.stock === 0
-                return (
-                  <li key={a.id}>
+        {/* Panneau d'alertes : Trésorerie en retard, Suivis manquants, Stock bas */}
+        <section className="card flex flex-col p-5 gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
+              Alertes & Suivi
+            </h2>
+            {data.overdueInvoiceCount > 0 ||
+            data.alerts.length > 0 ||
+            data.missingTrackingCount > 0 ? (
+              <span className="rounded-full bg-[#FDF2F2] px-2 py-0.5 text-xs font-semibold text-[#C62828] dark:bg-[#2a1717] dark:text-[#EF5350]">
+                {(data.overdueInvoiceCount > 0 ? 1 : 0) +
+                  data.alerts.length +
+                  (data.missingTrackingCount > 0 ? 1 : 0)}{' '}
+                action
+                {(data.overdueInvoiceCount > 0 ? 1 : 0) +
+                  data.alerts.length +
+                  (data.missingTrackingCount > 0 ? 1 : 0) >
+                1
+                  ? 's'
+                  : ''}
+              </span>
+            ) : null}
+          </div>
+
+          {/* 1. Alerte factures en retard (> 30j) */}
+          {data.overdueInvoiceCount > 0 && (
+            <div className="rounded-lg border border-[#C62828]/20 bg-[#FDF2F2] p-3 text-sm dark:bg-[#2a1717]">
+              <div className="flex items-center justify-between gap-1 text-[#C62828] dark:text-[#EF5350] font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <AlertCircleIcon className="w-4 h-4" />
+                  {data.overdueInvoiceCount} facture{data.overdueInvoiceCount > 1 ? 's' : ''} en
+                  retard
+                </span>
+                <span className="tabular font-display">{formatCHF(data.overdueTotalCents)}</span>
+              </div>
+              <ul className="mt-2 space-y-1.5 border-t border-[#C62828]/10 pt-2 text-xs">
+                {data.overdueInvoices.slice(0, 3).map((inv) => (
+                  <li key={inv.id}>
                     <Link
-                      href="/admin/produits"
-                      className={`flex items-center justify-between gap-2 rounded-lg border p-3 transition-opacity hover:opacity-80 ${
-                        critical
-                          ? 'border-[#C62828]/20 bg-[#FDF2F2] dark:bg-[#2a1717]'
-                          : 'border-[#FFB300]/30 bg-[#FFF8E1] dark:bg-[#3d2a0a]'
-                      }`}
+                      href={`/admin/factures?recherche=${encodeURIComponent(inv.numero)}`}
+                      className="flex items-center justify-between text-text-primary dark:text-text-primary-dark hover:underline"
                     >
-                      <span>
-                        <span className="block text-sm font-semibold text-text-primary dark:text-text-primary-dark">
-                          {a.name}
-                        </span>
-                        <span
-                          className={`text-sm ${critical ? 'text-[#C62828] dark:text-[#EF5350]' : 'text-text-warning dark:text-[#FF9800]'}`}
-                        >
-                          {a.stock === 0
-                            ? 'épuisé'
-                            : `${a.stock} bouteille${a.stock > 1 ? 's' : ''} restante${a.stock > 1 ? 's' : ''}`}
-                          {' · seuil '}
-                          {a.threshold}
-                        </span>
+                      <span className="truncate max-w-[160px]">
+                        {inv.clientName} ({inv.invoiceNumber ?? inv.numero})
                       </span>
-                      <span aria-hidden className="text-text-tertiary dark:text-text-tertiary-dark">
-                        ›
+                      <span className="font-semibold text-[#C62828] dark:text-[#EF5350] tabular ml-2 shrink-0">
+                        +{inv.daysOverdue} j · {formatCHF(inv.totalCents)}
                       </span>
                     </Link>
                   </li>
-                )
-              })}
-            </ul>
+                ))}
+              </ul>
+              <div className="mt-2 text-right">
+                <Link
+                  href="/admin/factures"
+                  className="text-xs font-medium text-[#C62828] dark:text-[#EF5350] hover:underline"
+                >
+                  Gérer les factures en retard →
+                </Link>
+              </div>
+            </div>
           )}
+
+          {/* 2. Alerte expéditions sans numéro de suivi */}
+          {data.missingTrackingCount > 0 && (
+            <Link
+              href="/admin/commandes?statut=EXPEDIEE"
+              className="flex items-center justify-between rounded-lg border border-[#FFB300]/30 bg-[#FFF8E1] p-3 text-xs text-text-warning transition-opacity hover:opacity-85 dark:bg-[#3d2a0a] dark:text-[#FF9800]"
+            >
+              <div className="flex items-center gap-2">
+                <TruckIcon className="w-4 h-4 shrink-0" />
+                <span>
+                  <strong>{data.missingTrackingCount}</strong> expédition
+                  {data.missingTrackingCount > 1 ? 's' : ''} sans numéro de suivi DPD
+                </span>
+              </div>
+              <span aria-hidden>›</span>
+            </Link>
+          )}
+
+          {/* 3. Alertes de stock */}
+          <div>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary-dark">
+              Niveaux de stock
+            </h3>
+            {data.alerts.length === 0 ? (
+              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                Tous les stocks sont au-dessus de leur seuil d&apos;alerte.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {data.alerts.map((a) => {
+                  const critical = a.stock === 0
+                  return (
+                    <li key={a.id}>
+                      <Link
+                        href="/admin/produits"
+                        className={`flex items-center justify-between gap-2 rounded-lg border p-3 transition-opacity hover:opacity-80 ${
+                          critical
+                            ? 'border-[#C62828]/20 bg-[#FDF2F2] dark:bg-[#2a1717]'
+                            : 'border-[#FFB300]/30 bg-[#FFF8E1] dark:bg-[#3d2a0a]'
+                        }`}
+                      >
+                        <span className="truncate">
+                          <span className="block text-sm font-semibold text-text-primary dark:text-text-primary-dark truncate">
+                            {a.name}
+                          </span>
+                          <span
+                            className={`text-xs ${
+                              critical
+                                ? 'text-[#C62828] dark:text-[#EF5350]'
+                                : 'text-text-warning dark:text-[#FF9800]'
+                            }`}
+                          >
+                            {a.stock === 0
+                              ? 'épuisé'
+                              : `${a.stock} bouteille${a.stock > 1 ? 's' : ''} restante${a.stock > 1 ? 's' : ''}`}
+                            {' · seuil '}
+                            {a.threshold}
+                          </span>
+                        </span>
+                        <span
+                          aria-hidden
+                          className="text-text-tertiary dark:text-text-tertiary-dark"
+                        >
+                          ›
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Statut serein si aucune alerte */}
+          {data.overdueInvoiceCount === 0 &&
+            data.alerts.length === 0 &&
+            data.missingTrackingCount === 0 && (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-bg-page/50 p-3 text-xs text-text-secondary dark:border-border-dark dark:bg-bg-page-dark/50 dark:text-text-secondary-dark">
+                <CheckIcon className="w-4 h-4 text-text-success shrink-0" />
+                <span>Tous les indicateurs opérationnels et financiers sont au vert.</span>
+              </div>
+            )}
         </section>
       </div>
 
