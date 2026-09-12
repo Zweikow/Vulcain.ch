@@ -41,17 +41,27 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     (sum, item) => sum + item.product.priceCents * item.quantity,
     0
   )
-  const promoDiscountCents = items.reduce((sum, item) => {
-    const isSummer =
-      item.product.bottleSize === '27.5cl' ||
-      item.product.name.toLowerCase().includes('evervescence')
-    if (isSummer && item.quantity >= 72) {
-      const setsOfThree = Math.floor(item.quantity / 72)
-      return sum + setsOfThree * 24 * item.product.priceCents
+
+  let promoDiscountCents = 0
+  for (const item of items) {
+    const promo = item.product.activePromotion
+    if (!promo) continue
+    if (promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity) {
+      if (item.quantity >= promo.buyQuantity) {
+        const sets = Math.floor(item.quantity / promo.buyQuantity)
+        const freeUnits = sets * promo.getFreeQuantity
+        promoDiscountCents += freeUnits * item.product.priceCents
+      }
+    } else if (promo.type === 'PERCENTAGE' && promo.discountPercent) {
+      promoDiscountCents += Math.round(
+        item.quantity * item.product.priceCents * (promo.discountPercent / 100)
+      )
+    } else if (promo.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+      promoDiscountCents += item.quantity * promo.discountCents
     }
-    return sum
-  }, 0)
-  const subtotalCents = grossSubtotalCents - promoDiscountCents
+  }
+
+  const subtotalCents = Math.max(0, grossSubtotalCents - promoDiscountCents)
   const estimatedTotalCents =
     subtotalCents + (items.length > 0 ? shippingCentsFor(subtotalCents, false, settings) : 0)
 

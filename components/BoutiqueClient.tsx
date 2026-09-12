@@ -35,22 +35,19 @@ export default function BoutiqueClient({
   const addToCart = (productId: string) => {
     setCart((prev) => {
       const product = products.find((p) => p.id === productId)!
-      const step = product.bottleSize === '27.5cl' ? 24 : 1
       const existing = prev.find((i) => i.product.id === productId)
       if (existing) {
-        const nextQty = Math.min(existing.quantity + step, product.stock)
+        const nextQty = Math.min(existing.quantity + 1, product.stock)
         return prev.map((i) => (i.product.id === productId ? { ...i, quantity: nextQty } : i))
       }
-      return [...prev, { product, quantity: Math.min(step, product.stock) }]
+      return [...prev, { product, quantity: 1 }]
     })
   }
 
   const removeFromCart = (productId: string) => {
     setCart((prev) => {
-      const product = products.find((p) => p.id === productId)!
-      const step = product.bottleSize === '27.5cl' ? 24 : 1
       return prev
-        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - step } : i))
+        .map((i) => (i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i))
         .filter((i) => i.quantity > 0)
     })
   }

@@ -48,17 +48,30 @@ export default function ProductCard({
     ribbonText = `-${pct}%`
   }
 
-  // Calculs de prix par bouteille et carton
-  const unitBottlePriceCents = isCarton
-    ? Math.round(product.priceCents / bottlesCount)
-    : product.priceCents
+  // Calculs des prix avec promotion (% ou montant fixe) ou prix barré
+  let effectivePriceCents = product.priceCents
+  let effectiveOrigPriceCents: number | null = null
 
-  const origBottlePriceCents =
-    product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents
-      ? isCarton
-        ? Math.round(product.compareAtPriceCents / bottlesCount)
-        : product.compareAtPriceCents
-      : null
+  if (promo?.type === 'PERCENTAGE' && promo.discountPercent) {
+    effectivePriceCents = Math.round(product.priceCents * (1 - promo.discountPercent / 100))
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (promo?.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+    effectivePriceCents = Math.max(0, product.priceCents - promo.discountCents)
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents) {
+    effectivePriceCents = product.priceCents
+    effectiveOrigPriceCents = product.compareAtPriceCents
+  }
+
+  const unitBottlePriceCents = isCarton
+    ? Math.round(effectivePriceCents / bottlesCount)
+    : effectivePriceCents
+
+  const origBottlePriceCents = effectiveOrigPriceCents
+    ? isCarton
+      ? Math.round(effectiveOrigPriceCents / bottlesCount)
+      : effectiveOrigPriceCents
+    : null
 
   return (
     <div className="card p-3 flex flex-col gap-2 relative overflow-hidden">
@@ -162,7 +175,7 @@ export default function ProductCard({
           {/* Prix total du carton si carton */}
           {isCarton && (
             <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight">
-              <span>{formatCHF(product.priceCents)}</span>
+              <span>{formatCHF(effectivePriceCents)}</span>
               <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
                 {' '}
                 / carton

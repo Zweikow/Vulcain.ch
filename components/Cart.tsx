@@ -112,6 +112,11 @@ export default function Cart({ items, settings }: CartProps) {
                 </div>
               ))}
 
+              <div className="flex justify-between text-sm text-text-primary dark:text-text-primary-dark font-medium pt-1 border-t border-border/40 dark:border-border-dark/40">
+                <span>Sous-total</span>
+                <span className="tabular">{formatCHF(subtotalCents)}</span>
+              </div>
+
               <div className="flex justify-between text-sm text-text-secondary dark:text-text-secondary-dark">
                 <span>Frais de port</span>
                 <span className="tabular">

@@ -21,6 +21,20 @@ export default function ProductDetailModal({
   onClose,
 }: ProductDetailModalProps) {
   const isOutOfStock = product.stock === 0
+  const promo = product.activePromotion
+  let effectivePriceCents = product.priceCents
+  let effectiveOrigPriceCents: number | null = null
+
+  if (promo?.type === 'PERCENTAGE' && promo.discountPercent) {
+    effectivePriceCents = Math.round(product.priceCents * (1 - promo.discountPercent / 100))
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (promo?.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+    effectivePriceCents = Math.max(0, product.priceCents - promo.discountCents)
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents) {
+    effectivePriceCents = product.priceCents
+    effectiveOrigPriceCents = product.compareAtPriceCents
+  }
 
   return (
     <div
@@ -121,8 +135,8 @@ export default function ProductDetailModal({
               <span className="font-bold text-3xl text-primary tabular">
                 {formatCHF(
                   product.bottlesPerUnit > 1
-                    ? Math.round(product.priceCents / product.bottlesPerUnit)
-                    : product.priceCents
+                    ? Math.round(effectivePriceCents / product.bottlesPerUnit)
+                    : effectivePriceCents
                 )}
               </span>
               <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
@@ -130,25 +144,25 @@ export default function ProductDetailModal({
               </span>
             </div>
 
-            {product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents && (
+            {effectiveOrigPriceCents && (
               <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark tabular">
                 au lieu de{' '}
                 <span className="line-through">
                   {formatCHF(
                     product.bottlesPerUnit > 1
-                      ? Math.round(product.compareAtPriceCents / product.bottlesPerUnit)
-                      : product.compareAtPriceCents
+                      ? Math.round(effectiveOrigPriceCents / product.bottlesPerUnit)
+                      : effectiveOrigPriceCents
                   )}
                 </span>{' '}
                 {product.bottlesPerUnit > 1 && (
-                  <span>(soit {formatCHF(product.compareAtPriceCents)} le carton)</span>
+                  <span>(soit {formatCHF(effectiveOrigPriceCents)} le carton)</span>
                 )}
               </div>
             )}
 
             {product.bottlesPerUnit > 1 && (
               <div className="text-sm font-semibold text-text-primary dark:text-text-primary-dark mt-1 tabular">
-                Total : {formatCHF(product.priceCents)} / carton de {product.bottlesPerUnit}{' '}
+                Total : {formatCHF(effectivePriceCents)} / carton de {product.bottlesPerUnit}{' '}
                 bouteilles
               </div>
             )}
