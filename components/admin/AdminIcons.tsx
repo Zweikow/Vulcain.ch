@@ -243,13 +243,17 @@ export function PromoIcon({ className = 'w-4 h-4' }: IconProps) {
 /**
  * Pictogramme Pack / Carton de bouteilles avec compteur
  */
-export function PackBadgeIcon({
-  count = 6,
-  className = 'w-7 h-7',
-}: IconProps & { count?: number }) {
+export function PackBadgeIcon({ count = 6, className = '' }: IconProps & { count?: number }) {
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`}>
-      <svg className="w-full h-full text-current" {...baseProps}>
+    <div
+      className={`relative inline-flex items-center justify-center w-7 h-7 shrink-0 ${className}`}
+      style={{ width: '28px', height: '28px' }}
+    >
+      <svg
+        style={{ width: '22px', height: '22px' }}
+        className="w-[22px] h-[22px] text-current"
+        {...baseProps}
+      >
         <path d="M5 9h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9Z" />
         <path d="M7 9V5a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1v4" />
         <path d="M13.5 9V5a1 1 0 0 1 1-1H16a1 1 0 0 1 1 1v4" />

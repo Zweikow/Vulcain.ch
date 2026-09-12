@@ -152,29 +152,29 @@ export default function ProductCard({
       </div>
 
       {/* Section Prix & Sélecteur Panier (Inspiré maquette) */}
-      <div className="flex items-end justify-between gap-2 mt-auto pt-1">
+      <div className="flex items-end justify-between gap-2 mt-auto pt-2 border-t border-border/40 dark:border-border-dark/40">
         {/* Prix */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           {/* Prix par bouteille */}
-          <div className="flex items-baseline gap-1">
-            <span className="font-bold text-base text-primary dark:text-primary-hover tabular">
+          <div className="flex items-baseline gap-1 whitespace-nowrap">
+            <span className="font-bold text-base text-primary dark:text-primary-hover tabular whitespace-nowrap">
               {formatCHF(unitBottlePriceCents)}
             </span>
-            <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal">
+            <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal whitespace-nowrap">
               / bouteille
             </span>
           </div>
 
           {/* Ancien prix barré si rabais */}
           {origBottlePriceCents && (
-            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight">
+            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight whitespace-nowrap">
               au lieu de <span className="line-through">{formatCHF(origBottlePriceCents)}</span>
             </div>
           )}
 
           {/* Prix total du carton si carton */}
           {isCarton && (
-            <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight">
+            <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight whitespace-nowrap">
               <span>{formatCHF(effectivePriceCents)}</span>
               <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
                 {' '}
@@ -208,7 +208,7 @@ export default function ProductCard({
               >
                 −
               </button>
-              <span className="px-1.5 text-xs font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[44px] text-center">
+              <span className="px-1.5 text-xs font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[48px] text-center whitespace-nowrap">
                 {quantity} {isCarton ? 'Cart.' : 'Btl.'}
               </span>
               <button
