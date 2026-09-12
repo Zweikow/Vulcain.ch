@@ -57,6 +57,21 @@ export function CommandesIcon({ className = 'w-4 h-4' }: IconProps) {
 }
 
 /**
+ * Factures : Document officiel A4 avec pliure, lignes de montant et sceau de paiement
+ */
+export function FacturesIcon({ className = 'w-4 h-4' }: IconProps) {
+  return (
+    <svg className={className} {...baseProps}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="8" y1="13" x2="16" y2="13" />
+      <line x1="8" y1="17" x2="12" y2="17" />
+      <circle cx="15.5" cy="17.5" r="2.5" />
+    </svg>
+  )
+}
+
+/**
  * Clients : Répertoire de contacts / badge client
  */
 export function ClientsIcon({ className = 'w-4 h-4' }: IconProps) {

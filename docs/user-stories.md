@@ -307,6 +307,46 @@
 - [x] Historique complet des emails tracés (`OrderEmailLog`) sur la fiche commande avec boutons de renvoi en un clic.
 - [x] Outil de test technique Amazon SES accessible depuis la page des Paramètres.
 
+### US-ADM-37 — Tableau de bord centralisé des factures et recherche croisée (CMD / FAC / Client)
+
+**En tant qu'** administrateur ou gestionnaire de la cidrerie,  
+**je veux** accéder à un onglet dédié « Factures » regroupant toutes les factures émises, avec des indicateurs financiers (Total facturé, Total encaissé, Reste dû), des filtres d'état et un moteur de recherche multi-critères,  
+**afin de** piloter la comptabilité en toute clarté et retrouver instantanément n'importe quelle facture à partir d'un numéro de commande ou du nom du client.
+
+**Critères d'acceptation :**
+
+- [x] Onglet dédié « Factures » dans la navigation latérale (`/admin/factures`) accessible selon les habilitations financières (`can.seeFinancials`).
+- [x] Indicateurs synthétiques en en-tête : Total facturé, Total encaissé et Reste à encaisser en CHF.
+- [x] Moteur de recherche croisée en temps réel : par numéro de commande (`CMD-2026-XXXX`), numéro de facture (`FAC-2026-XXXX`), nom/prénom ou email client.
+- [x] Onglets de filtrage par état de paiement avec badges de compteurs : _Toutes, Payées, En attente, En retard_.
+- [x] Actions rapides par ligne : Consultation du document A4, renvoi par email au client, enregistrement ou annulation d'encaissement, et relance de paiement.
+
+### US-ADM-38 — Sélection multiple et export groupé vers un document PDF unique
+
+**En tant qu'** exploitant ou comptable de la structure,  
+**je veux** cocher plusieurs factures (ou toutes les factures filtrées) et les exporter vers un document PDF A4 unique,  
+**afin de** transmettre facilement les pièces comptables à la fiduciaire ou imprimer une série complète de factures en un seul clic.
+
+**Critères d'acceptation :**
+
+- [x] Cases à cocher par ligne avec case générale « Tout sélectionner sur la page ».
+- [x] Barre d'action groupée affichant le nombre de factures sélectionnées.
+- [x] Bouton « Exporter la sélection en un seul PDF » ouvrant la vue dédiée `/admin/factures/print?ids=...`.
+- [x] Assemblage séquentiel de chaque facture A4 avec sa QR-facture officielle vectorielle SIX et sauts de page stricts (`page-break-after: always`).
+- [x] Déclenchement de la fenêtre d'impression native permettant l'enregistrement direct sous format PDF multipages.
+
+### US-ADM-39 — Automatisation de l'émission et de l'envoi de facture lors du passage à l'état expédié
+
+**En tant que** préparateur de commande et client de la cidrerie,  
+**je veux** que le passage d'une commande au statut « Expédiée » scelle automatiquement la facture officielle et l'envoie par email au client,  
+**afin d'** éliminer tout risque d'oubli d'émission et de permettre au client de choisir entre la version numérique par email ou la version papier glissée dans le carton.
+
+**Critères d'acceptation :**
+
+- [x] Émission automatique et immuable du numéro de facture chronologique (`FAC-AAAA-NNNN`) lors du passage au statut « Expédiée ».
+- [x] Déclenchement automatique de l'envoi de l'email officiel de facture avec le récapitulatif, les coordonnées PostFinance et le lien direct vers le document A4.
+- [x] Traçabilité de l'envoi dans le journal d'audit et l'historique des emails (`OrderEmailLog`).
+
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
 **En tant que** préparateur de commande à la cave,  
@@ -616,10 +656,10 @@
 | **2. Prise de Commande**                 |    3     |           3           |                —                 |
 | **3. Infos Légales & Histoire**          |    2     |           2           |   _(Contenu final /histoire)_    |
 | **4. Gestion des Commandes**             |    4     |           4           |                —                 |
-| **5. Facturation & Expédition**          |    5     |           4           | **US-ADM-06 (Bon de livraison)** |
+| **5. Facturation & Expédition**          |    8     |           7           | **US-ADM-06 (Bon de livraison)** |
 | **6. Catalogue & Stocks**                |    6     |           6           |                —                 |
 | **7. Clients & Tarifs Pro**              |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**                 |    4     |           4           |                —                 |
 | **9. DevOps & Sécurité**                 |    5     |           5           |                —                 |
 | **10. Promotions & Offres Commerciales** |    3     |           3           |                —                 |
-| **TOTAL**                                |  **41**  |        **40**         |          **1 en cours**          |
+| **TOTAL**                                |  **44**  |        **43**         |          **1 en cours**          |

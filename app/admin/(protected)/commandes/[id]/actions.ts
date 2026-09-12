@@ -13,6 +13,7 @@ import { recordAudit } from '@/lib/audit'
 function revalidate(orderId?: string) {
   if (orderId) revalidatePath(`/admin/commandes/${orderId}`)
   revalidatePath('/admin/commandes')
+  revalidatePath('/admin/factures')
   revalidatePath('/admin/preparation')
   revalidatePath('/admin')
   revalidatePath('/')

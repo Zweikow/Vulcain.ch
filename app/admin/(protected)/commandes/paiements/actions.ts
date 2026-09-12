@@ -12,6 +12,7 @@ function revalidateOrder(orderId: string) {
   revalidatePath(`/admin/commandes/${orderId}`)
   revalidatePath(`/admin/commandes/${orderId}/facture`)
   revalidatePath('/admin/commandes')
+  revalidatePath('/admin/factures')
   revalidatePath('/admin/clients')
   revalidatePath('/admin')
 }

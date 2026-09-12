@@ -21,6 +21,7 @@ import {
   UserIcon,
   LogoutIcon,
   PromoIcon,
+  FacturesIcon,
 } from '@/components/admin/AdminIcons'
 
 const NAV_LINKS = [
@@ -44,6 +45,13 @@ const NAV_LINKS = [
     icon: CommandesIcon,
     exact: false,
     capability: () => true,
+  },
+  {
+    href: '/admin/factures',
+    label: 'Factures',
+    icon: FacturesIcon,
+    exact: false,
+    capability: can.seeFinancials,
   },
   {
     href: '/admin/clients',

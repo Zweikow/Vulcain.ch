@@ -5,7 +5,7 @@ import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
 import { AuditAction } from '@prisma/client'
 import { issueInvoice } from '@/lib/invoices'
-import { notifyOrderShipped } from '@/lib/notifications'
+import { notifyOrderShipped, sendInvoiceEmail } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
 import { STATUS_LABELS } from '@/components/admin/StatusBadge'
 
@@ -115,6 +115,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         )
       }
       await notifyOrderShipped(id)
+      await sendInvoiceEmail(id)
     }
   }
 

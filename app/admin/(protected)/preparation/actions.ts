@@ -5,7 +5,7 @@ import { OrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { issueInvoice } from '@/lib/invoices'
-import { notifyOrderShipped } from '@/lib/notifications'
+import { notifyOrderShipped, sendInvoiceEmail } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 
@@ -45,7 +45,9 @@ export async function advanceStatus(orderId: string) {
       )
     }
     await notifyOrderShipped(orderId)
+    await sendInvoiceEmail(orderId)
   }
   revalidatePath('/admin/preparation')
+  revalidatePath('/admin/factures')
   revalidatePath('/admin')
 }
