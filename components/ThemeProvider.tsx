@@ -26,19 +26,24 @@ function applyThemeToDOM(theme: Theme) {
   const root = document.documentElement
 
   root.classList.toggle('dark', isDark)
-  root.style.colorScheme = theme
+  root.style.colorScheme = isDark ? 'dark' : 'light'
 
   // Met à jour la balise meta color-scheme
-  const metaColorScheme = document.querySelector('meta[name="color-scheme"]')
+  const metaColorScheme =
+    document.getElementById('meta-color-scheme') ||
+    document.querySelector('meta[name="color-scheme"]')
   if (metaColorScheme) {
     metaColorScheme.setAttribute('content', isDark ? 'dark' : 'light')
   }
 
   // Met à jour la balise meta theme-color active (pour la barre d'état iOS/Android)
-  let themeColorMeta = document.querySelector('meta[name="theme-color"]:not([media])')
+  let themeColorMeta =
+    document.getElementById('meta-theme-color') ||
+    document.querySelector('meta[name="theme-color"]')
   if (!themeColorMeta) {
     themeColorMeta = document.createElement('meta')
     themeColorMeta.setAttribute('name', 'theme-color')
+    themeColorMeta.setAttribute('id', 'meta-theme-color')
     document.head.appendChild(themeColorMeta)
   }
   themeColorMeta.setAttribute('content', isDark ? '#0D1B2A' : '#F7F6F0')

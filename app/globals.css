@@ -12,6 +12,19 @@
   color-scheme: dark;
 }
 
+html:not(.dark),
+html:not(.dark) body {
+  color-scheme: light !important;
+  background-color: #f7f6f0;
+  forced-color-adjust: none;
+}
+
+html.dark,
+html.dark body {
+  color-scheme: dark !important;
+  background-color: #0d1b2a;
+}
+
 @layer base {
   body {
     @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;

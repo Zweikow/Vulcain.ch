@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
@@ -69,11 +68,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <meta name="color-scheme" content="light dark" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F6F0" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0D1B2A" />
-        <meta name="theme-color" content="#F7F6F0" />
-        <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
+        <meta name="darkreader-lock" content="darkreader-lock" />
+        <meta name="color-scheme" content="light" id="meta-color-scheme" />
+        <meta name="supported-color-schemes" content="light dark" />
+        <meta name="theme-color" content="#F7F6F0" id="meta-theme-color" />
+        <script
+          id="theme-init-inline"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('theme');var p=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';var t=s||p;var r=document.documentElement;var m=document.getElementById('meta-color-scheme');var tc=document.getElementById('meta-theme-color');if(t==='dark'){r.classList.add('dark');r.style.colorScheme='dark';if(m)m.content='dark';if(tc)tc.content='#0D1B2A';}else{r.classList.remove('dark');r.style.colorScheme='light';if(m)m.content='light';if(tc)tc.content='#F7F6F0';}}catch(e){}})()`,
+          }}
+        />
       </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
