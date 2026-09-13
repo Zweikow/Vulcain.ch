@@ -176,7 +176,10 @@ export function FactureDocument({
   const handFill = 'border border-[#D8DEE6] px-2 py-1 bg-[#FCFCFA]'
 
   return (
-    <article className="facture-page bg-white text-[#153243]">
+    <article
+      className="facture-page bg-white text-[#153243]"
+      style={{ colorScheme: 'only light', forcedColorAdjust: 'none' } as React.CSSProperties}
+    >
       <div className="facture-body">
         {/* En-tête : expéditeur à gauche, logo à droite */}
         <header className="flex items-start justify-between gap-8">

@@ -4,6 +4,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
 @layer base {
   body {
     @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
@@ -50,9 +58,21 @@
   min-height: 297mm;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #fff !important;
+  color: #153243 !important;
   position: relative;
   box-sizing: border-box;
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.facture-page,
+.facture-page *,
+.swiss-qr-bill-container,
+.swiss-qr-bill-container * {
+  forced-color-adjust: none !important;
 }
 
 .facture-body {
@@ -76,6 +96,9 @@
   border: 1px solid #e2e8ef;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(21, 50, 67, 0.06);
+  background-color: #fff !important;
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
 }
 
 @media print {

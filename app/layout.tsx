@@ -69,6 +69,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F6F0" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0D1B2A" />
+        <meta name="theme-color" content="#F7F6F0" />
         <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
       </head>
       <body>
