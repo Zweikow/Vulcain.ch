@@ -89,7 +89,14 @@ html.dark body {
 }
 
 .facture-body {
-  padding: 12mm 16mm 2mm 16mm;
+  padding: 11mm 16mm 2mm 16mm;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.facture-body-p2 {
+  padding: 11mm 16mm 2mm 16mm;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -126,32 +133,64 @@ html.dark body {
   }
 
   .facture-shell {
-    max-width: none;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    max-width: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 
   .facture-page {
-    width: 210mm;
-    height: 297mm;
-    min-height: 297mm;
-    padding: 0;
-    margin: 0;
-    break-after: avoid;
-    page-break-after: avoid;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    position: relative !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .facture-page-multipage {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  .facture-page-2 {
+    break-before: page !important;
+    page-break-before: always !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
   }
 
   .facture-body {
-    padding: 10mm 16mm 2mm 16mm;
+    padding: 8mm 14mm 2mm 14mm !important;
+  }
+
+  .facture-body-p2 {
+    padding: 10mm 14mm 2mm 14mm !important;
   }
 
   .facture-qr {
-    width: 210mm;
-    height: 105mm;
-    margin-top: auto;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    width: 210mm !important;
+    height: 105mm !important;
+    margin-top: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .swiss-qr-bill-container {
+    width: 210mm !important;
+    height: 105mm !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }

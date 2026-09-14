@@ -8,6 +8,7 @@ import { FactureOrderSelect } from '@/components/admin/FactureOrderSelect'
 import { FactureIssue } from '@/components/admin/FactureIssue'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
+import { FactureLayoutSelect } from '@/components/admin/FactureLayoutSelect'
 import { requireCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 
@@ -19,11 +20,23 @@ const stamp = new Intl.DateTimeFormat('fr-CH', {
   minute: '2-digit',
 })
 
-export default async function FacturePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function FacturePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ layout?: string }>
+}) {
   // Une facture est un document financier.
   const user = await requireCapability(can.manageInvoices)
 
-  const { id } = await params
+  const [{ id }, { layout }] = await Promise.all([params, searchParams])
+  const forcedLayout =
+    layout === 'multipage' || layout === '2pages'
+      ? 'multipage'
+      : layout === 'single' || layout === '1page'
+        ? 'single'
+        : 'auto'
 
   const [order, settings, orders] = await Promise.all([
     prisma.order.findUnique({
@@ -47,7 +60,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     <div className="flex flex-col-reverse items-start gap-6 2xl:flex-row">
       {/* Le document — seul élément conservé à l'impression */}
       <div className="facture-shell mx-auto">
-        <FactureDocument order={order} settings={settings} />
+        <FactureDocument order={order} settings={settings} forcedLayout={forcedLayout} />
       </div>
 
       {/* Colonne de pilotage — jamais imprimée */}
@@ -61,6 +74,8 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
           </Link>
           <PrintButton />
         </div>
+
+        <FactureLayoutSelect forcedLayout={forcedLayout} itemCount={order.items.length} />
 
         <FactureOrderSelect currentId={order.id} orders={orders} />
 
