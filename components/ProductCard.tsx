@@ -140,88 +140,91 @@ export default function ProductCard({
             <span>{product.producerName || 'Cidrerie du Vulcain'}</span>
             {product.year && <span>· {product.year}</span>}
           </div>
-          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5">
+          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5 min-h-[2rem] leading-4">
             {product.description}
           </p>
         </div>
       </button>
 
-      {/* Mention du conditionnement */}
-      <div className="text-[11px] font-semibold text-text-secondary dark:text-text-secondary-dark pt-1 border-t border-border/50 dark:border-border-dark/50">
-        {packagingLabel}
-      </div>
-
-      {/* Section Prix & Sélecteur Panier (Inspiré maquette) */}
-      <div className="flex items-end justify-between gap-2 mt-auto pt-2 border-t border-border/40 dark:border-border-dark/40">
-        {/* Prix */}
-        <div className="flex flex-col min-w-0">
-          {/* Prix par bouteille */}
-          <div className="flex items-baseline gap-1 whitespace-nowrap">
-            <span className="font-bold text-base text-primary dark:text-primary-hover tabular whitespace-nowrap">
-              {formatCHF(unitBottlePriceCents)}
-            </span>
-            <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal whitespace-nowrap">
-              / bouteille
-            </span>
-          </div>
-
-          {/* Ancien prix barré si rabais */}
-          {origBottlePriceCents && (
-            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight whitespace-nowrap">
-              au lieu de <span className="line-through">{formatCHF(origBottlePriceCents)}</span>
-            </div>
-          )}
-
-          {/* Prix total du carton si carton */}
-          {isCarton && (
-            <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight whitespace-nowrap">
-              <span>{formatCHF(effectivePriceCents)}</span>
-              <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
-                {' '}
-                / carton
-              </span>
-            </div>
-          )}
+      {/* Section Bas unifiée : Conditionnement + Prix & Sélecteur Panier */}
+      <div className="mt-auto pt-2 border-t border-border/50 dark:border-border-dark/50 flex flex-col gap-1.5">
+        {/* Mention du conditionnement */}
+        <div className="text-[11px] font-semibold text-text-secondary dark:text-text-secondary-dark leading-none">
+          {packagingLabel}
         </div>
 
-        {/* Pictogramme pack + Stepper quantité */}
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          {isCarton && (
-            <PackBadgeIcon
-              count={bottlesCount}
-              className="text-secondary dark:text-text-secondary-dark mb-0.5"
-            />
-          )}
-
-          {isOutOfStock ? (
-            <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
-              Épuisé
-            </span>
-          ) : (
-            <div className="flex items-center border border-border dark:border-border-dark rounded-md overflow-hidden bg-bg-card dark:bg-bg-card-dark h-8 shadow-xs">
-              <button
-                type="button"
-                onClick={onRemove}
-                disabled={quantity === 0}
-                className="w-7 h-full flex items-center justify-center text-text-secondary dark:text-text-secondary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark disabled:opacity-30 transition-colors font-bold text-sm"
-                aria-label="Diminuer"
-              >
-                −
-              </button>
-              <span className="px-1.5 text-xs font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[48px] text-center whitespace-nowrap">
-                {quantity} {isCarton ? 'Cart.' : 'Btl.'}
+        {/* Section Prix & Sélecteur Panier (Inspiré maquette) */}
+        <div className="flex items-end justify-between gap-2">
+          {/* Prix */}
+          <div className="flex flex-col min-w-0">
+            {/* Prix par bouteille */}
+            <div className="flex items-baseline gap-1 whitespace-nowrap">
+              <span className="font-bold text-base text-primary dark:text-primary-hover tabular whitespace-nowrap">
+                {formatCHF(unitBottlePriceCents)}
               </span>
-              <button
-                type="button"
-                onClick={onAdd}
-                disabled={quantity >= product.stock}
-                className="w-7 h-full bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors font-bold text-sm"
-                aria-label="Ajouter"
-              >
-                +
-              </button>
+              <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal whitespace-nowrap">
+                / bouteille
+              </span>
             </div>
-          )}
+
+            {/* Ancien prix barré si rabais */}
+            {origBottlePriceCents && (
+              <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight whitespace-nowrap">
+                au lieu de <span className="line-through">{formatCHF(origBottlePriceCents)}</span>
+              </div>
+            )}
+
+            {/* Prix total du carton si carton */}
+            {isCarton && (
+              <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight whitespace-nowrap">
+                <span>{formatCHF(effectivePriceCents)}</span>
+                <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
+                  {' '}
+                  / carton
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Pictogramme pack + Stepper quantité */}
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            {isCarton && (
+              <PackBadgeIcon
+                count={bottlesCount}
+                className="text-secondary dark:text-text-secondary-dark mb-0.5"
+              />
+            )}
+
+            {isOutOfStock ? (
+              <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
+                Épuisé
+              </span>
+            ) : (
+              <div className="flex items-center border border-border dark:border-border-dark rounded-md overflow-hidden bg-bg-card dark:bg-bg-card-dark h-8 shadow-xs">
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  disabled={quantity === 0}
+                  className="w-7 h-full flex items-center justify-center text-text-secondary dark:text-text-secondary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark disabled:opacity-30 transition-colors font-bold text-sm"
+                  aria-label="Diminuer"
+                >
+                  −
+                </button>
+                <span className="px-1.5 text-xs font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[48px] text-center whitespace-nowrap">
+                  {quantity} {isCarton ? 'Cart.' : 'Btl.'}
+                </span>
+                <button
+                  type="button"
+                  onClick={onAdd}
+                  disabled={quantity >= product.stock}
+                  className="w-7 h-full bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors font-bold text-sm"
+                  aria-label="Ajouter"
+                >
+                  +
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
