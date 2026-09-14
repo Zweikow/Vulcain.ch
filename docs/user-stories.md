@@ -17,6 +17,7 @@
 7. [Épopée 7 — Administration : Clients & Tarifs Professionnels](#7-épopée-7--administration--clients--tarifs-professionnels)
 8. [Épopée 8 — Administration : Dashboard, Journal & Rôles](#8-épopée-8--administration--dashboard-journal--rôles)
 9. [Épopée 9 — Infrastructure, DevOps & Sécurité](#9-épopée-9--infrastructure-devops--sécurité)
+10. [Épopée 10 — Administration : Moteur de Promotions & Offres Commerciales](#10-épopée-10--administration--moteur-de-promotions--offres-commerciales)
 
 ---
 
@@ -62,7 +63,7 @@
 - [x] Navigation mobile avec menu hamburger escamotable.
 - [x] Palette de couleurs respectant la charte graphique de la cidrerie en clair et en sombre.
 
-### US-PUB-08 — Drapeaux d'origine, contenance et producteur sur la boutique
+### US-PUB-09 — Drapeaux d'origine, contenance et producteur sur la boutique
 
 **En tant que** client consultant le catalogue,  
 **je veux** voir immédiatement l'origine (drapeau 🇨🇭 Suisse ou 🇫🇷 France) et la contenance (75 cl / 27.5 cl) de chaque bouteille avant de cliquer, ainsi que le producteur dans le détail,  
@@ -73,6 +74,49 @@
 - [x] Affichage d'un emoji drapeau (🇨🇭 ou 🇫🇷) à côté du titre sur chaque fiche produit de la grille.
 - [x] Affichage de la contenance (`75 cl` ou `27.5 cl`) sur la carte produit.
 - [x] Affichage du nom du producteur associé (ex: _Jacques Perritaz_) et du pays dans la modale détaillée.
+
+### US-PUB-10 — Affichage des offres promotionnelles, rubans et prix barrés
+
+**En tant que** client consultant la boutique en ligne,  
+**je veux** repérer immédiatement les cuvées en promotion grâce à un ruban distinctif et visualiser le prix initial barré à côté du prix remisé,  
+**afin de** profiter des réductions en cours (ex: offre estivale 2+1 offert, remises en pourcentage ou montants fixes) avec une totale transparence.
+
+**Critères d'acceptation :**
+
+- [x] Ruban promotionnel stylisé avec encoche (notched ribbon) respectant la charte graphique Vulcain (ex: « 2+1 OFFERT », « -15% »).
+- [x] Affichage du prix de référence barré en retrait discret à côté du prix effectif remisé.
+- [x] Calcul et affichage au prorata sur la carte produit et dans la modale de détail (prix unitaire bouteille et prix carton remisés).
+- [x] Bannière informative globale ou d'alerte en tête de catalogue si une promotion générale est active.
+- [x] Masquage automatique des rubans et prix barrés dès l'expiration de la promotion.
+
+### US-PUB-11 — Vente par conditionnement carton et double tarification (bouteille / carton)
+
+**En tant que** client souhaitant commander en volume (cartons de 24 bouteilles pour l'été ou formats groupés),  
+**je veux** voir clairement le nombre de bouteilles par carton, le prix équivalent par bouteille et commander par unités de carton complètes,  
+**afin d'** apprécier l'économie réalisée par bouteille et d'ajouter le bon nombre de cartons au panier sans confusion.
+
+**Critères d'acceptation :**
+
+- [x] Badge visuel de conditionnement avec icône carton/pack dédiée (`PackBadgeIcon`).
+- [x] Mention explicite du format (ex: « Carton 24x27.5 cl » ou « Carton de 24 bouteilles »).
+- [x] Double affichage des prix : prix ramené à la bouteille (ex: « 3.60 CHF / bouteille ») et prix du carton entier (ex: « 86.40 CHF / carton »).
+- [x] Sélecteur de quantité incrémentant par carton entier (+1 carton = 24 bouteilles).
+- [x] Modale de détail produit précisant la composition du pack et le contenu exact.
+
+### US-PUB-12 — Décomposition transparente du panier et calcul du sous-total remisé
+
+**En tant que** client préparant son panier d'achat,  
+**je veux** comprendre précisément comment sont appliquées les remises et les frais de port avant de valider ma commande,  
+**afin d'** avoir une confiance absolue dans le montant final facturé.
+
+**Critères d'acceptation :**
+
+- [x] Ligne détaillée du montant brut des articles.
+- [x] Ligne explicite de remise promotionnelle avec badge émeraude et nom de l'offre (ex: « 2+1 OFFERT » : -86.40 CHF).
+- [x] Ligne dédiée « Sous-total » indiquant la somme nette exacte après remise et avant frais d'envoi.
+- [x] Ligne de frais de livraison (standard ou « Offert dès 150 CHF d'achats ») calculée sur le sous-total net.
+- [x] Total TTC final sans ambiguïté arithmétique (Sous-total après remise + Frais de livraison).
+- [x] Rappel clair du conditionnement pour les articles vendus en carton.
 
 ---
 
@@ -263,6 +307,46 @@
 - [x] Historique complet des emails tracés (`OrderEmailLog`) sur la fiche commande avec boutons de renvoi en un clic.
 - [x] Outil de test technique Amazon SES accessible depuis la page des Paramètres.
 
+### US-ADM-37 — Tableau de bord centralisé des factures et recherche croisée (CMD / FAC / Client)
+
+**En tant qu'** administrateur ou gestionnaire de la cidrerie,  
+**je veux** accéder à un onglet dédié « Factures » regroupant toutes les factures émises, avec des indicateurs financiers (Total facturé, Total encaissé, Reste dû), des filtres d'état et un moteur de recherche multi-critères,  
+**afin de** piloter la comptabilité en toute clarté et retrouver instantanément n'importe quelle facture à partir d'un numéro de commande ou du nom du client.
+
+**Critères d'acceptation :**
+
+- [x] Onglet dédié « Factures » dans la navigation latérale (`/admin/factures`) accessible selon les habilitations financières (`can.seeFinancials`).
+- [x] Indicateurs synthétiques en en-tête : Total facturé, Total encaissé et Reste à encaisser en CHF.
+- [x] Moteur de recherche croisée en temps réel : par numéro de commande (`CMD-2026-XXXX`), numéro de facture (`FAC-2026-XXXX`), nom/prénom ou email client.
+- [x] Onglets de filtrage par état de paiement avec badges de compteurs : _Toutes, Payées, En attente, En retard_.
+- [x] Actions rapides par ligne : Consultation du document A4, renvoi par email au client, enregistrement ou annulation d'encaissement, et relance de paiement.
+
+### US-ADM-38 — Sélection multiple et export groupé vers un document PDF unique
+
+**En tant qu'** exploitant ou comptable de la structure,  
+**je veux** cocher plusieurs factures (ou toutes les factures filtrées) et les exporter vers un document PDF A4 unique,  
+**afin de** transmettre facilement les pièces comptables à la fiduciaire ou imprimer une série complète de factures en un seul clic.
+
+**Critères d'acceptation :**
+
+- [x] Cases à cocher par ligne avec case générale « Tout sélectionner sur la page ».
+- [x] Barre d'action groupée affichant le nombre de factures sélectionnées.
+- [x] Bouton « Exporter la sélection en un seul PDF » ouvrant la vue dédiée `/admin/factures/print?ids=...`.
+- [x] Assemblage séquentiel de chaque facture A4 avec sa QR-facture officielle vectorielle SIX et sauts de page stricts (`page-break-after: always`).
+- [x] Déclenchement de la fenêtre d'impression native permettant l'enregistrement direct sous format PDF multipages.
+
+### US-ADM-39 — Automatisation de l'émission et de l'envoi de facture lors du passage à l'état expédié
+
+**En tant que** préparateur de commande et client de la cidrerie,  
+**je veux** que le passage d'une commande au statut « Expédiée » scelle automatiquement la facture officielle et l'envoie par email au client,  
+**afin d'** éliminer tout risque d'oubli d'émission et de permettre au client de choisir entre la version numérique par email ou la version papier glissée dans le carton.
+
+**Critères d'acceptation :**
+
+- [x] Émission automatique et immuable du numéro de facture chronologique (`FAC-AAAA-NNNN`) lors du passage au statut « Expédiée ».
+- [x] Déclenchement automatique de l'envoi de l'email officiel de facture avec le récapitulatif, les coordonnées PostFinance et le lien direct vers le document A4.
+- [x] Traçabilité de l'envoi dans le journal d'audit et l'historique des emails (`OrderEmailLog`).
+
 ### US-ADM-06 — Bon de livraison / Préparation épuré (BL)
 
 **En tant que** préparateur de commande à la cave,  
@@ -343,6 +427,20 @@
 - [x] Liste déroulante des producteurs existants dans le formulaire de création/modification de produit.
 - [x] Possibilité d'ajouter un nouveau producteur directement depuis la modale sans recharger la page.
 - [x] Affichage du nom du producteur dans la colonne correspondante du tableau admin.
+
+### US-ADM-33 — Gestion des conditionnements (cartons / packs) et prix de comparaison
+
+**En tant qu'** administrateur du catalogue,  
+**je veux** spécifier le nombre de bouteilles par unité vendue (`bottlesPerUnit`) et un éventuel prix de comparaison barré (`compareAtPriceCents`) pour chaque produit,  
+**afin de** proposer des ventes par carton (ex: carton de 24 bouteilles de 27.5 cl) ou afficher une référence de prix barré directement dans le catalogue.
+
+**Critères d'acceptation :**
+
+- [x] Champ « Bouteilles par unité / carton » dans le formulaire produit (`bottlesPerUnit`, par défaut 1).
+- [x] Champ optionnel « Prix de comparaison barré » (`compareAtPriceCents` en CHF / centimes).
+- [x] Calcul automatique du prix par bouteille dans l'interface et sur la boutique.
+- [x] Prise en compte du nombre de bouteilles réelles lors des mouvements d'inventaire et des alertes de stock.
+- [x] Colonne ou indicateur synthétique de conditionnement dans la liste d'administration des produits.
 
 ---
 
@@ -501,17 +599,67 @@
 
 ---
 
+## 10. Épopée 10 — Administration : Moteur de Promotions & Offres Commerciales
+
+### US-ADM-34 — Gestion centralisée des offres et promotions (`/admin/promotions`)
+
+**En tant que** gérant ou administrateur de la cidrerie,  
+**je veux** créer, modifier, activer ou suspendre des campagnes promotionnelles depuis un onglet dédié dans l'administration,  
+**afin d'** animer commercialement la boutique en toute autonomie sans intervention technique.
+
+**Critères d'acceptation :**
+
+- [x] Onglet dédié « Promotions » accessible depuis le menu d'administration `/admin/promotions`.
+- [x] Support des 3 typologies d'offres majeures :
+  - **Offre par lot (`BUY_X_GET_Y_FREE`)** : ex: 2 cartons achetés = 1 carton offert (`buyQuantity: 2`, `getFreeQuantity: 1`).
+  - **Remise en pourcentage (`PERCENTAGE`)** : ex: -10%, -20%.
+  - **Remise fixe (`FIXED_AMOUNT`)** : ex: -5.00 CHF par unité ou commande.
+- [x] Bascule instantanée d'activation / désactivation (`isActive`) en un clic avec mise à jour immédiate sur la boutique.
+- [x] Modale complète de création et d'édition de promotion avec validation des contraintes et des champs.
+- [x] Suppression sécurisée d'une promotion obsolète avec modale de confirmation.
+
+### US-ADM-35 — Ciblage par produit, textes personnalisés et calendrier promotionnel
+
+**En tant qu'** exploitant,  
+**je veux** restreindre une promotion à des cuvées spécifiques (ou l'appliquer globalement), lui associer des dates de validité et personnaliser les textes d'accroche,  
+**afin de** lancer des offres temporaires (offres estivales, déstockages) avec un message percutant pour les clients.
+
+**Critères d'acceptation :**
+
+- [x] Sélecteur multi-produits pour cibler une ou plusieurs cuvées précises (ou toute la boutique).
+- [x] Définition des dates de début (`startDate`) et de fin (`endDate`) avec prise en compte du fuseau horaire suisse.
+- [x] Champ de texte pour le ruban/badge produit (ex: « 2+1 OFFERT », « ÉTÉ 2026 », « -15% »).
+- [x] Champ de message pour la bannière d'annonce en haut du site (`bannerText`).
+- [x] Définition d'une quantité minimale requise pour déclencher l'avantage (`minQuantity`).
+
+### US-ADM-36 — Validation serveur et application automatisée des remises commerciales
+
+**En tant qu'** administrateur garant de la rentabilité et de la conformité comptable,  
+**je veux** que toutes les réductions promotionnelles soient recalculées et validées strictement côté serveur lors de la commande,  
+**afin d'** éviter toute manipulation frauduleuse des prix et d'intégrer fidèlement les remises dans les factures et la QR-facture.
+
+**Critères d'acceptation :**
+
+- [x] Moteur de calcul partagé (`lib/promotions.ts`) garantissant la cohérence mathématique entre le panier front-end et l'API de commande `/api/commandes`.
+- [x] Détection automatique de la meilleure promotion applicable selon les articles et quantités du panier.
+- [x] Écriture de la ligne de remise promotionnelle dans la commande en base de données (`promoDiscountCents`).
+- [x] Reflet fidèle sur la facture officielle A4, dans la QR-facture suisse et dans les emails de confirmation.
+- [x] Traçabilité des offres appliquées dans l'historique et le ticket de préparation en cave.
+
+---
+
 ## Tableau de Bord de Couverture des User Stories
 
-| Épopée                          | Total US | Réalisées (Terminées) |   En cours / Prochaines étapes   |
-| ------------------------------- | :------: | :-------------------: | :------------------------------: |
-| **1. Boutique Publique**        |    4     |           4           |                —                 |
-| **2. Prise de Commande**        |    3     |           3           |                —                 |
-| **3. Infos Légales & Histoire** |    2     |           2           |   _(Contenu final /histoire)_    |
-| **4. Gestion des Commandes**    |    4     |           4           |                —                 |
-| **5. Facturation & Expédition** |    5     |           4           | **US-ADM-06 (Bon de livraison)** |
-| **6. Catalogue & Stocks**       |    5     |           5           |                —                 |
-| **7. Clients & Tarifs Pro**     |    2     |           2           |                —                 |
-| **8. Dashboard & Rôles**        |    4     |           4           |                —                 |
-| **9. DevOps & Sécurité**        |    5     |           5           |                —                 |
-| **TOTAL**                       |  **34**  |        **33**         |          **1 en cours**          |
+| Épopée                                   | Total US | Réalisées (Terminées) |   En cours / Prochaines étapes   |
+| ---------------------------------------- | :------: | :-------------------: | :------------------------------: |
+| **1. Boutique Publique**                 |    7     |           7           |                —                 |
+| **2. Prise de Commande**                 |    3     |           3           |                —                 |
+| **3. Infos Légales & Histoire**          |    2     |           2           |   _(Contenu final /histoire)_    |
+| **4. Gestion des Commandes**             |    4     |           4           |                —                 |
+| **5. Facturation & Expédition**          |    8     |           7           | **US-ADM-06 (Bon de livraison)** |
+| **6. Catalogue & Stocks**                |    6     |           6           |                —                 |
+| **7. Clients & Tarifs Pro**              |    2     |           2           |                —                 |
+| **8. Dashboard & Rôles**                 |    4     |           4           |                —                 |
+| **9. DevOps & Sécurité**                 |    5     |           5           |                —                 |
+| **10. Promotions & Offres Commerciales** |    3     |           3           |                —                 |
+| **TOTAL**                                |  **44**  |        **43**         |          **1 en cours**          |

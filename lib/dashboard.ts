@@ -1,17 +1,19 @@
 import { ClientType, OrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { getSettings } from '@/lib/settings'
+import { getInvoicePaymentStatus } from '@/lib/money'
 
 /**
  * Agrégations du tableau de bord. Les commandes annulées sont exclues partout :
  * elles n'ont produit ni chiffre d'affaires ni travail de cave.
  */
 
-export type Periode = '1M' | '4M' | '6M' | '1A'
+export type Periode = '1M' | '4M' | '6M' | 'YTD' | '1A'
 
 export const PERIODES: { label: string; value: Periode }[] = [
-  { label: '1 mois', value: '1M' },
+  { label: '30 jours', value: '1M' },
   { label: '4 mois', value: '4M' },
-  { label: '6 mois', value: '6M' },
+  { label: 'Cette année', value: 'YTD' },
   { label: '1 an', value: '1A' },
 ]
 
@@ -22,6 +24,8 @@ export function periodStart(periode: Periode, from = new Date()): Date {
       return new Date(d.getFullYear(), d.getMonth() - 4, d.getDate())
     case '6M':
       return new Date(d.getFullYear(), d.getMonth() - 6, d.getDate())
+    case 'YTD':
+      return new Date(d.getFullYear(), 0, 1)
     case '1A':
       return new Date(d.getFullYear() - 1, d.getMonth(), d.getDate())
     default:
@@ -36,13 +40,36 @@ export type ChartBucket = {
   marginCents: number
 }
 
+export type OverdueInvoiceItem = {
+  id: string
+  numero: string
+  invoiceNumber: string | null
+  clientName: string
+  totalCents: number
+  daysOverdue: number
+  dueDate: Date
+  reminderCount: number
+}
+
 export type DashboardData = {
   revenueCents: number
+  previousRevenueCents: number
+  revenueTrend: number | null
   marginCents: number
+  previousMarginCents: number
+  marginTrend: number | null
   purchaseTotalCents: number
   shippedCount: number
   proShippedCount: number
+  paidRevenueCents: number
+  unpaidRevenueCents: number
+  overdueInvoiceCount: number
+  overdueTotalCents: number
+  overdueInvoices: OverdueInvoiceItem[]
   openOrders: number
+  pickupOrdersCount: number
+  shippingOrdersCount: number
+  missingTrackingCount: number
   urgentOrders: number
   bottlesToPick: number
   averageBasketCents: number
@@ -110,14 +137,30 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
   const notCancelled = { status: { not: OrderStatus.ANNULEE } }
   const urgentBefore = new Date(Date.now() + 2 * 24 * 3600 * 1000)
 
-  const [periodOrders, openOrders, previousItems, alerts, productCount] = await Promise.all([
+  const [
+    settings,
+    periodOrders,
+    openOrders,
+    previousOrders,
+    unpaidInvoicedOrders,
+    alerts,
+    productCount,
+  ] = await Promise.all([
+    getSettings(),
     prisma.order.findMany({
       where: { ...notCancelled, createdAt: { gte: since } },
       select: {
+        id: true,
+        numero: true,
         createdAt: true,
         clientType: true,
         totalCents: true,
         status: true,
+        paidAt: true,
+        invoicedAt: true,
+        invoiceNumber: true,
+        isPickup: true,
+        trackingNumber: true,
         items: {
           select: {
             productName: true,
@@ -132,16 +175,47 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
     prisma.order.findMany({
       where: { status: { in: [OrderStatus.A_TRAITER, OrderStatus.EN_PREPARATION] } },
       select: {
+        id: true,
+        numero: true,
         clientType: true,
         deliveryDate: true,
+        isPickup: true,
         items: { select: { quantity: true } },
       },
     }),
-    prisma.orderItem.findMany({
-      where: {
-        order: { ...notCancelled, createdAt: { gte: previousSince, lt: since } },
+    prisma.order.findMany({
+      where: { ...notCancelled, createdAt: { gte: previousSince, lt: since } },
+      select: {
+        status: true,
+        totalCents: true,
+        items: {
+          select: {
+            productName: true,
+            quantity: true,
+            purchasePriceCents: true,
+          },
+        },
       },
-      select: { productName: true, quantity: true },
+    }),
+    prisma.order.findMany({
+      where: {
+        ...notCancelled,
+        invoicedAt: { not: null },
+        paidAt: null,
+      },
+      select: {
+        id: true,
+        numero: true,
+        invoiceNumber: true,
+        clientName: true,
+        totalCents: true,
+        invoicedAt: true,
+        createdAt: true,
+        paidAt: true,
+        paymentMethod: true,
+        reminderCount: true,
+      },
+      orderBy: { invoicedAt: 'asc' },
     }),
     prisma.product.findMany({
       where: { archived: false, active: true },
@@ -151,16 +225,63 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
     prisma.product.count({ where: { archived: false, active: true } }),
   ])
 
-  // Indicateurs
+  // Indicateurs financiers sur la période
   const shipped = periodOrders.filter((o) => o.status === OrderStatus.EXPEDIEE)
   const revenueCents = shipped.reduce((n, o) => n + o.totalCents, 0)
-  // Calcul du coût d'achat total pour les commandes expédiées
+  const paidRevenueCents = shipped
+    .filter((o) => Boolean(o.paidAt))
+    .reduce((n, o) => n + o.totalCents, 0)
+  const unpaidRevenueCents = shipped.filter((o) => !o.paidAt).reduce((n, o) => n + o.totalCents, 0)
+
   const purchaseTotalCents = shipped.reduce(
     (total, o) =>
       total + o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0),
     0
   )
   const marginCents = revenueCents - purchaseTotalCents
+
+  // Comparatif avec la période précédente
+  const previousShipped = previousOrders.filter((o) => o.status === OrderStatus.EXPEDIEE)
+  const previousRevenueCents = previousShipped.reduce((n, o) => n + o.totalCents, 0)
+  const previousPurchaseTotalCents = previousShipped.reduce(
+    (total, o) =>
+      total + o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0),
+    0
+  )
+  const previousMarginCents = previousRevenueCents - previousPurchaseTotalCents
+
+  const revenueTrend =
+    previousRevenueCents > 0
+      ? Math.round(((revenueCents - previousRevenueCents) / previousRevenueCents) * 100)
+      : null
+
+  const marginTrend =
+    previousMarginCents > 0
+      ? Math.round(((marginCents - previousMarginCents) / previousMarginCents) * 100)
+      : null
+
+  // Suivi des factures impayées & retards
+  const overdueInvoices: OverdueInvoiceItem[] = unpaidInvoicedOrders
+    .map((order) => {
+      const status = getInvoicePaymentStatus(order, settings.paymentTermsDays)
+      return {
+        id: order.id,
+        numero: order.numero,
+        invoiceNumber: order.invoiceNumber,
+        clientName: order.clientName,
+        totalCents: order.totalCents,
+        daysOverdue: status.daysOverdue,
+        dueDate: status.dueDate,
+        reminderCount: order.reminderCount,
+      }
+    })
+    .filter((inv) => inv.daysOverdue > 0)
+    .sort((a, b) => b.daysOverdue - a.daysOverdue)
+
+  const overdueInvoiceCount = overdueInvoices.length
+  const overdueTotalCents = overdueInvoices.reduce((sum, inv) => sum + inv.totalCents, 0)
+
+  // Indicateurs logistiques & cave
   const proShippedCount = shipped.filter((o) => o.clientType === ClientType.PRO).length
   const averageBasketCents = shipped.length > 0 ? Math.round(revenueCents / shipped.length) : 0
   const bottlesToPick = openOrders.reduce(
@@ -169,6 +290,15 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
   )
   const urgentOrders = openOrders.filter(
     (o) => o.deliveryDate !== null && o.deliveryDate <= urgentBefore
+  ).length
+  const pickupOrdersCount = openOrders.filter((o) => o.isPickup).length
+  const shippingOrdersCount = openOrders.filter((o) => !o.isPickup).length
+
+  const missingTrackingCount = periodOrders.filter(
+    (o) =>
+      o.status === OrderStatus.EXPEDIEE &&
+      !o.isPickup &&
+      (!o.trackingNumber || o.trackingNumber.trim() === '')
   ).length
 
   // Série du graphique : chiffre d'affaires expédié, réparti privé / pro
@@ -182,14 +312,22 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
       proCents: inBucket
         .filter((o) => o.clientType === ClientType.PRO)
         .reduce((n, o) => n + o.totalCents, 0),
-      marginCents: inBucket.reduce((n, o) => n + (o.totalCents - o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0)), 0),
+      marginCents: inBucket.reduce(
+        (n, o) =>
+          n +
+          (o.totalCents -
+            o.items.reduce((sum, item) => sum + item.purchasePriceCents * item.quantity, 0)),
+        0
+      ),
     }
   })
 
   // Meilleures ventes, avec tendance sur la période précédente de même durée
   const previousQty = new Map<string, number>()
-  for (const item of previousItems) {
-    previousQty.set(item.productName, (previousQty.get(item.productName) ?? 0) + item.quantity)
+  for (const order of previousOrders) {
+    for (const item of order.items) {
+      previousQty.set(item.productName, (previousQty.get(item.productName) ?? 0) + item.quantity)
+    }
   }
 
   const sales = new Map<string, { category: string; quantity: number; revenueCents: number }>()
@@ -222,11 +360,23 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
 
   return {
     revenueCents,
+    previousRevenueCents,
+    revenueTrend,
     marginCents,
+    previousMarginCents,
+    marginTrend,
     purchaseTotalCents,
     shippedCount: shipped.length,
     proShippedCount,
+    paidRevenueCents,
+    unpaidRevenueCents,
+    overdueInvoiceCount,
+    overdueTotalCents,
+    overdueInvoices,
     openOrders: openOrders.length,
+    pickupOrdersCount,
+    shippingOrdersCount,
+    missingTrackingCount,
     urgentOrders,
     bottlesToPick,
     averageBasketCents,

@@ -20,6 +20,8 @@ import {
   ParametresIcon,
   UserIcon,
   LogoutIcon,
+  PromoIcon,
+  FacturesIcon,
 } from '@/components/admin/AdminIcons'
 
 const NAV_LINKS = [
@@ -45,6 +47,13 @@ const NAV_LINKS = [
     capability: () => true,
   },
   {
+    href: '/admin/factures',
+    label: 'Factures',
+    icon: FacturesIcon,
+    exact: false,
+    capability: can.seeFinancials,
+  },
+  {
     href: '/admin/clients',
     label: 'Clients',
     icon: ClientsIcon,
@@ -57,6 +66,13 @@ const NAV_LINKS = [
     icon: ProduitsIcon,
     exact: false,
     capability: () => true,
+  },
+  {
+    href: '/admin/promotions',
+    label: 'Offres & Promos',
+    icon: PromoIcon,
+    exact: false,
+    capability: can.manageCatalogue,
   },
   {
     href: '/admin/categories',
@@ -100,25 +116,32 @@ export function AdminSidebar({ user }: { user: any }) {
       {/* Barre supérieure mobile */}
       <div className="md:hidden flex items-center justify-between p-4 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white print:hidden">
         <div className="font-display font-semibold text-sm leading-tight">Cidrerie du Vulcain</div>
-        <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 focus:outline-none">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {isOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 -mr-2 focus:outline-none"
+            aria-label="Menu de navigation"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Overlay mobile */}

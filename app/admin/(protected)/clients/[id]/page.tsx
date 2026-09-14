@@ -8,6 +8,7 @@ import { can } from '@/lib/permissions'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
 import { CustomerDetailForm } from '@/components/admin/CustomerDetailForm'
+import { CheckIcon, AlertCircleIcon } from '@/components/admin/AdminIcons'
 
 export const dynamic = 'force-dynamic'
 
@@ -183,7 +184,11 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                           : `${unpaidOrders.length} facture(s) · ${formatCHF(unpaidAmount)}`}
                       </span>
                     </div>
-                    <span className="text-xl">{unpaidOrders.length === 0 ? '✓' : '⚠️'}</span>
+                    {unpaidOrders.length === 0 ? (
+                      <CheckIcon className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    ) : (
+                      <AlertCircleIcon className="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0" />
+                    )}
                   </div>
                 </div>
               )}

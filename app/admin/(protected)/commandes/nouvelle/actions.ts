@@ -81,7 +81,14 @@ export async function createManualOrder(input: CreateManualOrderInput) {
       const productIds = input.items.map((i) => i.productId)
       const dbProducts = await tx.product.findMany({
         where: { id: { in: productIds } },
-        select: { id: true, name: true, priceCents: true, purchasePriceCents: true, stock: true },
+        select: {
+          id: true,
+          name: true,
+          priceCents: true,
+          purchasePriceCents: true,
+          stock: true,
+          bottlesPerUnit: true,
+        },
       })
       const productMap = new Map(dbProducts.map((p) => [p.id, p]))
 
@@ -108,6 +115,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           purchasePriceCents: prod.purchasePriceCents,
           unitPriceCents: appliedPrice,
           quantity: item.quantity,
+          bottlesPerUnit: prod.bottlesPerUnit || 1,
           currentStock: prod.stock,
         }
       })
@@ -183,6 +191,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
               purchasePriceCents: l.purchasePriceCents,
               unitPriceCents: l.unitPriceCents,
               quantity: l.quantity,
+              bottlesPerUnit: l.bottlesPerUnit || 1,
             })),
           },
         },

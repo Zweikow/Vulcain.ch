@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTheme } from '@/components/ThemeProvider'
+import { SunIcon, MoonIcon } from '@/components/admin/AdminIcons'
 
 export default function Header() {
   const { theme, toggle } = useTheme()
@@ -198,6 +199,30 @@ export default function Header() {
                 </Link>
               )
             })}
+
+            {/* Bascule Mode Sombre / Mode Clair dans le menu mobile */}
+            <div className="border-t border-gray-200 dark:border-white/10 mt-3 pt-3 px-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
+                Thème d&apos;affichage
+              </span>
+              <button
+                onClick={toggle}
+                type="button"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border dark:border-border-dark text-xs font-semibold text-text-primary dark:text-text-primary-dark hover:bg-primary/10 transition-colors"
+              >
+                {isDark ? (
+                  <>
+                    <SunIcon className="w-4 h-4 text-amber-400" />
+                    <span>Mode clair</span>
+                  </>
+                ) : (
+                  <>
+                    <MoonIcon className="w-4 h-4 text-primary" />
+                    <span>Mode sombre</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

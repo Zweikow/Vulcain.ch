@@ -11,6 +11,7 @@ import {
 } from '@/app/admin/(protected)/produits/actions'
 import { chfInputToCents, formatCHF, proUnitPriceCents } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
+import { CloseIcon, LeafIcon, SproutIcon } from '@/components/admin/AdminIcons'
 
 export type AdminProduct = {
   id: string
@@ -25,6 +26,8 @@ export type AdminProduct = {
   purchasePriceCents: number
   stock: number
   stockSeuil: number
+  bottlesPerUnit: number
+  compareAtPriceCents: number | null
   active: boolean
   isBio: boolean
   isVegan: boolean
@@ -67,11 +70,15 @@ export default function AdminProductModal({
     bottleSize: (product?.bottleSize as '75cl' | '27.5cl') ?? '75cl',
     origin: (product?.origin as 'CH' | 'FR') ?? 'CH',
     priceChf: product ? String(product.priceCents / 100) : '',
+    compareAtPriceChf: product?.compareAtPriceCents
+      ? String(product.compareAtPriceCents / 100)
+      : '',
     purchasePriceChf: product ? String(product.purchasePriceCents / 100) : '',
     // Chaînes et non nombres : un champ vide reste vide, au lieu d'afficher un
     // zéro devant lequel la saisie viendrait s'ajouter (« 01500 »).
     stock: product ? String(product.stock) : '',
     stockSeuil: product ? String(product.stockSeuil) : '5',
+    bottlesPerUnit: product ? String(product.bottlesPerUnit) : '1',
     description: product?.description ?? '',
     imageUrl: product?.imageUrl ?? '',
     active: product?.active ?? true,
@@ -115,9 +122,11 @@ export default function AdminProductModal({
       origin: form.origin,
       description: form.description,
       priceCents,
+      compareAtPriceCents: form.compareAtPriceChf ? chfInputToCents(form.compareAtPriceChf) : null,
       purchasePriceCents: chfInputToCents(form.purchasePriceChf),
       stock: Number(form.stock),
       stockSeuil: Number(form.stockSeuil),
+      bottlesPerUnit: Math.max(1, parseInt(form.bottlesPerUnit) || 1),
       active: form.active,
       isBio: form.isBio,
       isVegan: form.isVegan,
@@ -196,10 +205,10 @@ export default function AdminProductModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-primary dark:hover:text-text-primary-dark transition-colors"
+            className="text-text-tertiary dark:text-text-tertiary-dark hover:text-text-primary dark:hover:text-text-primary-dark transition-colors p-1"
             aria-label="Fermer"
           >
-            ✕
+            <CloseIcon className="w-4 h-4" />
           </button>
         </div>
 
@@ -364,8 +373,8 @@ export default function AdminProductModal({
             </div>
           </div>
 
-          {/* Prix d'achat + Prix public + Prix pro dérivé */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Prix d'achat + Prix public + Prix d'origine barré + Prix pro dérivé */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix d&apos;achat (CHF)
@@ -398,6 +407,33 @@ export default function AdminProductModal({
               />
             </div>
             <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                  Prix barré (CHF)
+                </label>
+                {form.compareAtPriceChf &&
+                  Number(form.compareAtPriceChf) > Number(form.priceChf) && (
+                    <span className="text-[10px] font-bold text-accent-rose-dark dark:text-accent-rose">
+                      -
+                      {Math.round(
+                        (1 - Number(form.priceChf) / Number(form.compareAtPriceChf)) * 100
+                      )}
+                      %
+                    </span>
+                  )}
+              </div>
+              <input
+                type="number"
+                step="0.05"
+                min="0"
+                className="input-field tabular"
+                placeholder="Ex: 28.00"
+                value={form.compareAtPriceChf}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => update('compareAtPriceChf', e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
                 Prix pro (−{proRatePercent}%)
               </label>
@@ -411,11 +447,64 @@ export default function AdminProductModal({
             </div>
           </div>
 
+          {/* Bouteilles par unité vendue */}
+          <div className="flex flex-col gap-1.5 p-3 rounded-md bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-text-primary dark:text-text-primary-dark">
+                Bouteilles par unité vendue (+1 boutique)
+              </label>
+              <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-medium">
+                {form.bottlesPerUnit === '1'
+                  ? '1 bouteille standard'
+                  : `Carton de ${form.bottlesPerUnit} bouteilles`}
+              </span>
+            </div>
+            <p className="text-[11px] text-text-secondary dark:text-text-secondary-dark leading-normal">
+              1 par défaut. Pour un carton (ex: offre estivale 24x27.5cl), indiquez le nombre de
+              bouteilles incluses dans chaque unité ajoutée au panier.
+            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              {[
+                { label: '1 bout. (standard)', val: '1' },
+                { label: 'Carton de 6', val: '6' },
+                { label: 'Carton de 12', val: '12' },
+                { label: 'Carton de 24 (estivale)', val: '24' },
+              ].map((preset) => (
+                <button
+                  key={preset.val}
+                  type="button"
+                  onClick={() => update('bottlesPerUnit', preset.val)}
+                  className={`px-2.5 py-1 text-xs rounded-md border font-medium transition-colors ${
+                    form.bottlesPerUnit === preset.val
+                      ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20 font-semibold'
+                      : 'border-border dark:border-border-dark text-text-secondary dark:text-text-secondary-dark hover:bg-bg-card dark:hover:bg-bg-card-dark'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+              <div className="flex items-center gap-1.5 ml-auto">
+                <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                  Personnalisé :
+                </span>
+                <input
+                  type="number"
+                  min="1"
+                  className="input-field tabular w-16 h-8 text-center"
+                  value={form.bottlesPerUnit}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => update('bottlesPerUnit', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Stock + Seuil d'alerte */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-                Stock
+                Stock (
+                {form.bottlesPerUnit === '1' ? 'bouteilles' : `cartons de ${form.bottlesPerUnit}`})
               </label>
               <input
                 type="number"
@@ -526,7 +615,7 @@ export default function AdminProductModal({
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
                   <span>Certifié Bio</span>
-                  <span className="text-[10px] opacity-70">🌱</span>
+                  <LeafIcon className="w-3.5 h-3.5 text-emerald-600" />
                 </label>
                 <button
                   type="button"
@@ -547,7 +636,7 @@ export default function AdminProductModal({
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
                   <span>Certifié Vegan</span>
-                  <span className="text-[10px] opacity-70">🌿</span>
+                  <SproutIcon className="w-3.5 h-3.5 text-emerald-500" />
                 </label>
                 <button
                   type="button"

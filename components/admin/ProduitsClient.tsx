@@ -9,6 +9,7 @@ import {
 import { formatCHF, proUnitPriceCents } from '@/lib/money'
 import { useRouter } from 'next/navigation'
 import { OriginBadge } from '@/components/OriginBadge'
+import { AlertCircleIcon, LeafIcon, SproutIcon } from '@/components/admin/AdminIcons'
 
 type Row = AdminProduct & {
   categoryName: string
@@ -123,7 +124,7 @@ export function ProduitsClient({
 
       {stockBasCount > 0 && (
         <div className="flex items-center gap-3 bg-[#FFF8E1] dark:bg-[#3d2a0a] border border-[#FFB300] dark:border-[#FF9800]/40 rounded-lg px-4 py-3 mb-6 text-sm text-text-warning dark:text-[#FF9800]">
-          <span>⚠️</span>
+          <AlertCircleIcon className="w-5 h-5 shrink-0 text-[#FF9800]" />
           <span>
             <span className="font-semibold">
               {stockBasCount} produit{stockBasCount > 1 ? 's' : ''}
@@ -195,13 +196,24 @@ export function ProduitsClient({
                           </span>
                         )}
                         {p.isBio && (
-                          <span className="ml-2" title="Certifié Bio">
-                            🌱
+                          <span
+                            className="ml-2 inline-flex items-center text-emerald-600"
+                            title="Certifié Bio"
+                          >
+                            <LeafIcon className="w-3.5 h-3.5" />
                           </span>
                         )}
                         {p.isVegan && (
-                          <span className="ml-1" title="Certifié Vegan">
-                            🌿
+                          <span
+                            className="ml-1 inline-flex items-center text-emerald-500"
+                            title="Certifié Vegan"
+                          >
+                            <SproutIcon className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                        {p.bottlesPerUnit > 1 && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-accent-navy/10 dark:bg-accent-navy/40 text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark">
+                            Carton {p.bottlesPerUnit} bout.
                           </span>
                         )}
                       </div>
@@ -215,8 +227,17 @@ export function ProduitsClient({
                     </td>
                     {showMoney && (
                       <>
-                        <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
-                          {formatCHF(p.priceCents)}
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-text-primary dark:text-text-primary-dark font-medium">
+                              {formatCHF(p.priceCents)}
+                            </span>
+                            {p.compareAtPriceCents && p.compareAtPriceCents > p.priceCents && (
+                              <span className="text-[10px] line-through text-text-tertiary dark:text-text-tertiary-dark font-mono">
+                                {formatCHF(p.compareAtPriceCents)}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-right text-accent-mauve-dark dark:text-accent-mauve">
                           {formatCHF(proUnitPriceCents(p.priceCents, proRatePercent))}

@@ -9,6 +9,13 @@ import {
   updateTrackingAction,
   updatePickupAction,
 } from '@/app/admin/(protected)/commandes/[id]/actions'
+import {
+  TruckIcon,
+  MailIcon,
+  CloseIcon,
+  SendIcon,
+  FacturesIcon,
+} from '@/components/admin/AdminIcons'
 
 interface EmailLog {
   id: string
@@ -141,7 +148,8 @@ export default function OrderEmailActions({
       <div className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-            <span>🚚</span> Expédition & Transporteur
+            <TruckIcon className="w-4 h-4 text-primary dark:text-primary-dark" /> Expédition &
+            Transporteur
           </h2>
           {dpdUrl && (
             <a
@@ -214,7 +222,8 @@ export default function OrderEmailActions({
       {/* 2. Bloc Actions Rapides Emails & Historique */}
       <div className="card p-5">
         <h2 className="font-medium text-text-primary dark:text-text-primary-dark mb-3 flex items-center gap-2">
-          <span>✉️</span> Notifications & Emails ({orderNumber} — {clientEmail})
+          <MailIcon className="w-4 h-4 text-primary dark:text-primary-dark" /> Notifications &
+          Emails ({orderNumber} — {clientEmail})
         </h2>
 
         {feedback && (
@@ -228,9 +237,9 @@ export default function OrderEmailActions({
             <span>{feedback.message}</span>
             <button
               onClick={() => setFeedback(null)}
-              className="text-xs opacity-70 hover:opacity-100"
+              className="text-xs opacity-70 hover:opacity-100 p-0.5 rounded"
             >
-              ✕
+              <CloseIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -243,7 +252,7 @@ export default function OrderEmailActions({
             disabled={isPending}
             className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5"
           >
-            <span>📨</span> Renvoyer confirmation
+            <SendIcon className="w-3.5 h-3.5" /> Renvoyer confirmation
           </button>
 
           <button
@@ -252,7 +261,7 @@ export default function OrderEmailActions({
             disabled={isPending}
             className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5 border-primary/40 text-primary dark:text-primary-dark font-medium"
           >
-            <span>🧾</span> Envoyer facture au client
+            <FacturesIcon className="w-3.5 h-3.5" /> Envoyer facture au client
           </button>
 
           <button
@@ -261,7 +270,8 @@ export default function OrderEmailActions({
             disabled={isPending}
             className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5"
           >
-            <span>🚚</span> Renvoyer avis {isPickup ? 'de retrait' : "d'expédition"}
+            <TruckIcon className="w-3.5 h-3.5" /> Renvoyer avis{' '}
+            {isPickup ? 'de retrait' : "d'expédition"}
           </button>
         </div>
 

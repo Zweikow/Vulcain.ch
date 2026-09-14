@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { ClientType, OrderStatus } from '@prisma/client'
 import { formatInvoiceAmount } from '@/lib/money'
 import { SwissQRBill } from '@/components/admin/SwissQRBill'
+import { CheckIcon } from '@/components/admin/AdminIcons'
 
 // Le document est du papier : couleurs fixes, indépendantes du thème sombre.
 
@@ -34,11 +35,13 @@ type FactureOrder = {
     id: string
     productName: string
     quantity: number
+    bottlesPerUnit?: number
     unitPriceCents: number
     listPriceCents: number
     product: {
       articleNumber: number
       bottleSize?: string | null
+      bottlesPerUnit?: number
     }
   }[]
 }
@@ -75,8 +78,37 @@ function getCartonCounts(
   quantity: number,
   bottleSize?: string | null,
   productName?: string,
-  unitPriceCents?: number
+  unitPriceCents?: number,
+  bottlesPerUnit: number = 1
 ) {
+  if (bottlesPerUnit === 24) {
+    return {
+      c24: quantity,
+      c6: null,
+      c12: null,
+      bottles: quantity * 24,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+  if (bottlesPerUnit === 12) {
+    return {
+      c24: null,
+      c6: null,
+      c12: quantity,
+      bottles: quantity * 12,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+  if (bottlesPerUnit === 6) {
+    return {
+      c24: null,
+      c6: quantity,
+      c12: null,
+      bottles: quantity * 6,
+      displayPriceCents: unitPriceCents,
+    }
+  }
+
   // Détection d'un pack estival historique (1 pack = 3 cartons de 24 = 72 bouteilles)
   const isSummerPack =
     productName?.includes('Pack Été 3 cartons') || productName?.includes('3 cartons (2+1')
@@ -144,7 +176,10 @@ export function FactureDocument({
   const handFill = 'border border-[#D8DEE6] px-2 py-1 bg-[#FCFCFA]'
 
   return (
-    <article className="facture-page bg-white text-[#153243]">
+    <article
+      className="facture-page bg-white text-[#153243]"
+      style={{ colorScheme: 'only light', forcedColorAdjust: 'none' } as React.CSSProperties}
+    >
       <div className="facture-body">
         {/* En-tête : expéditeur à gauche, logo à droite */}
         <header className="flex items-start justify-between gap-8">
@@ -223,7 +258,8 @@ export function FactureDocument({
           )}
           {order.paidAt && (
             <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
-              ✓ Facture acquittée {order.paymentMethod ? `(${order.paymentMethod})` : ''}
+              <CheckIcon className="w-3 h-3 text-green-700 inline" /> Facture acquittée{' '}
+              {order.paymentMethod ? `(${order.paymentMethod})` : ''}
             </span>
           )}
         </div>
@@ -243,11 +279,13 @@ export function FactureDocument({
           </thead>
           <tbody>
             {order.items.map((item) => {
+              const bpu = item.bottlesPerUnit ?? (item.product as any)?.bottlesPerUnit ?? 1
               const cartons = getCartonCounts(
                 item.quantity,
-                item.product?.bottleSize,
+                item.product.bottleSize,
                 item.productName,
-                item.unitPriceCents
+                item.unitPriceCents,
+                bpu
               )
               const isFreeItem = item.unitPriceCents === 0
               return (
@@ -353,9 +391,12 @@ export function FactureDocument({
             <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
             <p>{settings.bankName}</p>
             {order.paidAt ? (
-              <p className="mt-1 font-semibold text-green-700">
-                ✓ Facture acquittée le {longDate.format(new Date(order.paidAt))}
-                {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+              <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
+                <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
+                <span>
+                  Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                  {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+                </span>
               </p>
             ) : (
               <p className="mt-1 font-medium">

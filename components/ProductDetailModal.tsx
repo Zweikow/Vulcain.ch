@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
+import { CloseIcon, LeafIcon, SproutIcon, GiftIcon } from '@/components/Icons'
 
 interface ProductDetailModalProps {
   product: Product
@@ -17,10 +18,24 @@ export default function ProductDetailModal({
   quantity,
   onAdd,
   onRemove,
-  onSetQuantity,
+  onSetQuantity: _onSetQuantity,
   onClose,
 }: ProductDetailModalProps) {
   const isOutOfStock = product.stock === 0
+  const promo = product.activePromotion
+  let effectivePriceCents = product.priceCents
+  let effectiveOrigPriceCents: number | null = null
+
+  if (promo?.type === 'PERCENTAGE' && promo.discountPercent) {
+    effectivePriceCents = Math.round(product.priceCents * (1 - promo.discountPercent / 100))
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (promo?.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+    effectivePriceCents = Math.max(0, product.priceCents - promo.discountCents)
+    effectiveOrigPriceCents = product.compareAtPriceCents || product.priceCents
+  } else if (product.compareAtPriceCents && product.compareAtPriceCents > product.priceCents) {
+    effectivePriceCents = product.priceCents
+    effectiveOrigPriceCents = product.compareAtPriceCents
+  }
 
   return (
     <div
@@ -37,7 +52,7 @@ export default function ProductDetailModal({
           className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-text-primary dark:text-text-primary-dark backdrop-blur-sm"
           aria-label="Fermer"
         >
-          ✕
+          <CloseIcon className="w-4 h-4" />
         </button>
 
         {/* Left side: Image */}
@@ -84,13 +99,13 @@ export default function ProductDetailModal({
               </span>
             )}
             {product.isBio && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <span>🌱</span> Bio
+              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
+                <LeafIcon className="w-3.5 h-3.5 text-emerald-600" /> Bio
               </span>
             )}
             {product.isVegan && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <span>🌿</span> Vegan
+              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
+                <SproutIcon className="w-3.5 h-3.5 text-emerald-500" /> Vegan
               </span>
             )}
           </div>
@@ -103,12 +118,69 @@ export default function ProductDetailModal({
               <OriginBadge origin={product.origin} showLabel className="w-4 h-4" />
               <span>·</span>
               <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
+              {product.bottlesPerUnit > 1 && (
+                <>
+                  <span>·</span>
+                  <span className="font-semibold text-text-primary dark:text-text-primary-dark">
+                    Carton de {product.bottlesPerUnit} bouteilles
+                  </span>
+                </>
+              )}
             </div>
             <span>{product.category}</span>
           </div>
 
-          <div className="font-semibold text-2xl text-primary mb-6">
-            {formatCHF(product.priceCents)}
+          {/* Prix & Promotion */}
+          <div className="mb-6 flex flex-col gap-1">
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-3xl text-primary tabular">
+                {formatCHF(
+                  product.bottlesPerUnit > 1
+                    ? Math.round(effectivePriceCents / product.bottlesPerUnit)
+                    : effectivePriceCents
+                )}
+              </span>
+              <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
+                / bouteille
+              </span>
+            </div>
+
+            {effectiveOrigPriceCents && (
+              <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark tabular">
+                au lieu de{' '}
+                <span className="line-through">
+                  {formatCHF(
+                    product.bottlesPerUnit > 1
+                      ? Math.round(effectiveOrigPriceCents / product.bottlesPerUnit)
+                      : effectiveOrigPriceCents
+                  )}
+                </span>{' '}
+                {product.bottlesPerUnit > 1 && (
+                  <span>(soit {formatCHF(effectiveOrigPriceCents)} le carton)</span>
+                )}
+              </div>
+            )}
+
+            {product.bottlesPerUnit > 1 && (
+              <div className="text-sm font-semibold text-text-primary dark:text-text-primary-dark mt-1 tabular">
+                Total : {formatCHF(effectivePriceCents)} / carton de {product.bottlesPerUnit}{' '}
+                bouteilles
+              </div>
+            )}
+
+            {product.activePromotion && (
+              <div className="mt-2 p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 text-xs text-text-primary dark:text-text-primary-dark flex items-center gap-2">
+                <GiftIcon className="w-4 h-4 text-primary shrink-0" />
+                <div>
+                  <span className="font-bold">{product.activePromotion.name}</span>
+                  {product.activePromotion.description && (
+                    <p className="text-[11px] text-text-secondary dark:text-text-secondary-dark">
+                      {product.activePromotion.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Add to cart / Quantity */}
@@ -128,19 +200,9 @@ export default function ProductDetailModal({
                     >
                       −
                     </button>
-                    <input
-                      type="number"
-                      min="0"
-                      max={product.stock}
-                      value={quantity === 0 ? '' : quantity}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0
-                        onSetQuantity(Math.min(val, product.stock))
-                      }}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="0"
-                      className="w-12 h-full text-center text-base font-semibold text-text-primary dark:text-text-primary-dark bg-transparent border-none p-0 focus:ring-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none tabular-nums"
-                    />
+                    <span className="px-3 text-sm font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[70px] text-center">
+                      {quantity} {product.bottlesPerUnit > 1 ? 'carton(s)' : 'bouteille(s)'}
+                    </span>
                     <button
                       onClick={onAdd}
                       disabled={quantity >= product.stock}

@@ -96,7 +96,8 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
 
   return (
     <div
-      className="swiss-qr-bill-container w-[210mm] h-[105mm] select-none"
+      className="swiss-qr-bill-container w-[210mm] h-[105mm] select-none bg-white"
+      style={{ colorScheme: 'only light', forcedColorAdjust: 'none' } as React.CSSProperties}
       dangerouslySetInnerHTML={{ __html: svgMarkup }}
     />
   )

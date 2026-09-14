@@ -6,6 +6,7 @@ import { getSettings } from '@/lib/settings'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { SearchClients } from '@/components/admin/SearchClients'
+import { CheckIcon } from '@/components/admin/AdminIcons'
 
 export const dynamic = 'force-dynamic'
 
@@ -368,8 +369,9 @@ export default async function ClientsPage({
                           En attente
                         </span>
                       ) : c.orders.length > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                          <span>✓</span>À jour
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                          <CheckIcon className="w-3.5 h-3.5" />
+                          <span>À jour</span>
                         </span>
                       ) : (
                         <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">

@@ -102,7 +102,11 @@ export async function POST(request: NextRequest) {
           purchasePriceCents: true,
           stock: true,
           bottleSize: true,
+          bottlesPerUnit: true,
           category: { select: { name: true } },
+          promotions: {
+            where: { active: true },
+          },
         },
       })
       const byId = new Map(products.map((p) => [p.id, p]))
@@ -116,6 +120,7 @@ export async function POST(request: NextRequest) {
         purchasePriceCents: number
         unitPriceCents: number
         quantity: number
+        bottlesPerUnit: number
       }[] = []
 
       for (const item of data.items) {
@@ -129,38 +134,84 @@ export async function POST(request: NextRequest) {
             ? proUnitPriceCents(product.priceCents, effectiveProRate)
             : product.priceCents
 
-        // Offre estivale : pour les 27.5cl / Evervescence / Offre Estivale, 1 carton (24 bout.) offert par tranche de 3 cartons (72 bout.)
-        const isSummerOffer =
-          product.bottleSize === '27.5cl' ||
-          product.name.includes('Evervescence') ||
-          product.category?.name === 'Offre Estivale'
+        const promo = product.promotions?.[0]
+        const bottlesPerUnit = product.bottlesPerUnit || 1
 
-        const freeBottles = isSummerOffer ? Math.floor(item.quantity / 72) * 24 : 0
-        const paidBottles = item.quantity - freeBottles
+        if (
+          promo &&
+          promo.type === 'BUY_X_GET_Y_FREE' &&
+          promo.buyQuantity &&
+          promo.getFreeQuantity
+        ) {
+          const sets = Math.floor(item.quantity / promo.buyQuantity)
+          const freeUnits = sets * promo.getFreeQuantity
+          const paidUnits = item.quantity - freeUnits
 
-        if (paidBottles > 0) {
+          if (paidUnits > 0) {
+            orderItemsToCreate.push({
+              productId: product.id,
+              productName: product.name,
+              listPriceCents: product.priceCents,
+              purchasePriceCents: product.purchasePriceCents,
+              unitPriceCents,
+              quantity: paidUnits,
+              bottlesPerUnit,
+            })
+            subtotalCents += unitPriceCents * paidUnits
+            discountCents += (product.priceCents - unitPriceCents) * paidUnits
+          }
+
+          if (freeUnits > 0) {
+            orderItemsToCreate.push({
+              productId: product.id,
+              productName: `${product.name} — ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
+              listPriceCents: product.priceCents,
+              purchasePriceCents: product.purchasePriceCents,
+              unitPriceCents: 0,
+              quantity: freeUnits,
+              bottlesPerUnit,
+            })
+            discountCents += product.priceCents * freeUnits
+          }
+        } else if (promo && promo.type === 'PERCENTAGE' && promo.discountPercent) {
+          const discountPerUnit = Math.round(unitPriceCents * (promo.discountPercent / 100))
+          const effectivePrice = unitPriceCents - discountPerUnit
+          orderItemsToCreate.push({
+            productId: product.id,
+            productName: `${product.name} (${promo.name} -${promo.discountPercent}%)`,
+            listPriceCents: product.priceCents,
+            purchasePriceCents: product.purchasePriceCents,
+            unitPriceCents: effectivePrice,
+            quantity: item.quantity,
+            bottlesPerUnit,
+          })
+          subtotalCents += effectivePrice * item.quantity
+          discountCents += (product.priceCents - effectivePrice) * item.quantity
+        } else if (promo && promo.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+          const effectivePrice = Math.max(0, unitPriceCents - promo.discountCents)
+          orderItemsToCreate.push({
+            productId: product.id,
+            productName: `${product.name} (${promo.name})`,
+            listPriceCents: product.priceCents,
+            purchasePriceCents: product.purchasePriceCents,
+            unitPriceCents: effectivePrice,
+            quantity: item.quantity,
+            bottlesPerUnit,
+          })
+          subtotalCents += effectivePrice * item.quantity
+          discountCents += (product.priceCents - effectivePrice) * item.quantity
+        } else {
           orderItemsToCreate.push({
             productId: product.id,
             productName: product.name,
             listPriceCents: product.priceCents,
             purchasePriceCents: product.purchasePriceCents,
             unitPriceCents,
-            quantity: paidBottles,
+            quantity: item.quantity,
+            bottlesPerUnit,
           })
-          subtotalCents += unitPriceCents * paidBottles
-          discountCents += (product.priceCents - unitPriceCents) * paidBottles
-        }
-
-        if (freeBottles > 0) {
-          orderItemsToCreate.push({
-            productId: product.id,
-            productName: `${product.name} — Offre estivale (carton offert)`,
-            listPriceCents: product.priceCents,
-            purchasePriceCents: product.purchasePriceCents,
-            unitPriceCents: 0,
-            quantity: freeBottles,
-          })
-          discountCents += product.priceCents * freeBottles
+          subtotalCents += unitPriceCents * item.quantity
+          discountCents += (product.priceCents - unitPriceCents) * item.quantity
         }
       }
 
