@@ -24,13 +24,22 @@ export default $config({
     })
 
     // 2. Configuration du domaine selon l'environnement (Stage)
-    let domain
+    let domain: { name: string; redirects?: string[] } | undefined
     if ($app.stage === 'production') {
-      domain = 'production.cidrerie-vulcain.ch' // À terme, on mettra "cidrerie-vulcain.ch"
+      domain = {
+        name: 'production.cidrerie-vulcain.ch',
+        redirects: ['www.production.cidrerie-vulcain.ch'],
+      }
     } else if ($app.stage === 'sandbox') {
-      domain = 'sandbox.cidrerie-vulcain.ch'
+      domain = {
+        name: 'sandbox.cidrerie-vulcain.ch',
+        redirects: ['www.sandbox.cidrerie-vulcain.ch'],
+      }
     } else if ($app.stage === 'dev') {
-      domain = 'dev.cidrerie-vulcain.ch'
+      domain = {
+        name: 'dev.cidrerie-vulcain.ch',
+        redirects: ['www.dev.cidrerie-vulcain.ch'],
+      }
     }
 
     // 3. Application Next.js avec OpenNext
@@ -51,7 +60,7 @@ export default $config({
         ADMIN_BASE_URL: process.env.ADMIN_BASE_URL || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',
         AUTH_TRUST_HOST: 'true',
-        AUTH_URL: domain ? `https://${domain}` : '',
+        AUTH_URL: domain ? `https://${domain.name}` : '',
         NEXT_PUBLIC_COMMIT_SHA:
           process.env.CI_COMMIT_SHORT_SHA || process.env.NEXT_PUBLIC_COMMIT_SHA || '',
         NEXT_PUBLIC_STAGE: $app.stage,

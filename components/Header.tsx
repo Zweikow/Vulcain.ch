@@ -35,7 +35,7 @@ export default function Header() {
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex flex-col">
               <span className="font-display font-semibold text-lg leading-tight text-text-primary dark:text-text-primary-dark">
-                Cidrerie de Vulcain
+                Cidrerie du Vulcain
               </span>
             </Link>
           </div>

@@ -23,9 +23,9 @@ export const SITE_CONFIG = {
   legalName: 'Vulcano Distribution',
   distributorDescription:
     'Raison individuelle Vulcano Distribution, distribution officielle des cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz).',
-  title: 'Cidrerie du Vulcain — Cidres & Poirés Artisanaux du Terroir Fribourgeois',
+  title: 'Cidrerie du Vulcain — Cidres & Poirés Artisanaux',
   description:
-    'Découvrez et commandez en ligne les cidres et poirés d’exception de la Cidrerie du Vulcain (Jacques Perritaz), distribués par Vulcano Distribution. Fermentation lente 100% levures indigènes, pur jus de fruits sauvages et variétés anciennes de Suisse.',
+    'Cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
   keywords: [
     'Cidrerie du Vulcain',
     'Jacques Perritaz',
