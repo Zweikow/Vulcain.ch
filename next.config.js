@@ -30,6 +30,15 @@ const expiresHeader = new Date(Date.now() + 31536000 * 1000).toUTCString()
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
+  },
   async redirects() {
     return [
       {
