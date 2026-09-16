@@ -27,6 +27,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           select: {
             id: true,
             numero: true,
+            clientType: true,
             invoiceNumber: true,
             status: true,
             totalCents: true,
@@ -50,6 +51,12 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   ])
 
   if (!customer) notFound()
+
+  // La première commande est la plus ancienne de l'historique
+  const sortedAscOrders = [...customer.orders].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  )
+  const firstOrder = sortedAscOrders.find((o) => o.status !== 'ANNULEE') ?? null
 
   const validOrders = customer.orders.filter((o) => o.status !== 'ANNULEE')
   const totalSpent = validOrders.reduce((sum, o) => sum + o.totalCents, 0)
@@ -135,6 +142,17 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               updatedAt: customer.updatedAt,
               ordersCount: customer.orders.length,
             }}
+            firstOrder={
+              firstOrder
+                ? {
+                    id: firstOrder.id,
+                    numero: firstOrder.numero,
+                    clientType: firstOrder.clientType,
+                    totalCents: firstOrder.totalCents,
+                    status: firstOrder.status,
+                  }
+                : null
+            }
             globalProRate={settings.proRatePercent}
             canManage={canManage}
           />

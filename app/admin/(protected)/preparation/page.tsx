@@ -1,11 +1,8 @@
 import { OrderStatus } from '@prisma/client'
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { formatCHF } from '@/lib/money'
-import { StatusBadge } from '@/components/admin/StatusBadge'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
-import { advanceStatus } from './actions'
+import { PreparationOrdersList } from '@/components/admin/PreparationOrdersList'
 
 const NEXT_ACTION: Partial<Record<OrderStatus, string>> = {
   A_TRAITER: 'Passer en préparation',
@@ -93,86 +90,12 @@ export default async function PreparationPage() {
             </ul>
           </section>
 
-          {/* Cartes de commandes */}
-          <section className="flex flex-col gap-4">
-            {orders.map((order) => (
-              <article key={order.id} className="card p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <Link
-                      href={`/admin/commandes/${order.id}`}
-                      className="font-mono text-sm font-semibold text-text-primary dark:text-text-primary-dark hover:underline"
-                    >
-                      {order.numero}
-                    </Link>
-                    <StatusBadge status={order.status} />
-                    {order.clientType === 'PRO' && (
-                      <span className="rounded-pill bg-accent-mauve-dark px-2.5 py-0.5 text-xs font-semibold text-white">
-                        Pro
-                      </span>
-                    )}
-                  </div>
-                  {showMoney && (
-                    <span className="tabular text-sm font-bold text-text-primary dark:text-text-primary-dark">
-                      {formatCHF(order.totalCents)}
-                    </span>
-                  )}
-                </div>
-
-                <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
-                  {order.clientName} · {order.npa} {order.city}
-                  {order.deliveryDate && (
-                    <>
-                      {' '}
-                      · livraison souhaitée le{' '}
-                      {new Date(order.deliveryDate).toLocaleDateString('fr-CH')}
-                    </>
-                  )}
-                </p>
-
-                {/* Articles en pastilles lisibles à distance */}
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {order.items.map((item) => {
-                    const bpu = item.bottlesPerUnit || 1
-                    return (
-                      <li
-                        key={item.id}
-                        className="rounded-pill bg-bg-page dark:bg-bg-page-dark px-3 py-1.5 text-sm font-medium text-text-primary dark:text-text-primary-dark"
-                      >
-                        <span className="font-bold">{item.quantity}</span>
-                        {bpu > 1
-                          ? ` carton${item.quantity > 1 ? 's' : ''} (${item.quantity * bpu} bout.)`
-                          : ' ×'}{' '}
-                        {item.productName}
-                      </li>
-                    )
-                  })}
-                </ul>
-
-                {order.message && (
-                  <p className="mt-3 rounded-md bg-[#FFF8E1] dark:bg-[#3d2a0a] px-3 py-2 text-sm text-text-warning dark:text-[#FF9800]">
-                    {order.message}
-                  </p>
-                )}
-
-                <div className="mt-4 flex justify-end gap-2">
-                  <Link
-                    href={
-                      showMoney
-                        ? `/admin/commandes/${order.id}/facture`
-                        : `/admin/commandes/${order.id}`
-                    }
-                    className="btn-secondary text-sm"
-                  >
-                    {showMoney ? 'Voir la facture' : 'Voir le détail'}
-                  </Link>
-                  <form action={advanceStatus.bind(null, order.id)}>
-                    <button className="btn-primary text-sm">{NEXT_ACTION[order.status]}</button>
-                  </form>
-                </div>
-              </article>
-            ))}
-          </section>
+          {/* Liste interactive des commandes avec sélection et export Planzer */}
+          <PreparationOrdersList
+            orders={orders}
+            showMoney={showMoney}
+            nextActionLabels={NEXT_ACTION}
+          />
         </div>
       )}
     </div>

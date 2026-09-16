@@ -6,7 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { recordAudit } from '@/lib/audit'
-import { AuditAction, AuditTargetType } from '@prisma/client'
+import { AuditAction, AuditTargetType, ClientType } from '@prisma/client'
+import { recalculateOrderPricing } from '@/lib/order-pricing'
 
 export interface UpdateCustomerInput {
   firstName: string
@@ -19,12 +20,13 @@ export interface UpdateCustomerInput {
   isPro: boolean
   proRatePercent?: number | null
   notes?: string | null
+  updateFirstOrder?: boolean
 }
 
 export async function updateCustomerAction(
   id: string,
   input: UpdateCustomerInput
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; updatedOrderNumero?: string }> {
   const guard = await assertCapability(can.manageCustomers)
   if (!guard.ok) return { success: false, error: guard.error }
 
@@ -109,10 +111,39 @@ export async function updateCustomerAction(
         : `Mise à jour fiche client ${updated.firstName} ${updated.lastName}`
     )
 
+    // Si le client est passé en PRO, mettre à jour automatiquement sa première commande
+    let updatedOrderNumero: string | undefined
+
+    if (input.isPro && input.updateFirstOrder !== false) {
+      const firstOrder = await prisma.order.findFirst({
+        where: {
+          customerId: id,
+          clientType: ClientType.PRIVE,
+          status: { not: 'ANNULEE' },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, numero: true },
+      })
+
+      if (firstOrder) {
+        await recalculateOrderPricing(firstOrder.id, {
+          targetType: ClientType.PRO,
+          proRatePercent: cleanRate,
+          updateCustomer: false,
+        })
+        updatedOrderNumero = firstOrder.numero
+
+        revalidatePath(`/admin/commandes/${firstOrder.id}`)
+        revalidatePath(`/admin/commandes/${firstOrder.id}/facture`)
+        revalidatePath('/admin/commandes')
+        revalidatePath('/admin/factures')
+      }
+    }
+
     revalidatePath('/admin/clients')
     revalidatePath(`/admin/clients/${id}`)
     revalidatePath('/admin/commandes/nouvelle')
-    return { success: true }
+    return { success: true, updatedOrderNumero }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Erreur lors de la mise à jour' }
   }

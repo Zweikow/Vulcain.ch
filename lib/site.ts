@@ -23,7 +23,7 @@ export const SITE_CONFIG = {
   legalName: 'Drinkcider',
   distributorDescription:
     'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz).',
-  title: 'Drinkcider — La passion du cidre & du poiré',
+  title: 'Drinkcider avec passion',
   description:
     'Cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
   keywords: [

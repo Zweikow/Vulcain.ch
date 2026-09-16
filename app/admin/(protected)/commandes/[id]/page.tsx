@@ -5,15 +5,19 @@ import { formatCHF } from '@/lib/money'
 import { getSettings } from '@/lib/settings'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { PrintButton } from '@/components/admin/PrintButton'
+import { PlanzerExportButton } from '@/components/admin/PlanzerExportButton'
 import { OrderCancel } from '@/components/admin/OrderCancel'
 import { AssignSelect } from '@/components/admin/AssignSelect'
 import OrderEmailActions from '@/components/admin/OrderEmailActions'
 import { OrderPaymentPanel } from '@/components/admin/OrderPaymentPanel'
+import { OrderProToggle } from '@/components/admin/OrderProToggle'
+import { currentUser } from '@/lib/guards'
+import { can } from '@/lib/permissions'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [order, users, settings] = await Promise.all([
+  const [order, users, settings, user] = await Promise.all([
     prisma.order.findUnique({
       where: { id },
       include: {
@@ -31,7 +35,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       orderBy: { name: 'asc' },
     }),
     getSettings(),
+    currentUser(),
   ])
+
+  const canManage = user ? can.manageCustomers(user.role) || can.seeFinancials(user.role) : false
 
   if (!order) notFound()
 
@@ -73,6 +80,13 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {!order.isPickup && (
+            <PlanzerExportButton
+              orderId={order.id}
+              orderNumero={order.numero}
+              isPickup={order.isPickup}
+            />
+          )}
           <Link href={`/admin/commandes/${order.id}/facture`} className="btn-primary text-sm">
             Voir la facture
           </Link>
@@ -140,12 +154,17 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             ) : (
               order.clientName
             )}
-            {order.customer?.isPro && (
-              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                PRO (
-                {order.proRatePercent ?? order.customer.proRatePercent ?? settings.proRatePercent}%)
-              </span>
-            )}
+          </dd>
+
+          <dt className="text-text-secondary dark:text-text-secondary-dark">Statut tarifaire</dt>
+          <dd className="text-text-primary dark:text-text-primary-dark">
+            <OrderProToggle
+              orderId={order.id}
+              clientType={order.clientType}
+              isCustomerPro={Boolean(order.customer?.isPro)}
+              proRatePercent={order.customer?.proRatePercent ?? settings.proRatePercent}
+              canManage={canManage}
+            />
           </dd>
 
           <dt className="text-text-secondary dark:text-text-secondary-dark">Email</dt>

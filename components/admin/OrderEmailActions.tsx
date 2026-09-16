@@ -142,25 +142,53 @@ export default function OrderEmailActions({
       ? `https://tracking.dpd.de/status/fr_CH/parcel/${encodeURIComponent(tracking.trim())}`
       : null
 
+  const planzerUrl =
+    tracking && carrier.toUpperCase().includes('PLANZER')
+      ? `https://www.planzer.ch/fr/suivi-des-envois/?shipment=${encodeURIComponent(tracking.trim())}`
+      : null
+
   return (
     <div className="flex flex-col gap-6">
-      {/* 1. Bloc Paramètres de transport (DPD & Retrait cave) */}
+      {/* 1. Bloc Paramètres de transport (Planzer, DPD & Retrait cave) */}
       <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
             <TruckIcon className="w-4 h-4 text-primary dark:text-primary-dark" /> Expédition &
             Transporteur
           </h2>
-          {dpdUrl && (
-            <a
-              href={dpdUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-semibold text-primary dark:text-primary-dark hover:underline flex items-center gap-1"
-            >
-              Suivre le colis DPD en direct ↗
-            </a>
-          )}
+          <div className="flex items-center gap-3">
+            {!isPickup && (
+              <a
+                href={`/api/admin/export-planzer?orderId=${encodeURIComponent(orderId)}`}
+                download
+                className="btn-secondary text-xs px-2.5 py-1 inline-flex items-center gap-1.5"
+                title="Télécharger le fichier CSV officiel Planzer pour cette commande"
+              >
+                <TruckIcon className="w-3.5 h-3.5" />
+                CSV Planzer
+              </a>
+            )}
+            {dpdUrl && (
+              <a
+                href={dpdUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-primary dark:text-primary-dark hover:underline flex items-center gap-1"
+              >
+                Suivre sur DPD ↗
+              </a>
+            )}
+            {planzerUrl && (
+              <a
+                href={planzerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-primary dark:text-primary-dark hover:underline flex items-center gap-1"
+              >
+                Suivre sur Planzer ↗
+              </a>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSaveTracking} className="flex flex-col gap-4 text-sm">
@@ -170,9 +198,12 @@ export default function OrderEmailActions({
               id="isPickup"
               checked={isPickup}
               onChange={(e) => setIsPickup(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
             />
-            <label htmlFor="isPickup" className="text-text-primary dark:text-text-primary-dark">
+            <label
+              htmlFor="isPickup"
+              className="text-text-primary dark:text-text-primary-dark cursor-pointer"
+            >
               <strong>Retrait convenu à la cave</strong> (convenu par téléphone ou client pro)
             </label>
           </div>
@@ -180,21 +211,47 @@ export default function OrderEmailActions({
           {!isPickup && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-                  Transporteur
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                    Transporteur
+                  </label>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setCarrier('Planzer')}
+                      className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                        carrier.toUpperCase().includes('PLANZER')
+                          ? 'bg-primary text-white border-primary'
+                          : 'border-border hover:bg-primary/10'
+                      }`}
+                    >
+                      Planzer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCarrier('DPD')}
+                      className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                        carrier.toUpperCase().includes('DPD')
+                          ? 'bg-primary text-white border-primary'
+                          : 'border-border hover:bg-primary/10'
+                      }`}
+                    >
+                      DPD
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={carrier}
                   onChange={(e) => setCarrier(e.target.value)}
-                  placeholder="ex: DPD"
+                  placeholder="ex: Planzer ou DPD"
                   className="input w-full text-sm"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-                  Numéro de colis DPD (Tracking)
+                  Numéro de suivi (Tracking)
                 </label>
                 <input
                   type="text"
