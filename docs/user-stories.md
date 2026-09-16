@@ -281,15 +281,15 @@
 - [x] Mention du numéro de facture et de commande dans les informations de paiement.
 - [x] Lignes de découpe avec icônes ciseaux conformes pour l'impression A4.
 
-### US-ADM-29 — Mention de Vulcano Distribution en en-tête de facture
+### US-ADM-29 — Mention de Drinkcider en en-tête de facture
 
 **En tant que** gérant et comptable de la structure,  
-**je veux** que le nom commercial officiel « Vulcano Distribution » apparaisse distinctement tout en haut à gauche des factures émises,  
+**je veux** que le nom commercial officiel « Drinkcider » apparaisse distinctement tout en haut à gauche des factures émises,  
 **afin de** refléter fidèlement la structure de distribution auprès des clients et des autorités fiscales.
 
 **Critères d'acceptation :**
 
-- [x] Remplacement de l'en-tête par défaut par « Vulcano Distribution » en haut à gauche du document A4.
+- [x] Remplacement de l'en-tête par défaut par « Drinkcider » en haut à gauche du document A4.
 - [x] Conservation des coordonnées bancaires et légales du créancier (Bertrand Baeriswyl / IBAN PostFinance) pour la QR-facture officielle.
 
 ### US-ADM-32 — Système complet d'emails transactionnels, suivi DPD et envoi de factures
@@ -590,11 +590,11 @@
 
 **Critères d'acceptation :**
 
-- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Vulcano Distribution.
+- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Drinkcider.
 - [x] Balises Open Graph et Twitter Cards pour des aperçus visuels enrichis lors du partage de liens (WhatsApp, iMessage, LinkedIn, etc.).
 - [x] Fichier `robots.txt` dynamique interdisant l'exploration des répertoires `/admin` et `/api`.
 - [x] Fichier `sitemap.xml` dynamique listant les routes publiques avec priorités et fréquences de mise à jour.
-- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Vulcano Distribution) et `Product` (offres en CHF, stocks).
+- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Drinkcider) et `Product` (offres en CHF, stocks).
 - [x] Modèle de titres dynamique (`%s | Cidrerie du Vulcain`) et URL canonique automatique.
 
 ---

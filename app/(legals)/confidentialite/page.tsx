@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Protection des Données (nLPD)',
   description:
-    'Politique de protection des données personnelles (nLPD) de la Cidrerie du Vulcain et Vulcano Distribution.',
+    'Politique de protection des données personnelles (nLPD) de la Cidrerie du Vulcain et Drinkcider.',
 }
 
 export default function ConfidentialitePage() {
@@ -111,8 +111,8 @@ export default function ConfidentialitePage() {
         <strong>E-mail :</strong>{' '}
         <a href="mailto:commandes@cidrerie-vulcain.ch">commandes@cidrerie-vulcain.ch</a>
         <br />
-        <strong>Adresse postale :</strong> Bertrand Baeriswyl, Distribution Cidrerie du Vulcain CH,
-        Chemin des Moilles 16, 1619 Les Paccots
+        <strong>Adresse postale :</strong> Bertrand Baeriswyl, Drinkcider, Chemin des Moilles 16,
+        1619 Les Paccots
       </p>
     </>
   )

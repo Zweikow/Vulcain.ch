@@ -43,7 +43,17 @@ export default async function FacturePage({
       where: { id },
       include: {
         customer: { select: { customerNumber: true } },
-        items: { include: { product: { select: { articleNumber: true, bottleSize: true } } } },
+        items: {
+          include: {
+            product: {
+              select: {
+                articleNumber: true,
+                bottleSize: true,
+                bottlesPerUnit: true,
+              },
+            },
+          },
+        },
       },
     }),
     getSettings(),

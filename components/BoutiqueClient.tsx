@@ -259,7 +259,7 @@ export default function BoutiqueClient({
 
           <div className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/60">
             <div>
-              <p>© 2026 Cidrerie du Vulcain · Distribution par Vulcano Distribution</p>
+              <p>© 2026 Cidrerie du Vulcain · Distribution par Drinkcider</p>
               {process.env.NEXT_PUBLIC_COMMIT_SHA && (
                 <p className="mt-0.5 font-mono text-[11px] text-white/40">
                   version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}

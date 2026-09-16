@@ -280,7 +280,7 @@ model Setting {
   iban            String @default("CH57 0900 0000 1703 3189 6")
   // En-tête et pied de la facture papier (modèle Facture_Base.docx)
   contactName      String @default("Bertrand Baeriswyl") // signataire de la facture
-  companyTagline   String @default("Vulcano Distribution")
+  companyTagline   String @default("Drinkcider")
   companyZipCity   String @default("1619 Les Paccots")
   invoicePlace     String @default("Les Paccots") // « Les Paccots, le … »
   bankName         String @default("PostFinance AG")

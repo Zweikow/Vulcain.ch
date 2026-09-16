@@ -79,48 +79,53 @@ function getCartonCounts(
   bottleSize?: string | null,
   productName?: string,
   unitPriceCents?: number,
-  bottlesPerUnit: number = 1
+  bottlesPerUnit: number = 1,
+  listPriceCents?: number
 ) {
-  if (bottlesPerUnit === 24) {
-    return {
-      c24: quantity,
-      c6: null,
-      c12: null,
-      bottles: quantity * 24,
-      displayPriceCents: unitPriceCents,
-    }
-  }
-  if (bottlesPerUnit === 12) {
-    return {
-      c24: null,
-      c6: null,
-      c12: quantity,
-      bottles: quantity * 12,
-      displayPriceCents: unitPriceCents,
-    }
-  }
-  if (bottlesPerUnit === 6) {
-    return {
-      c24: null,
-      c6: quantity,
-      c12: null,
-      bottles: quantity * 6,
-      displayPriceCents: unitPriceCents,
-    }
-  }
-
   // Détection d'un pack estival historique (1 pack = 3 cartons de 24 = 72 bouteilles)
   const isSummerPack =
     productName?.includes('Pack Été 3 cartons') || productName?.includes('3 cartons (2+1')
   if (isSummerPack) {
     const totalBottles = 72 * quantity
-    const bottlePrice = Math.round(unitPriceCents ? unitPriceCents / 48 : 360)
+    const bottlePrice = Math.round(unitPriceCents ? unitPriceCents / 72 : 360)
     return {
       c24: 3 * quantity,
       c6: null,
       c12: null,
       bottles: totalBottles,
       displayPriceCents: bottlePrice,
+      displayListPriceCents: listPriceCents ? Math.round(listPriceCents / 72) : 360,
+    }
+  }
+
+  // Si le produit est vendu par carton / lot (ex: Effervescence ou toute future offre en carton)
+  const nameLower = (productName ?? '').toLowerCase()
+  const detectedBpu =
+    nameLower.includes('24x') || nameLower.includes('24×') || nameLower.includes('24 bout')
+      ? 24
+      : nameLower.includes('12x') || nameLower.includes('12×') || nameLower.includes('12 bout')
+        ? 12
+        : nameLower.includes('6x') || nameLower.includes('6×') || nameLower.includes('6 bout')
+          ? 6
+          : nameLower.includes('effervescence') || nameLower.includes('evervescence')
+            ? 24
+            : 1
+
+  const effectiveBpu = bottlesPerUnit > 1 ? bottlesPerUnit : detectedBpu
+
+  if (effectiveBpu > 1) {
+    const c24 = effectiveBpu === 24 ? quantity : null
+    const c12 = effectiveBpu === 12 ? quantity : null
+    const c6 = effectiveBpu === 6 ? quantity : null
+    return {
+      c24,
+      c6,
+      c12,
+      bottles: quantity * effectiveBpu,
+      displayPriceCents:
+        unitPriceCents != null ? Math.round(unitPriceCents / effectiveBpu) : undefined,
+      displayListPriceCents:
+        listPriceCents != null ? Math.round(listPriceCents / effectiveBpu) : undefined,
     }
   }
 
@@ -128,7 +133,8 @@ function getCartonCounts(
     bottleSize === '27.5cl' ||
     bottleSize === '33cl' ||
     productName?.includes('27.5') ||
-    productName?.includes('Evervescence')
+    productName?.includes('Evervescence') ||
+    productName?.includes('Effervescence')
 
   if (isSmallBottle) {
     const c24 = Math.floor(quantity / 24)
@@ -138,6 +144,7 @@ function getCartonCounts(
       c12: null,
       bottles: quantity,
       displayPriceCents: unitPriceCents,
+      displayListPriceCents: listPriceCents,
     }
   }
 
@@ -155,7 +162,14 @@ function getCartonCounts(
     c6 = Math.floor(quantity / 6)
   }
 
-  return { c24: null, c6, c12, bottles: quantity, displayPriceCents: unitPriceCents }
+  return {
+    c24: null,
+    c6,
+    c12,
+    bottles: quantity,
+    displayPriceCents: unitPriceCents,
+    displayListPriceCents: listPriceCents,
+  }
 }
 
 export function FactureDocument({
@@ -203,8 +217,8 @@ export function FactureDocument({
               <div className="text-[12px] leading-relaxed">
                 <p className="font-bold text-[13px] tracking-tight">
                   {settings.companyTagline === 'Cidrerie du Vulcain'
-                    ? 'Vulcano Distribution'
-                    : settings.companyTagline || 'Vulcano Distribution'}
+                    ? 'Drinkcider'
+                    : settings.companyTagline || 'Drinkcider'}
                 </p>
                 <p className="font-medium">{settings.contactName}</p>
                 <p>{settings.companyAddress}</p>
@@ -288,7 +302,7 @@ export function FactureDocument({
                 <tr className="bg-[#F7F6F0] text-left text-[10px] font-semibold uppercase tracking-[.04em]">
                   <th className={`${cellBase} w-[22%]`}>Cuvée</th>
                   <th className={`${cellBase} w-[12%] text-center font-medium`}>
-                    Cartons 24×33 cl
+                    Cartons 24×27.5 cl
                   </th>
                   <th className={`${cellBase} w-[12%] text-center font-medium`}>Cartons 6×75 cl</th>
                   <th className={`${cellBase} w-[12%] text-center font-medium`}>
@@ -307,7 +321,8 @@ export function FactureDocument({
                     item.product.bottleSize,
                     item.productName,
                     item.unitPriceCents,
-                    bpu
+                    bpu,
+                    item.listPriceCents
                   )
                   const isFreeItem = item.unitPriceCents === 0
                   return (
@@ -329,7 +344,9 @@ export function FactureDocument({
                           <>
                             {isPro && item.listPriceCents !== item.unitPriceCents && (
                               <span className="mr-1.5 text-[#7A95A5] line-through">
-                                {formatInvoiceAmount(item.listPriceCents)}
+                                {formatInvoiceAmount(
+                                  cartons.displayListPriceCents ?? item.listPriceCents
+                                )}
                               </span>
                             )}
                             {formatInvoiceAmount(cartons.displayPriceCents ?? item.unitPriceCents)}
@@ -489,8 +506,8 @@ export function FactureDocument({
               <div className="text-[12px] leading-relaxed">
                 <p className="font-bold text-[13px] tracking-tight">
                   {settings.companyTagline === 'Cidrerie du Vulcain'
-                    ? 'Vulcano Distribution'
-                    : settings.companyTagline || 'Vulcano Distribution'}
+                    ? 'Drinkcider'
+                    : settings.companyTagline || 'Drinkcider'}
                 </p>
                 <p className="font-medium text-[#4A6278]">{settings.contactName}</p>
                 <p className="text-[#7A95A5] text-[11px]">
@@ -648,8 +665,8 @@ export function FactureDocument({
           <div className="text-[12px] leading-relaxed">
             <p className="font-bold text-[13px] tracking-tight">
               {settings.companyTagline === 'Cidrerie du Vulcain'
-                ? 'Vulcano Distribution'
-                : settings.companyTagline || 'Vulcano Distribution'}
+                ? 'Drinkcider'
+                : settings.companyTagline || 'Drinkcider'}
             </p>
             <p className="font-medium">{settings.contactName}</p>
             <p>{settings.companyAddress}</p>
@@ -730,7 +747,7 @@ export function FactureDocument({
           <thead>
             <tr className="bg-[#F7F6F0] text-left text-[10px] font-semibold uppercase tracking-[.04em]">
               <th className={`${cellBase} w-[22%]`}>Cuvée</th>
-              <th className={`${cellBase} w-[12%] text-center font-medium`}>Cartons 24×33 cl</th>
+              <th className={`${cellBase} w-[12%] text-center font-medium`}>Cartons 24×27.5 cl</th>
               <th className={`${cellBase} w-[12%] text-center font-medium`}>Cartons 6×75 cl</th>
               <th className={`${cellBase} w-[12%] text-center font-medium`}>Cartons 12×75 cl</th>
               <th className={`${cellBase} w-[12%] text-right`}>Bouteilles</th>
@@ -746,7 +763,8 @@ export function FactureDocument({
                 item.product.bottleSize,
                 item.productName,
                 item.unitPriceCents,
-                bpu
+                bpu,
+                item.listPriceCents
               )
               const isFreeItem = item.unitPriceCents === 0
               return (
@@ -768,7 +786,9 @@ export function FactureDocument({
                       <>
                         {isPro && item.listPriceCents !== item.unitPriceCents && (
                           <span className="mr-1.5 text-[#7A95A5] line-through">
-                            {formatInvoiceAmount(item.listPriceCents)}
+                            {formatInvoiceAmount(
+                              cartons.displayListPriceCents ?? item.listPriceCents
+                            )}
                           </span>
                         )}
                         {formatInvoiceAmount(cartons.displayPriceCents ?? item.unitPriceCents)}
