@@ -25,18 +25,128 @@ const securityHeaders = [
   },
 ]
 
+// Date d'expiration HTTP/1.0 1 an dans le futur pour les en-têtes Expires exigés par les analyseurs SEO
+const expiresHeader = new Date(Date.now() + 31536000 * 1000).toUTCString()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
+  },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.drinkcider.ch' }],
+        destination: 'https://drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sandbox.drinkcider.ch' }],
+        destination: 'https://sandbox.drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dev.drinkcider.ch' }],
+        destination: 'https://dev.drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.cidrerie-vulcain.ch' }],
+        destination: 'https://drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'cidrerie-vulcain.ch' }],
+        destination: 'https://drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sandbox.cidrerie-vulcain.ch' }],
+        destination: 'https://sandbox.cidrerie-vulcain.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.production.cidrerie-vulcain.ch' }],
+        destination: 'https://production.cidrerie-vulcain.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dev.cidrerie-vulcain.ch' }],
+        destination: 'https://dev.cidrerie-vulcain.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.vulcain.ch' }],
+        destination: 'https://vulcain.ch/:path*',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
         source: '/:path*',
         headers: securityHeaders,
       },
+      {
+        source: '/:all*(svg|jpg|jpeg|png|webp|avif|ico|gif|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Expires',
+            value: expiresHeader,
+          },
+        ],
+      },
+      {
+        source: '/facture/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Expires',
+            value: expiresHeader,
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Expires',
+            value: expiresHeader,
+          },
+        ],
+      },
     ]
   },
   images: {
     unoptimized: true,
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',

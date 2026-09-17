@@ -155,3 +155,31 @@ export async function updatePickupAction(
     return { success: false, error: err?.message || 'Erreur lors de la mise à jour' }
   }
 }
+
+export async function toggleOrderProAction(
+  orderId: string
+): Promise<{ success: boolean; error?: string; isPro?: boolean }> {
+  const guard = await assertCapability((role) => can.manageOrders(role) || can.seeFinancials(role))
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  try {
+    const { recalculateOrderPricing } = await import('@/lib/order-pricing')
+    const { ClientType } = await import('@prisma/client')
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { clientType: true },
+    })
+    if (!order) return { success: false, error: 'Commande introuvable' }
+
+    const targetType = order.clientType === ClientType.PRO ? ClientType.PRIVE : ClientType.PRO
+    await recalculateOrderPricing(orderId, { targetType, updateCustomer: true })
+
+    revalidate(orderId)
+    revalidatePath(`/admin/commandes/${orderId}/facture`)
+
+    return { success: true, isPro: targetType === ClientType.PRO }
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erreur lors du recalcul' }
+  }
+}

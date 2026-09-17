@@ -1,14 +1,12 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { formatCHF } from '@/lib/money'
 import { getSettings } from '@/lib/settings'
-import { StatusBadge } from '@/components/admin/StatusBadge'
-import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
 import { OrderStatus } from '@prisma/client'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { SearchCommandes } from '@/components/admin/SearchCommandes'
 import { Suspense } from 'react'
+import { CommandesTableWithSelection } from '@/components/admin/CommandesTableWithSelection'
 
 type FilterValue = 'TOUTES' | OrderStatus | 'IMPAYEES' | 'EN_RETARD'
 
@@ -213,104 +211,12 @@ export default async function CommandesPage({
         </Suspense>
       </div>
 
-      {/* Table */}
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark">
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                N°
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Client
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Email
-              </th>
-              {showMoney && (
-                <>
-                  <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                    Total
-                  </th>
-                  <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                    Paiement
-                  </th>
-                </>
-              )}
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Statut
-              </th>
-              <th className="text-left px-4 py-3 font-medium text-text-secondary dark:text-text-secondary-dark">
-                Date
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {commandes.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={showMoney ? 7 : 5}
-                  className="px-4 py-8 text-center text-text-tertiary dark:text-text-tertiary-dark"
-                >
-                  Aucune commande
-                </td>
-              </tr>
-            ) : (
-              commandes.map((order) => (
-                <tr
-                  key={order.id}
-                  className="border-b border-border dark:border-border-dark last:border-0 hover:bg-bg-page/50 dark:hover:bg-bg-page-dark/50 cursor-pointer"
-                >
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/commandes/${order.id}`}
-                      className="font-mono text-xs text-primary hover:underline"
-                    >
-                      {order.numero}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark">
-                    <Link href={`/admin/commandes/${order.id}`} className="hover:underline">
-                      {order.clientName}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
-                    {order.clientEmail}
-                  </td>
-                  {showMoney && (
-                    <>
-                      <td className="px-4 py-3 text-text-primary dark:text-text-primary-dark font-medium">
-                        {formatCHF(order.totalCents)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <PaymentStatusBadge
-                          paidAt={order.paidAt}
-                          paymentMethod={order.paymentMethod}
-                          invoicedAt={order.invoicedAt}
-                          createdAt={order.createdAt}
-                          reminderCount={order.reminderCount}
-                          paymentTermsDays={settings.paymentTermsDays}
-                        />
-                      </td>
-                    </>
-                  )}
-                  <td className="px-4 py-3">
-                    <StatusBadge status={order.status} />
-                    {order.assignedTo && (
-                      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark mt-1">
-                        Prep: {order.assignedTo.name}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
-                    {new Date(order.createdAt).toLocaleDateString('fr-CH')}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Table avec sélection multiple et export Planzer */}
+      <CommandesTableWithSelection
+        commandes={commandes}
+        showMoney={showMoney}
+        settings={settings}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

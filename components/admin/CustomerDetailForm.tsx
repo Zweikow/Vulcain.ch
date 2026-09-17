@@ -22,12 +22,20 @@ interface CustomerDetailFormProps {
     updatedAt: Date | string
     ordersCount: number
   }
+  firstOrder?: {
+    id: string
+    numero: string
+    clientType: string
+    totalCents: number
+    status: string
+  } | null
   globalProRate: number
   canManage: boolean
 }
 
 export function CustomerDetailForm({
   customer,
+  firstOrder,
   globalProRate,
   canManage,
 }: CustomerDetailFormProps) {
@@ -84,7 +92,14 @@ export function CustomerDetailForm({
       })
 
       if (res.success) {
-        setFeedback({ type: 'success', message: 'Fiche client mise à jour avec succès.' })
+        if (res.updatedOrderNumero) {
+          setFeedback({
+            type: 'success',
+            message: `Fiche client mise à jour avec succès. La première commande (${res.updatedOrderNumero}) et sa facture ont été automatiquement recalculées au tarif professionnel.`,
+          })
+        } else {
+          setFeedback({ type: 'success', message: 'Fiche client mise à jour avec succès.' })
+        }
         router.refresh()
       } else {
         setFeedback({ type: 'error', message: res.error || 'Erreur lors de la mise à jour.' })
@@ -152,6 +167,32 @@ export function CustomerDetailForm({
             </div>
           </label>
 
+          {/* Info dynamique sur la 1ère commande */}
+          {isPro && firstOrder && firstOrder.clientType === 'PRIVE' && (
+            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
+              <span className="text-purple-600 dark:text-purple-400 font-bold text-sm leading-none mt-0.5">
+                ⚡
+              </span>
+              <div>
+                <p className="font-semibold text-purple-950 dark:text-purple-100">
+                  Mise à jour automatique de la première commande
+                </p>
+                <p className="mt-0.5 text-purple-800 dark:text-purple-300">
+                  La première commande <strong>{firstOrder.numero}</strong> passée en tant que
+                  particulier et sa facture seront automatiquement recalculées aux conditions
+                  professionnelles (remise B2B appliquée et frais de port offerts).
+                </p>
+              </div>
+            </div>
+          )}
+
+          {firstOrder && firstOrder.clientType === 'PRO' && (
+            <p className="text-[11px] text-purple-700 dark:text-purple-400 pl-7">
+              ✓ La première commande ({firstOrder.numero}) bénéficie déjà des conditions
+              professionnelles.
+            </p>
+          )}
+
           {isPro && (
             <div className="pl-7 pt-2 border-t border-border dark:border-border-dark space-y-2">
               <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
@@ -185,9 +226,7 @@ export function CustomerDetailForm({
                 </span>
               </div>
               <p className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark">
-                Laissez vide pour utiliser le taux standard par défaut ({globalProRate}%). Toute
-                modification s&apos;appliquera à ses prochaines commandes sans altérer les factures
-                déjà émises.
+                Laissez vide pour utiliser le taux standard par défaut ({globalProRate}%).
               </p>
             </div>
           )}

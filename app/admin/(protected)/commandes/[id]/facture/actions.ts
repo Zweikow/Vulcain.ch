@@ -5,10 +5,9 @@ import { AuditAction, ClientType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
-import { getSettings } from '@/lib/settings'
 import { issueInvoice } from '@/lib/invoices'
 import { recordAudit } from '@/lib/audit'
-import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
+import { recalculateOrderPricing } from '@/lib/order-pricing'
 
 /**
  * Émet la facture : lui attribue son numéro de série FAC. Geste volontaire —
@@ -49,64 +48,19 @@ export async function toggleClientType(orderId: string) {
   const guard = await assertCapability(can.seeFinancials)
   if (!guard.ok) return
 
-  const settings = await getSettings()
-
-  await prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
-    })
-    if (!order) return
-
-    const isPro = order.clientType !== ClientType.PRO
-
-    let subtotalCents = 0
-    let discountCents = 0
-    for (const item of order.items) {
-      const unitPriceCents = isPro
-        ? proUnitPriceCents(item.listPriceCents, settings.proRatePercent)
-        : item.listPriceCents
-      subtotalCents += unitPriceCents * item.quantity
-      discountCents += (item.listPriceCents - unitPriceCents) * item.quantity
-      await tx.orderItem.update({ where: { id: item.id }, data: { unitPriceCents } })
-    }
-
-    const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
-    const totalCents = subtotalCents + shippingCents
-
-    await tx.order.update({
-      where: { id: orderId },
-      data: {
-        clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
-        subtotalCents,
-        discountCents,
-        shippingCents,
-        totalCents,
-        vatCents: orderVatCents(totalCents, settings),
-      },
-    })
-
-    if (order.customerId) {
-      await tx.customer.update({ where: { id: order.customerId }, data: { isPro } })
-    }
-  })
-
-  const after = await prisma.order.findUnique({
+  const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { numero: true, clientType: true },
+    select: { clientType: true },
   })
-  if (after) {
-    await recordAudit(
-      AuditAction.TARIF_BASCULE,
-      { type: 'COMMANDE', id: orderId, label: after.numero },
-      after.clientType === ClientType.PRO
-        ? 'Particulier → Professionnel'
-        : 'Professionnel → Particulier'
-    )
-  }
+  if (!order) return
+
+  const targetType = order.clientType === ClientType.PRO ? ClientType.PRIVE : ClientType.PRO
+  await recalculateOrderPricing(orderId, { targetType, updateCustomer: true })
 
   revalidatePath(`/admin/commandes/${orderId}/facture`)
   revalidatePath(`/admin/commandes/${orderId}`)
+  revalidatePath('/admin/commandes')
+  revalidatePath('/admin/factures')
   revalidatePath('/admin/preparation')
   revalidatePath('/admin')
 }

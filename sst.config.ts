@@ -24,13 +24,22 @@ export default $config({
     })
 
     // 2. Configuration du domaine selon l'environnement (Stage)
-    let domain
+    let domain: { name: string; redirects?: string[] } | undefined
     if ($app.stage === 'production') {
-      domain = 'production.cidrerie-vulcain.ch' // À terme, on mettra "cidrerie-vulcain.ch"
+      domain = {
+        name: 'drinkcider.ch',
+        redirects: ['www.drinkcider.ch'],
+      }
     } else if ($app.stage === 'sandbox') {
-      domain = 'sandbox.cidrerie-vulcain.ch'
+      domain = {
+        name: 'sandbox.drinkcider.ch',
+        redirects: ['www.sandbox.drinkcider.ch'],
+      }
     } else if ($app.stage === 'dev') {
-      domain = 'dev.cidrerie-vulcain.ch'
+      domain = {
+        name: 'dev.drinkcider.ch',
+        redirects: ['www.dev.drinkcider.ch'],
+      }
     }
 
     // 3. Application Next.js avec OpenNext
@@ -46,12 +55,12 @@ export default $config({
       environment: {
         DATABASE_URL: process.env.DATABASE_URL || '',
         AUTH_SECRET: process.env.AUTH_SECRET || '',
-        MAIL_FROM: process.env.MAIL_FROM || 'commandes@cidrerie-vulcain.ch',
+        MAIL_FROM: process.env.MAIL_FROM || 'commandes@drinkcider.ch',
         SES_REGION: process.env.SES_REGION || 'eu-central-2',
         ADMIN_BASE_URL: process.env.ADMIN_BASE_URL || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',
         AUTH_TRUST_HOST: 'true',
-        AUTH_URL: domain ? `https://${domain}` : '',
+        AUTH_URL: domain ? `https://${domain.name}` : '',
         NEXT_PUBLIC_COMMIT_SHA:
           process.env.CI_COMMIT_SHORT_SHA || process.env.NEXT_PUBLIC_COMMIT_SHA || '',
         NEXT_PUBLIC_STAGE: $app.stage,

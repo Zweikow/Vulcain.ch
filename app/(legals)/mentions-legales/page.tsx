@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Mentions Légales',
-  description: 'Mentions légales de la Cidrerie du Vulcain et Vulcano Distribution.',
+  description: 'Mentions légales de la Cidrerie du Vulcain et Drinkcider.',
 }
 
 export default function MentionsLegalesPage() {
@@ -19,7 +19,7 @@ export default function MentionsLegalesPage() {
       <p>
         <strong>Bertrand Baeriswyl</strong>
         <br />
-        Distribution Cidrerie du Vulcain CH
+        Drinkcider
         <br />
         Ch. Des Moilles 16
         <br />

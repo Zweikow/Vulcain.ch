@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import Header from '@/components/Header'
 import DeliveryWarning from '@/components/DeliveryWarning'
 import ProductCard from '@/components/ProductCard'
@@ -117,7 +118,10 @@ export default function BoutiqueClient({
               if (categoryProducts.length === 0) return null
 
               return (
-                <section key={category}>
+                <section
+                  key={category}
+                  id={`categorie-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                >
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-primary">
                       {category.toLowerCase().includes('cidre') ? (
@@ -167,42 +171,106 @@ export default function BoutiqueClient({
         </div>
       </div>
 
-      {/* Pied de page sombre avec mention légale (DESIGN.md §4) */}
-      <footer className="mt-8 bg-bg-header dark:bg-bg-header-dark px-4 py-8 text-sm text-white/80">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <p className="font-display font-semibold text-base text-white">Cidrerie du Vulcain</p>
-            <p className="mt-1 text-xs">© 2026 Cidrerie du Vulcain</p>
-            {process.env.NEXT_PUBLIC_COMMIT_SHA && (
-              <p className="mt-1 font-mono text-[11px] text-white/40">
-                version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}
-                {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
+      {/* Pied de page sombre avec maillage interne, lien externe et mention légale (DESIGN.md §4) */}
+      <footer className="mt-12 bg-bg-header dark:bg-bg-header-dark px-4 py-12 text-sm text-white/80">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
+            {/* Col 1 & 2 : Présentation & lien externe */}
+            <div className="md:col-span-2">
+              <p className="font-display font-semibold text-lg text-white">Cidrerie du Vulcain</p>
+              <p className="mt-2 text-xs leading-relaxed text-white/70 max-w-md">
+                Production artisanale de cidres et poirés d&apos;exception par Jacques Perritaz à
+                partir de fruits sauvages et variétés anciennes de Suisse. Fermentation 100% levures
+                indigènes, pur jus sans concentré.
               </p>
-            )}
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-              <a
-                href="/cgv"
-                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
-              >
-                Conditions de vente
-              </a>
-              <a
-                href="/mentions-legales"
-                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
-              >
-                Mentions légales
-              </a>
-              <a
-                href="/confidentialite"
-                className="hover:text-white underline underline-offset-4 decoration-white/30 transition-colors"
-              >
-                Protection des données
-              </a>
+              <p className="mt-3 text-xs text-white/60">
+                Membre et partenaire du patrimoine fruitier et gustatif suisse.{' '}
+                <a
+                  href="https://www.terroir-fribourg.ch"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:underline font-medium inline-flex items-center gap-1"
+                >
+                  <span>Terroir Fribourg</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </p>
+            </div>
+
+            {/* Col 3 : La Cave & Navigation interne */}
+            <div>
+              <p className="font-semibold text-xs uppercase tracking-wider text-white">La Cave</p>
+              <ul className="mt-3 space-y-2 text-xs">
+                <li>
+                  <Link href="/#catalogue" className="hover:text-white transition-colors">
+                    Catalogue des cuvées
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/histoire" className="hover:text-white transition-colors">
+                    Notre Histoire & Terroir
+                  </Link>
+                </li>
+                {categories.map((cat) => (
+                  <li key={cat}>
+                    <a
+                      href={`#categorie-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                      className="hover:text-white transition-colors"
+                    >
+                      {cat}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Col 4 : Informations & Contact */}
+            <div>
+              <p className="font-semibold text-xs uppercase tracking-wider text-white">
+                Informations
+              </p>
+              <ul className="mt-3 space-y-2 text-xs">
+                <li>
+                  <Link href="/cgv" className="hover:text-white transition-colors">
+                    Conditions de vente
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/mentions-legales" className="hover:text-white transition-colors">
+                    Mentions légales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/confidentialite" className="hover:text-white transition-colors">
+                    Protection des données
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="mailto:info@drinkcider.ch"
+                    className="hover:text-white transition-colors"
+                  >
+                    Nous contacter
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
-          <p className="rounded-md bg-[#FDF2F2] px-4 py-2 text-xs font-medium text-[#C62828] self-start md:self-center">
-            La vente d&apos;alcool est interdite aux mineurs.
-          </p>
+
+          <div className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/60">
+            <div>
+              <p>© 2026 Cidrerie du Vulcain · Distribution par Drinkcider</p>
+              {process.env.NEXT_PUBLIC_COMMIT_SHA && (
+                <p className="mt-0.5 font-mono text-[11px] text-white/40">
+                  version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}
+                  {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
+                </p>
+              )}
+            </div>
+            <p className="rounded-md bg-[#FDF2F2] px-3.5 py-1.5 text-xs font-medium text-[#C62828] self-start md:self-center">
+              La vente d&apos;alcool est interdite aux mineurs.
+            </p>
+          </div>
         </div>
       </footer>
 

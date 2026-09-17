@@ -281,15 +281,15 @@
 - [x] Mention du numéro de facture et de commande dans les informations de paiement.
 - [x] Lignes de découpe avec icônes ciseaux conformes pour l'impression A4.
 
-### US-ADM-29 — Mention de Vulcano Distribution en en-tête de facture
+### US-ADM-29 — Mention de Drinkcider en en-tête de facture
 
 **En tant que** gérant et comptable de la structure,  
-**je veux** que le nom commercial officiel « Vulcano Distribution » apparaisse distinctement tout en haut à gauche des factures émises,  
+**je veux** que le nom commercial officiel « Drinkcider » apparaisse distinctement tout en haut à gauche des factures émises,  
 **afin de** refléter fidèlement la structure de distribution auprès des clients et des autorités fiscales.
 
 **Critères d'acceptation :**
 
-- [x] Remplacement de l'en-tête par défaut par « Vulcano Distribution » en haut à gauche du document A4.
+- [x] Remplacement de l'en-tête par défaut par « Drinkcider » en haut à gauche du document A4.
 - [x] Conservation des coordonnées bancaires et légales du créancier (Bertrand Baeriswyl / IBAN PostFinance) pour la QR-facture officielle.
 
 ### US-ADM-32 — Système complet d'emails transactionnels, suivi DPD et envoi de factures
@@ -590,12 +590,31 @@
 
 **Critères d'acceptation :**
 
-- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Vulcano Distribution.
+- [x] Configuration centralisée des domaines (`cidrerie-vulcain.ch` en production, `sandbox.cidrerie-vulcain.ch` en test) et raison individuelle Drinkcider.
 - [x] Balises Open Graph et Twitter Cards pour des aperçus visuels enrichis lors du partage de liens (WhatsApp, iMessage, LinkedIn, etc.).
 - [x] Fichier `robots.txt` dynamique interdisant l'exploration des répertoires `/admin` et `/api`.
 - [x] Fichier `sitemap.xml` dynamique listant les routes publiques avec priorités et fréquences de mise à jour.
-- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Vulcano Distribution) et `Product` (offres en CHF, stocks).
+- [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Drinkcider) et `Product` (offres en CHF, stocks).
 - [x] Modèle de titres dynamique (`%s | Cidrerie du Vulcain`) et URL canonique automatique.
+
+### US-OPS-06 — Migration du domaine principal vers Drinkcider (drinkcider.ch) et architecture email unifiée
+
+**En tant que** gérant de la marque Drinkcider et exploitant de la cidrerie,  
+**je veux** faire de `drinkcider.ch` le nom de domaine principal de la boutique avec une infrastructure DNS Route 53 infogérée, tout en préservant la messagerie d'entreprise Infomaniak et en séparant les flux emails transactionnels,  
+**afin d'** asseoir l'identité de marque Drinkcider, sécuriser les envois d'emails de commandes (`commandes@drinkcider.ch`), et centraliser toutes les réponses clients sur la boîte de réception principale (`info@drinkcider.ch`).
+
+**Critères d'acceptation :**
+
+- [x] Zone hébergée publique AWS Route 53 créée pour `drinkcider.ch` et délégation active des serveurs de noms (NS) auprès du registre suisse Switch (.ch).
+- [x] Préservation intégrale des protocoles de messagerie Infomaniak dans Route 53 : MX prioritaire, DKIM 2048-bit, politique DMARC stricte (`p=reject`), autoconfig et enregistrements SRV (IMAP/POP3/SMTP).
+- [x] Configuration SPF unifiée autorisant à la fois Infomaniak et AWS SES (`v=spf1 include:spf.infomaniak.ch include:amazonses.com -all`).
+- [x] Configuration SST (`sst.config.ts`) reliant automatiquement CloudFront et ACM aux nouveaux domaines : `drinkcider.ch` (production avec redirection www), `dev.drinkcider.ch` et `sandbox.drinkcider.ch`.
+- [x] Routage email transparent et professionnel :
+  - Envois transactionnels de commandes et factures émis depuis `commandes@drinkcider.ch` via AWS SES.
+  - En-tête `Reply-To` pointant sur la boîte de contact principale `info@drinkcider.ch`.
+  - Notifications administrateur reçues directement sur `info@drinkcider.ch` avec `Reply-To` vers le client.
+- [x] Redirections permanentes HTTP 301 configurées dans `next.config.js` pour rediriger les variantes `www.` et les anciens domaines (`cidrerie-vulcain.ch`) vers `https://drinkcider.ch`.
+- [x] Pipeline GitLab CI/CD actualisé pour pointer sur les nouveaux environnements de déploiement (`https://dev.drinkcider.ch`, `https://sandbox.drinkcider.ch`).
 
 ---
 
@@ -660,6 +679,6 @@
 | **6. Catalogue & Stocks**                |    6     |           6           |                —                 |
 | **7. Clients & Tarifs Pro**              |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**                 |    4     |           4           |                —                 |
-| **9. DevOps & Sécurité**                 |    5     |           5           |                —                 |
+| **9. DevOps & Sécurité**                 |    6     |           6           |                —                 |
 | **10. Promotions & Offres Commerciales** |    3     |           3           |                —                 |
-| **TOTAL**                                |  **44**  |        **43**         |          **1 en cours**          |
+| **TOTAL**                                |  **45**  |        **44**         |          **1 en cours**          |

@@ -4,7 +4,7 @@ import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import type { MailMessage } from '@/lib/mail'
 
 /**
- * Gabarits des emails transactionnels pour Cidrerie du Vulcain / Vulcano Distribution.
+ * Gabarits des emails transactionnels pour Cidrerie du Vulcain / Drinkcider.
  * Français, vouvoiement, ton chaleureux et professionnel.
  * Styles en ligne et balisage compatible avec tous les clients de messagerie.
  */

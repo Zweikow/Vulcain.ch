@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.description,
   keywords: SITE_CONFIG.keywords,
-  authors: [{ name: SITE_CONFIG.producer }, { name: SITE_CONFIG.legalName }],
+  authors: [
+    { name: SITE_CONFIG.producer },
+    { name: SITE_CONFIG.distributor },
+    { name: SITE_CONFIG.legalName },
+  ],
   creator: SITE_CONFIG.name,
   publisher: SITE_CONFIG.legalName,
   formatDetection: {
