@@ -22,7 +22,7 @@ deploy_dev:
     - npx sst deploy --stage dev
   environment:
     name: dev
-    url: https://dev.cidrerie-vulcain.ch
+    url: https://dev.drinkcider.ch
 
 deploy_sandbox:
   stage: deploy
@@ -38,4 +38,4 @@ deploy_sandbox:
     - npx sst deploy --stage sandbox
   environment:
     name: sandbox
-    url: https://sandbox.cidrerie-vulcain.ch
+    url: https://sandbox.drinkcider.ch

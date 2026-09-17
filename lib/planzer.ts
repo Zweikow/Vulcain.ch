@@ -34,7 +34,7 @@ export const DEFAULT_PLANZER_SENDER: PlanzerSenderConfig = {
   houseNumber: '16',
   instructions: "Prendre les colis sur l'établi sous le couvert",
   mobilePhone: '0768306215',
-  email: 'commandes@cidrerie-vulcain.ch',
+  email: 'commandes@drinkcider.ch',
   lang: 'fr',
 }
 

@@ -43,8 +43,32 @@ const nextConfig = {
     return [
       {
         source: '/:path*',
+        has: [{ type: 'host', value: 'www.drinkcider.ch' }],
+        destination: 'https://drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.sandbox.drinkcider.ch' }],
+        destination: 'https://sandbox.drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.dev.drinkcider.ch' }],
+        destination: 'https://dev.drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
         has: [{ type: 'host', value: 'www.cidrerie-vulcain.ch' }],
-        destination: 'https://cidrerie-vulcain.ch/:path*',
+        destination: 'https://drinkcider.ch/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'cidrerie-vulcain.ch' }],
+        destination: 'https://drinkcider.ch/:path*',
         permanent: true,
       },
       {

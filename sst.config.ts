@@ -27,18 +27,18 @@ export default $config({
     let domain: { name: string; redirects?: string[] } | undefined
     if ($app.stage === 'production') {
       domain = {
-        name: 'production.cidrerie-vulcain.ch',
-        redirects: ['www.production.cidrerie-vulcain.ch'],
+        name: 'drinkcider.ch',
+        redirects: ['www.drinkcider.ch'],
       }
     } else if ($app.stage === 'sandbox') {
       domain = {
-        name: 'sandbox.cidrerie-vulcain.ch',
-        redirects: ['www.sandbox.cidrerie-vulcain.ch'],
+        name: 'sandbox.drinkcider.ch',
+        redirects: ['www.sandbox.drinkcider.ch'],
       }
     } else if ($app.stage === 'dev') {
       domain = {
-        name: 'dev.cidrerie-vulcain.ch',
-        redirects: ['www.dev.cidrerie-vulcain.ch'],
+        name: 'dev.drinkcider.ch',
+        redirects: ['www.dev.drinkcider.ch'],
       }
     }
 
@@ -55,7 +55,7 @@ export default $config({
       environment: {
         DATABASE_URL: process.env.DATABASE_URL || '',
         AUTH_SECRET: process.env.AUTH_SECRET || '',
-        MAIL_FROM: process.env.MAIL_FROM || 'commandes@cidrerie-vulcain.ch',
+        MAIL_FROM: process.env.MAIL_FROM || 'commandes@drinkcider.ch',
         SES_REGION: process.env.SES_REGION || 'eu-central-2',
         ADMIN_BASE_URL: process.env.ADMIN_BASE_URL || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',

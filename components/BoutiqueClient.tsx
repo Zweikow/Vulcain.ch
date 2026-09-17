@@ -247,7 +247,7 @@ export default function BoutiqueClient({
                 </li>
                 <li>
                   <a
-                    href="mailto:contact@cidrerie-vulcain.ch"
+                    href="mailto:info@drinkcider.ch"
                     className="hover:text-white transition-colors"
                   >
                     Nous contacter

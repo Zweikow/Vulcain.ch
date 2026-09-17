@@ -597,6 +597,25 @@
 - [x] Balisage sémantique Schema.org (JSON-LD) avec types `Winery` (Cidrerie du Vulcain / Jacques Perritaz / Drinkcider) et `Product` (offres en CHF, stocks).
 - [x] Modèle de titres dynamique (`%s | Cidrerie du Vulcain`) et URL canonique automatique.
 
+### US-OPS-06 — Migration du domaine principal vers Drinkcider (drinkcider.ch) et architecture email unifiée
+
+**En tant que** gérant de la marque Drinkcider et exploitant de la cidrerie,  
+**je veux** faire de `drinkcider.ch` le nom de domaine principal de la boutique avec une infrastructure DNS Route 53 infogérée, tout en préservant la messagerie d'entreprise Infomaniak et en séparant les flux emails transactionnels,  
+**afin d'** asseoir l'identité de marque Drinkcider, sécuriser les envois d'emails de commandes (`commandes@drinkcider.ch`), et centraliser toutes les réponses clients sur la boîte de réception principale (`info@drinkcider.ch`).
+
+**Critères d'acceptation :**
+
+- [x] Zone hébergée publique AWS Route 53 créée pour `drinkcider.ch` et délégation active des serveurs de noms (NS) auprès du registre suisse Switch (.ch).
+- [x] Préservation intégrale des protocoles de messagerie Infomaniak dans Route 53 : MX prioritaire, DKIM 2048-bit, politique DMARC stricte (`p=reject`), autoconfig et enregistrements SRV (IMAP/POP3/SMTP).
+- [x] Configuration SPF unifiée autorisant à la fois Infomaniak et AWS SES (`v=spf1 include:spf.infomaniak.ch include:amazonses.com -all`).
+- [x] Configuration SST (`sst.config.ts`) reliant automatiquement CloudFront et ACM aux nouveaux domaines : `drinkcider.ch` (production avec redirection www), `dev.drinkcider.ch` et `sandbox.drinkcider.ch`.
+- [x] Routage email transparent et professionnel :
+  - Envois transactionnels de commandes et factures émis depuis `commandes@drinkcider.ch` via AWS SES.
+  - En-tête `Reply-To` pointant sur la boîte de contact principale `info@drinkcider.ch`.
+  - Notifications administrateur reçues directement sur `info@drinkcider.ch` avec `Reply-To` vers le client.
+- [x] Redirections permanentes HTTP 301 configurées dans `next.config.js` pour rediriger les variantes `www.` et les anciens domaines (`cidrerie-vulcain.ch`) vers `https://drinkcider.ch`.
+- [x] Pipeline GitLab CI/CD actualisé pour pointer sur les nouveaux environnements de déploiement (`https://dev.drinkcider.ch`, `https://sandbox.drinkcider.ch`).
+
 ---
 
 ## 10. Épopée 10 — Administration : Moteur de Promotions & Offres Commerciales
@@ -660,6 +679,6 @@
 | **6. Catalogue & Stocks**                |    6     |           6           |                —                 |
 | **7. Clients & Tarifs Pro**              |    2     |           2           |                —                 |
 | **8. Dashboard & Rôles**                 |    4     |           4           |                —                 |
-| **9. DevOps & Sécurité**                 |    5     |           5           |                —                 |
+| **9. DevOps & Sécurité**                 |    6     |           6           |                —                 |
 | **10. Promotions & Offres Commerciales** |    3     |           3           |                —                 |
-| **TOTAL**                                |  **44**  |        **43**         |          **1 en cours**          |
+| **TOTAL**                                |  **45**  |        **44**         |          **1 en cours**          |

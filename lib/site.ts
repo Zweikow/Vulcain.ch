@@ -7,13 +7,13 @@ export function getSiteUrl(): string {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
   }
   if (process.env.NEXT_PUBLIC_STAGE === 'sandbox') {
-    return 'https://sandbox.cidrerie-vulcain.ch'
+    return 'https://sandbox.drinkcider.ch'
   }
   if (process.env.NEXT_PUBLIC_STAGE === 'dev') {
-    return 'https://dev.cidrerie-vulcain.ch'
+    return 'https://dev.drinkcider.ch'
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'https://cidrerie-vulcain.ch'
+    return 'https://drinkcider.ch'
   }
   return 'http://localhost:3000'
 }
@@ -79,6 +79,6 @@ export const SITE_CONFIG = {
     region: 'Fribourg',
   },
   contact: {
-    email: 'info@vulcain.ch',
+    email: 'info@drinkcider.ch',
   },
 }

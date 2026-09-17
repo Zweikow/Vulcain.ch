@@ -33,7 +33,7 @@ function getClient(): SESv2Client {
 }
 
 function getMailFrom(): string {
-  return process.env.MAIL_FROM || 'commandes@cidrerie-vulcain.ch'
+  return process.env.MAIL_FROM || 'commandes@drinkcider.ch'
 }
 
 /**

@@ -268,7 +268,7 @@ model Setting {
   prepDays        Int    @default(3) // jours de préparation annoncés
   companyName     String @default("Cidrerie du Vulcain")
   companyAddress  String @default("Ch. des Moilles 16")
-  contactEmail    String @default("commandes@cidrerie-vulcain.ch")
+  contactEmail    String @default("info@drinkcider.ch")
   contactPhone    String @default("")
   // La cidrerie n'est pas assujettie à la TVA (chiffre d'affaires sous le seuil
   // de 100 000 CHF) : aucun document ne doit en faire mention. Le taux reste

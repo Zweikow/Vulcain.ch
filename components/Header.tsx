@@ -15,7 +15,7 @@ export default function Header() {
   const links = [
     { label: 'Catalogue', href: '/' },
     { label: 'Notre Histoire', href: '/histoire' },
-    { label: 'Nous contacter', href: 'mailto:contact@cidrerie-vulcain.ch' },
+    { label: 'Nous contacter', href: 'mailto:info@drinkcider.ch' },
     {
       label: 'Informations légales',
       href: '#',
