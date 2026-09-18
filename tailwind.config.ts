@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
 
-// Palette Cidrerie du Vulcain — Sprint 1
+// Palette Drinkcider — Sprint 1
 // #153243 Deep Space Blue  → sidebar, header
 // #284B63 Yale Blue        → éléments secondaires nav
 // #E5C1BD Cotton Rose      → accent chaud, cartes stat

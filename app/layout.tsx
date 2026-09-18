@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: SITE_CONFIG.description,
     images: [
       {
-        url: '/facture/logo-vulcain.png',
+        url: '/facture/logo-drinkcider.png',
         width: 800,
         height: 600,
         alt: `${SITE_CONFIG.name} — ${SITE_CONFIG.legalName}`,
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_CONFIG.title,
     description: SITE_CONFIG.description,
-    images: ['/facture/logo-vulcain.png'],
+    images: ['/facture/logo-drinkcider.png'],
   },
   robots: {
     index: true,
@@ -63,8 +63,8 @@ export const metadata: Metadata = {
     canonical: siteUrl,
   },
   icons: {
-    icon: '/facture/logo-vulcain.png',
-    apple: '/facture/logo-vulcain.png',
+    icon: '/facture/logo-drinkcider.png',
+    apple: '/facture/logo-drinkcider.png',
   },
 }
 

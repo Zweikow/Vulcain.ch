@@ -354,7 +354,7 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
             />
           </div>
 
-          {/* Aperçu du ruban Vulcain */}
+          {/* Aperçu du ruban Drinkcider */}
           <div className="p-3 rounded-md bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark flex items-center justify-between">
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-text-primary dark:text-text-primary-dark">

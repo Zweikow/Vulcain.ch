@@ -137,7 +137,7 @@ export default function ProductCard({
             <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0" />
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
-            <span>{product.producerName || 'Cidrerie du Vulcain'}</span>
+            <span>{product.producerName || 'Drinkcider'}</span>
             {product.year && <span>· {product.year}</span>}
           </div>
           <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5 min-h-[2rem] leading-4">

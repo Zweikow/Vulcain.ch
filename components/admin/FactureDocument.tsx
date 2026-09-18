@@ -216,9 +216,7 @@ export function FactureDocument({
             <header className="flex items-start justify-between gap-8">
               <div className="text-[12px] leading-relaxed">
                 <p className="font-bold text-[13px] tracking-tight">
-                  {settings.companyTagline === 'Cidrerie du Vulcain'
-                    ? 'Drinkcider'
-                    : settings.companyTagline || 'Drinkcider'}
+                  {settings.companyTagline || 'Drinkcider'}
                 </p>
                 <p className="font-medium">{settings.contactName}</p>
                 <p>{settings.companyAddress}</p>
@@ -230,8 +228,8 @@ export function FactureDocument({
                 )}
               </div>
               <Image
-                src="/facture/logo-vulcain.png"
-                alt={settings.companyName}
+                src="/facture/logo-drinkcider.png"
+                alt="Drinkcider"
                 width={180}
                 height={86}
                 className="h-auto w-[145px] shrink-0"
@@ -505,14 +503,17 @@ export function FactureDocument({
             <header className="flex items-start justify-between gap-8">
               <div className="text-[12px] leading-relaxed">
                 <p className="font-bold text-[13px] tracking-tight">
-                  {settings.companyTagline === 'Cidrerie du Vulcain'
-                    ? 'Drinkcider'
-                    : settings.companyTagline || 'Drinkcider'}
+                  {settings.companyTagline || 'Drinkcider'}
                 </p>
                 <p className="font-medium text-[#4A6278]">{settings.contactName}</p>
                 <p className="text-[#7A95A5] text-[11px]">
                   {settings.companyAddress}, {settings.companyZipCity}
                 </p>
+                {settings.vatNumber && (
+                  <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">
+                    {settings.vatNumber}
+                  </p>
+                )}
                 <h2 className="mt-2.5 font-display text-[18px] font-bold tracking-tight text-[#153243]">
                   Annexe de paiement — QR-facture suisse
                 </h2>
@@ -524,8 +525,8 @@ export function FactureDocument({
                 </p>
               </div>
               <Image
-                src="/facture/logo-vulcain.png"
-                alt={settings.companyName}
+                src="/facture/logo-drinkcider.png"
+                alt="Drinkcider"
                 width={140}
                 height={67}
                 className="h-auto w-[120px] shrink-0"
@@ -664,9 +665,7 @@ export function FactureDocument({
         <header className="flex items-start justify-between gap-8">
           <div className="text-[12px] leading-relaxed">
             <p className="font-bold text-[13px] tracking-tight">
-              {settings.companyTagline === 'Cidrerie du Vulcain'
-                ? 'Drinkcider'
-                : settings.companyTagline || 'Drinkcider'}
+              {settings.companyTagline || 'Drinkcider'}
             </p>
             <p className="font-medium">{settings.contactName}</p>
             <p>{settings.companyAddress}</p>
@@ -676,8 +675,8 @@ export function FactureDocument({
             )}
           </div>
           <Image
-            src="/facture/logo-vulcain.png"
-            alt={settings.companyName}
+            src="/facture/logo-drinkcider.png"
+            alt="Drinkcider"
             width={180}
             height={86}
             className="h-auto w-[140px] print:w-[125px] shrink-0"

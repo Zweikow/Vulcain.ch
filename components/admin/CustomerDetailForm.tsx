@@ -346,8 +346,8 @@ export function CustomerDetailForm({
           Notes internes
         </h3>
         <p className="text-xs text-text-secondary dark:text-text-secondary-dark mb-3">
-          Ces notes sont strictement internes à l&apos;équipe Vulcain (jamais visibles par le client
-          ou sur les factures).
+          Ces notes sont strictement internes à l&apos;équipe Drinkcider (jamais visibles par le
+          client ou sur les factures).
         </p>
         <textarea
           value={notes}

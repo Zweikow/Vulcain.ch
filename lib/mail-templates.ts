@@ -4,7 +4,7 @@ import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import type { MailMessage } from '@/lib/mail'
 
 /**
- * Gabarits des emails transactionnels pour Cidrerie du Vulcain / Drinkcider.
+ * Gabarits des emails transactionnels pour Drinkcider.
  * Français, vouvoiement, ton chaleureux et professionnel.
  * Styles en ligne et balisage compatible avec tous les clients de messagerie.
  */
@@ -68,7 +68,7 @@ function getDpdTrackingUrl(trackingNumber: string): string {
 
 function shell(title: string, body: string, settings: MailSettings): string {
   const siteUrl = getSiteUrl()
-  const logoUrl = `${siteUrl}/facture/logo-vulcain.png`
+  const logoUrl = `${siteUrl}/facture/logo-drinkcider.png`
 
   return `<!doctype html>
 <html lang="fr">
@@ -89,7 +89,7 @@ function shell(title: string, body: string, settings: MailSettings): string {
               <div style="font-size:12px;color:#A9C2D4;margin-top:2px;">${escapeHtml(SITE_CONFIG.legalName)} · ${escapeHtml(settings.companyZipCity)}</div>
             </td>
             <td style="text-align:right;vertical-align:middle;width:60px;">
-              <img src="${logoUrl}" alt="Logo Vulcain" width="48" height="48" style="display:inline-block;border-radius:8px;border:1px solid rgba(255,255,255,0.15);" />
+              <img src="${logoUrl}" alt="Logo Drinkcider" width="48" height="48" style="display:inline-block;border-radius:8px;border:1px solid rgba(255,255,255,0.15);" />
             </td>
           </tr>
         </table>
@@ -246,7 +246,7 @@ ${SITE_CONFIG.name}`
   }
 }
 
-/** 2. Notification à la cidrerie : envoyée à commandes@cidrerie-vulcain.ch pour traiter la commande. */
+/** 2. Notification à la cidrerie : envoyée à info@drinkcider.ch pour traiter la commande. */
 export function shopNotification(
   order: MailOrder,
   settings: MailSettings,
@@ -641,13 +641,13 @@ export function testEmail(toEmail: string, settings: MailSettings): MailMessage 
   const body = `
     <div style="background:#E8F8F5;border-left:4px solid #27AE60;padding:14px;border-radius:6px;margin-bottom:16px;">
       <strong style="color:#27AE60;font-size:15px;">✓ Amazon SES est opérationnel !</strong><br>
-      Ce message confirme que la passerelle d'emails transactionnels de la Cidrerie du Vulcain fonctionne parfaitement.
+      Ce message confirme que la passerelle d'emails transactionnels de Drinkcider fonctionne parfaitement.
     </div>
     <p style="margin:0 0 10px;">Informations techniques de l'environnement :</p>
     <ul style="margin:0 0 16px;padding-left:20px;color:#555;font-size:13px;">
       <li>Site URL : <strong>${getSiteUrl()}</strong></li>
       <li>Adresse d'expédition (MAIL_FROM) : <strong>${escapeHtml(process.env.MAIL_FROM || 'Non configuré')}</strong></li>
-      <li>Email de contact cidrerie : <strong>${escapeHtml(settings.contactEmail)}</strong></li>
+      <li>Email de contact : <strong>${escapeHtml(settings.contactEmail)}</strong></li>
       <li>Date et heure du test : <strong>${new Date().toLocaleString('fr-CH')}</strong></li>
     </ul>`
 
@@ -658,7 +658,7 @@ Date : ${new Date().toLocaleString('fr-CH')}`
   return {
     to: toEmail,
     replyTo: settings.contactEmail,
-    subject: `[Test Réussi] Messagerie Cidrerie du Vulcain (${getSiteUrl()})`,
+    subject: `[Test Réussi] Messagerie Drinkcider (${getSiteUrl()})`,
     html: shell('Test de messagerie', body, settings),
     text,
   }

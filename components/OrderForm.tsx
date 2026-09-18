@@ -292,7 +292,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
           </div>
         </div>
         <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          J&apos;accepte de recevoir des informations promotionnelles de la Cidrerie de Vulcain
+          J&apos;accepte de recevoir des informations promotionnelles de Drinkcider
         </span>
       </label>
 

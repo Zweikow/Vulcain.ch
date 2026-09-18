@@ -177,11 +177,11 @@ export default function BoutiqueClient({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
             {/* Col 1 & 2 : Présentation & lien externe */}
             <div className="md:col-span-2">
-              <p className="font-display font-semibold text-lg text-white">Cidrerie du Vulcain</p>
+              <p className="font-display font-semibold text-lg text-white">Drinkcider</p>
               <p className="mt-2 text-xs leading-relaxed text-white/70 max-w-md">
-                Production artisanale de cidres et poirés d&apos;exception par Jacques Perritaz à
-                partir de fruits sauvages et variétés anciennes de Suisse. Fermentation 100% levures
-                indigènes, pur jus sans concentré.
+                Sélection et distribution artisanale de cidres et poirés d&apos;exception par
+                Jacques Perritaz à partir de fruits sauvages et variétés anciennes de Suisse.
+                Fermentation 100% levures indigènes, pur jus sans concentré.
               </p>
               <p className="mt-3 text-xs text-white/60">
                 Membre et partenaire du patrimoine fruitier et gustatif suisse.{' '}
@@ -259,7 +259,7 @@ export default function BoutiqueClient({
 
           <div className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/60">
             <div>
-              <p>© 2026 Cidrerie du Vulcain · Distribution par Drinkcider</p>
+              <p>© 2026 Drinkcider.ch · Tous droits réservés</p>
               {process.env.NEXT_PUBLIC_COMMIT_SHA && (
                 <p className="mt-0.5 font-mono text-[11px] text-white/40">
                   version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}

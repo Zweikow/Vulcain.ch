@@ -81,7 +81,7 @@ export function ProduitsClient({
     link.setAttribute('href', url)
     link.setAttribute(
       'download',
-      `inventaire_vulcain_${new Date().toISOString().split('T')[0]}.csv`
+      `inventaire_drinkcider_${new Date().toISOString().split('T')[0]}.csv`
     )
     document.body.appendChild(link)
     link.click()

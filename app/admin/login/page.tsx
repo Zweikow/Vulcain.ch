@@ -29,9 +29,7 @@ export default async function LoginPage({
     <div className="min-h-screen flex items-center justify-center bg-bg-page dark:bg-bg-page-dark">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-sm">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Cidrerie du Vulcain
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Drinkcider</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Espace administration</p>
         </div>
 

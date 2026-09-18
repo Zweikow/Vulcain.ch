@@ -115,7 +115,7 @@ export function AdminSidebar({ user }: { user: any }) {
     <>
       {/* Barre supérieure mobile */}
       <div className="md:hidden flex items-center justify-between p-4 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white print:hidden">
-        <div className="font-display font-semibold text-sm leading-tight">Cidrerie du Vulcain</div>
+        <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
         <div className="flex items-center gap-2">
           <ThemeToggle compact />
           <button
@@ -163,9 +163,7 @@ export function AdminSidebar({ user }: { user: any }) {
       `}
       >
         <div className="p-5 border-b border-white/10 hidden md:block">
-          <div className="font-display font-semibold text-sm leading-tight">
-            Cidrerie du Vulcain
-          </div>
+          <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
           <div className="text-xs opacity-60 mt-0.5">{ROLE_LABELS[role]}</div>
         </div>
 

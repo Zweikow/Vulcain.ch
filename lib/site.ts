@@ -1,5 +1,5 @@
 /**
- * Configuration centrale SEO et domaines pour Cidrerie du Vulcain / Drinkcider
+ * Configuration centrale SEO et domaines pour Drinkcider
  */
 
 export function getSiteUrl(): string {
@@ -19,16 +19,17 @@ export function getSiteUrl(): string {
 }
 
 export const SITE_CONFIG = {
-  name: 'Cidrerie du Vulcain',
+  name: 'Drinkcider',
   legalName: 'Drinkcider',
   distributorDescription:
-    'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz).',
+    'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux suisses (Jacques Perritaz).',
   title: 'Drinkcider avec passion',
   description:
-    'Cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
+    'Cidres et poirés artisanaux par Drinkcider (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
   keywords: [
     // Français
-    'Cidrerie du Vulcain',
+    'Drinkcider',
+    'Drinkcider.ch',
     'Jacques Perritaz',
     'Jacques Perritaz cidres',
     "cidre d'auteur",

@@ -1,7 +1,6 @@
 export const metadata = {
   title: 'Notre Histoire',
-  description:
-    "Découvrez l'histoire de la Cidrerie du Vulcain, Jacques Perritaz et nos méthodes artisanales.",
+  description: "Découvrez l'histoire de Drinkcider, Jacques Perritaz et nos méthodes artisanales.",
 }
 
 export default function HistoirePage() {
@@ -17,7 +16,7 @@ export default function HistoirePage() {
         </p>
         <p className="text-text-secondary dark:text-text-secondary-dark mt-4">
           Nous y raconterons prochainement l&apos;histoire du domaine, nos méthodes artisanales, et
-          la passion qui anime la Cidrerie de Vulcain depuis ses débuts.
+          la passion qui anime Drinkcider depuis ses débuts.
         </p>
       </div>
     </div>

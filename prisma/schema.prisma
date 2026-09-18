@@ -1,4 +1,4 @@
-// Modèle de données Cidrerie du Vulcain — v2 (règles DESIGN.md).
+// Modèle de données Drinkcider — v2 (règles DESIGN.md).
 // Tous les montants sont en centimes entiers (Int) : jamais de flottant ni de
 // Decimal, ni en base ni côté application. Les calculs vivent dans lib/money.ts.
 
@@ -266,7 +266,7 @@ model Setting {
   shippingCents   Int    @default(1000) // port standard
   francoCents     Int    @default(12000) // seuil de livraison offerte (bandeau actuel : 120 CHF)
   prepDays        Int    @default(3) // jours de préparation annoncés
-  companyName     String @default("Cidrerie du Vulcain")
+  companyName     String @default("Drinkcider")
   companyAddress  String @default("Ch. des Moilles 16")
   contactEmail    String @default("info@drinkcider.ch")
   contactPhone    String @default("")

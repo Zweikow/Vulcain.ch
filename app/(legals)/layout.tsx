@@ -23,8 +23,8 @@ export default function LegalsLayout({ children }: { children: React.ReactNode }
       <footer className="mt-8 bg-bg-header dark:bg-bg-header-dark px-4 py-8 text-sm text-white/80">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <p className="font-display font-semibold text-base text-white">Cidrerie du Vulcain</p>
-            <p className="mt-1 text-xs">© {new Date().getFullYear()} Cidrerie du Vulcain</p>
+            <p className="font-display font-semibold text-base text-white">Drinkcider</p>
+            <p className="mt-1 text-xs">© {new Date().getFullYear()} Drinkcider.ch</p>
           </div>
         </div>
       </footer>

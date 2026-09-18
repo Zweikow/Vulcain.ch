@@ -13,11 +13,11 @@ export default function JsonLd({ products }: JsonLdProps) {
     '@type': 'Winery',
     '@id': `${siteUrl}/#winery`,
     name: SITE_CONFIG.name,
-    alternateName: [SITE_CONFIG.legalName, 'Cidrerie de Vulcain'],
+    alternateName: [SITE_CONFIG.legalName, 'Drinkcider.ch'],
     description: SITE_CONFIG.description,
     url: siteUrl,
-    logo: `${siteUrl}/facture/logo-vulcain.png`,
-    image: `${siteUrl}/facture/logo-vulcain.png`,
+    logo: `${siteUrl}/facture/logo-drinkcider.png`,
+    image: `${siteUrl}/facture/logo-drinkcider.png`,
     priceRange: '$$',
     currenciesAccepted: 'CHF',
     paymentAccepted: 'QR-Facture, Virement bancaire',
@@ -56,7 +56,7 @@ export default function JsonLd({ products }: JsonLdProps) {
                 ? product.image.startsWith('http')
                   ? product.image
                   : `${siteUrl}${product.image}`
-                : `${siteUrl}/facture/logo-vulcain.png`,
+                : `${siteUrl}/facture/logo-drinkcider.png`,
               brand: {
                 '@type': 'Brand',
                 name: product.producerName || SITE_CONFIG.name,
