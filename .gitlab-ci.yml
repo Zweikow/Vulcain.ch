@@ -1,17 +1,31 @@
-workflow:
-  rules:
-    # Ne jamais exécuter de pipeline CI/CD sur les branches créées par Renovate
-    - if: '$CI_COMMIT_BRANCH =~ /^renovate\//'
-      when: never
-    - when: always
-
 stages:
+  - test
   - deploy
 
+# 1. Validation systématique (TypeScript & Build Next.js)
+# Ce job s'exécute sur les branches de dev/sandbox, les Merge Requests, ainsi que
+# sur toutes les branches créées par Renovate (renovate/*).
+# Il garantit qu'une mise à jour de dépendance compile avant d'être fusionnée,
+# sans jamais déclencher de déploiement AWS.
+validate:
+  stage: test
+  image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "sandbox"'
+    - if: '$CI_COMMIT_BRANCH =~ /^renovate\//'
+  script:
+    - echo "Validation du code et des dépendances..."
+    - npm ci
+    - npx prisma generate
+    - npx tsc --noEmit
+    - npm run build
+
+# 2. Déploiement automatique sur l'environnement Dev
 deploy_dev:
   stage: deploy
   image: node:20
-  # Ce job ne s'exécute QUE si la modification se fait sur la branche "develop"
   rules:
     - if: '$CI_COMMIT_BRANCH == "develop"'
   script:
@@ -24,10 +38,10 @@ deploy_dev:
     name: dev
     url: https://dev.drinkcider.ch
 
+# 3. Déploiement automatique sur l'environnement Sandbox
 deploy_sandbox:
   stage: deploy
   image: node:20
-  # Ce job ne s'exécute QUE si la modification se fait sur la branche "sandbox"
   rules:
     - if: '$CI_COMMIT_BRANCH == "sandbox"'
   script:
@@ -39,3 +53,20 @@ deploy_sandbox:
   environment:
     name: sandbox
     url: https://sandbox.drinkcider.ch
+
+# 4. Déploiement contrôlé sur l'environnement Production
+deploy_production:
+  stage: deploy
+  image: node:20
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  script:
+    - echo "Déploiement manuel sur AWS (Production) en cours..."
+    - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
+    - npm ci
+    - npx prisma generate
+    - npx sst deploy --stage production
+  environment:
+    name: production
+    url: https://drinkcider.ch
