@@ -54,9 +54,7 @@ Prérequis : le durcissement (1.1) — rien ne doit être exposé avant.
 
 ### 1.4 Sortie du bac à sable SES
 
-- [x] **Demande d'accès de production soumise à AWS** (Account dashboard → Demander un accès en production). En cours de revue par AWS (~1 jour ouvré).
-- [ ] Validation finale par AWS reçue et bascule automatique en production.
-- [ ] En attendant : tests transactionnels en sandbox possibles vers les adresses vérifiées dans _Identities_.
+- [x] **Accès de production validé par AWS (Europe Zurich eu-central-2)** : compte officiellement sorti du bac à sable (quota passé à 50 000 emails / 24h, 14 emails / seconde). Tous les destinataires peuvent désormais recevoir les confirmations sans restriction.
 
 ### 1.5 Vrai catalogue et purge des données d'essai
 
