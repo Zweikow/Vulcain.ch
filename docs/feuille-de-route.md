@@ -29,9 +29,7 @@ Les **six premiers bloquants** de `DESIGN.md` sont levés.
 - [x] Mot de passe administrateur — 32 caractères
 - [x] `AUTH_SECRET` sans valeur de repli
 - [x] **Vraies clés Turnstile** — configurées sur `dash.cloudflare.com/turnstile` pour `drinkcider.ch` et sous-domaines (widget Invisible, clés en CI/CD et .env)
-- [ ] **Upstash Redis** — non configuré. Le rate limiting est désactivé en
-      développement et lève une erreur explicite en production : l'application
-      refusera de démarrer sans. Base gratuite sur `console.upstash.com`.
+- [x] **Upstash Redis** — base Serverless configurée sur `console.upstash.com` (région eu-central-1 Frankfurt) et connectée via variables d'environnement GitLab CI/CD pour le rate limiting en production (5 commandes / 10 min / IP).
 
 ### 1.2 Contenus légaux — relecture
 
