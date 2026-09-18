@@ -39,8 +39,8 @@ async function main() {
   // Réglages typés — une seule ligne, valeurs par défaut du schéma
   await prisma.setting.upsert({
     where: { id: 1 },
-    update: { companyTagline: 'Drinkcider' },
-    create: { id: 1, companyTagline: 'Drinkcider' },
+    update: { companyTagline: 'Drinkcider', contactEmail: 'info@drinkcider.ch' },
+    create: { id: 1, companyTagline: 'Drinkcider', contactEmail: 'info@drinkcider.ch' },
   })
   console.log('✓ Paramètres initialisés (port, franco, taux pro, TVA, facturation)')
 
