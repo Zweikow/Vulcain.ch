@@ -54,9 +54,9 @@ Prérequis : le durcissement (1.1) — rien ne doit être exposé avant.
 
 ### 1.4 Sortie du bac à sable SES
 
-Demande à lancer depuis _Account dashboard → Request production access_.
-Environ un jour ouvré. Tant qu'on est en sandbox, SES n'écrit qu'aux adresses
-vérifiées : un vrai client ne recevrait rien.
+- [x] **Demande d'accès de production soumise à AWS** (Account dashboard → Demander un accès en production). En cours de revue par AWS (~1 jour ouvré).
+- [ ] Validation finale par AWS reçue et bascule automatique en production.
+- [ ] En attendant : tests transactionnels en sandbox possibles vers les adresses vérifiées dans _Identities_.
 
 ### 1.5 Vrai catalogue et purge des données d'essai
 
