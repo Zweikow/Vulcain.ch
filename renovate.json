@@ -3,7 +3,7 @@
   "enabled": true,
   "description": "Configuration Renovate sécurisée et maîtrisée pour Drinkcider",
   "extends": ["config:recommended", ":dependencyDashboard"],
-  "baseBranches": ["develop"],
+  "baseBranchPatterns": ["develop"],
   "timezone": "Europe/Zurich",
   "schedule": ["before 7am on monday"],
   "semanticCommits": "enabled",
@@ -35,23 +35,22 @@
     },
     {
       "description": "Regrouper tous les modules AWS SDK dans une seule Merge Request",
-      "matchPackagePatterns": ["^@aws-sdk/"],
       "groupName": "AWS SDK monorepo",
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@aws-sdk//"]
     },
     {
       "description": "Regrouper les outils de linting et de formatage en dev",
-      "matchPackagePatterns": ["^eslint", "^prettier", "husky", "lint-staged"],
       "matchDepTypes": ["devDependencies"],
       "groupName": "Linters & dev tooling",
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^eslint/", "/^prettier/", "/husky/", "/lint-staged/"]
     },
     {
       "description": "Regrouper les définitions de types TypeScript (hors React)",
-      "matchPackagePatterns": ["^@types/"],
-      "excludePackageNames": ["@types/react", "@types/react-dom"],
       "groupName": "TypeScript definitions",
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@types//", "!@types/react", "!@types/react-dom"]
     },
     {
       "description": "Alertes de vulnérabilité de sécurité : priorité immédiate sans attendre le lundi",
