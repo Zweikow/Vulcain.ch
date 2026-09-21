@@ -28,28 +28,34 @@ export default function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#1C1C1C]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+    <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-[#0B131D]/80 border-b border-divider transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* LOGO - Gauche */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex flex-col">
-              <span className="font-display font-semibold text-lg leading-tight text-text-primary dark:text-text-primary-dark">
+            <Link href="/" className="group flex items-center gap-2.5">
+              <span className="font-display font-bold text-xl tracking-tight text-foreground transition-colors group-hover:text-primary">
                 Drinkcider
+              </span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/15 text-primary border border-primary/20">
+                CH
               </span>
             </Link>
           </div>
 
           {/* LIENS - Centre (Desktop) */}
-          <nav className="hidden md:flex flex-1 justify-center gap-2">
+          <nav className="hidden md:flex items-center gap-1 bg-default-100/60 p-1 rounded-2xl border border-divider">
             {links.map((link) => {
               if (link.children) {
                 return (
-                  <div key={link.label} className="relative group px-3 py-2">
-                    <span className="text-sm font-medium text-text-secondary dark:text-text-secondary-dark cursor-pointer group-hover:text-primary dark:group-hover:text-primary-dark transition-colors flex items-center gap-1">
-                      {link.label}
+                  <div key={link.label} className="relative group">
+                    <button
+                      type="button"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-default-600 hover:text-foreground hover:bg-content1 transition-all duration-200 flex items-center gap-1.5"
+                    >
+                      <span>{link.label}</span>
                       <svg
-                        className="w-4 h-4 opacity-50 group-hover:rotate-180 transition-transform"
+                        className="w-3.5 h-3.5 opacity-60 group-hover:rotate-180 transition-transform duration-200"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -61,20 +67,20 @@ export default function Header() {
                           d="M19 9l-7 7-7-7"
                         />
                       </svg>
-                    </span>
-                    {/* Menu déroulant */}
-                    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-white dark:bg-[#2A2A2A] rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-200 dark:border-white/10 overflow-hidden z-50">
-                      <div className="py-1">
+                    </button>
+                    {/* Menu déroulant HeroUI Card */}
+                    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-content1/95 dark:bg-[#131F2D]/95 backdrop-blur-xl rounded-2xl shadow-heroui-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-divider p-1.5 z-50">
+                      <div className="flex flex-col gap-0.5">
                         {link.children.map((child) => {
                           const isChildActive = pathname === child.href
                           return (
                             <Link
                               key={child.label}
                               href={child.href}
-                              className={`block px-4 py-2 text-sm transition-colors ${
+                              className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                                 isChildActive
-                                  ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-dark'
-                                  : 'text-text-secondary dark:text-text-secondary-dark hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary-dark'
+                                  ? 'bg-primary/15 text-primary font-semibold'
+                                  : 'text-default-600 hover:text-foreground hover:bg-default-100'
                               }`}
                             >
                               {child.label}
@@ -92,10 +98,10 @@ export default function Header() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                     isActive
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-dark'
-                      : 'text-text-secondary dark:text-text-secondary-dark hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary-dark'
+                      ? 'bg-content1 text-foreground shadow-heroui-sm'
+                      : 'text-default-600 hover:text-foreground hover:bg-content1/70'
                   }`}
                 >
                   {link.label}
@@ -105,35 +111,33 @@ export default function Header() {
           </nav>
 
           {/* ACTIONS - Droite */}
-          <div className="flex items-center gap-4">
-            {/* Dark mode toggle */}
+          <div className="flex items-center gap-2.5">
+            {/* Dark mode button HeroUI */}
             <button
               onClick={toggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                isDark ? 'bg-primary' : 'bg-gray-300'
-              }`}
+              className="p-2 rounded-xl border border-divider bg-content1/80 hover:bg-default-100 text-default-600 hover:text-foreground transition-all duration-200 active:scale-95 shadow-heroui-sm"
               aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
               title={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                  isDark ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
+              {isDark ? (
+                <SunIcon className="w-4 h-4 text-amber-400" />
+              ) : (
+                <MoonIcon className="w-4 h-4 text-primary" />
+              )}
             </button>
 
             {/* Menu Mobile Toggle */}
             <button
               type="button"
-              className="md:hidden p-2 rounded-md text-text-secondary dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-white/5 focus:outline-none"
+              className="md:hidden p-2 rounded-xl border border-divider bg-content1 text-default-600 hover:text-foreground hover:bg-default-100 focus:outline-none transition-all"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">Ouvrir le menu</span>
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 stroke="currentColor"
               >
                 {mobileMenuOpen ? (
@@ -151,15 +155,15 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menu Mobile */}
+      {/* Menu Mobile HeroUI */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#1C1C1C]">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden border-t border-divider bg-content1/95 backdrop-blur-xl px-4 py-4 space-y-3">
+          <div className="flex flex-col gap-1">
             {links.map((link) => {
               if (link.children) {
                 return (
-                  <div key={link.label} className="space-y-1 mt-2">
-                    <div className="px-3 py-2 text-sm font-semibold text-text-primary dark:text-text-primary-dark uppercase tracking-wider">
+                  <div key={link.label} className="mt-2 space-y-1">
+                    <div className="px-3 py-1 text-[11px] font-bold text-default-400 uppercase tracking-wider">
                       {link.label}
                     </div>
                     {link.children.map((child) => {
@@ -169,10 +173,10 @@ export default function Header() {
                           key={child.label}
                           href={child.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`block pl-6 pr-3 py-2 rounded-md text-base font-medium transition-colors ${
+                          className={`block pl-6 pr-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                             isChildActive
-                              ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-dark'
-                              : 'text-text-secondary dark:text-text-secondary-dark hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary-dark'
+                              ? 'bg-primary/15 text-primary font-semibold'
+                              : 'text-default-600 hover:text-foreground hover:bg-default-100'
                           }`}
                         >
                           {child.label}
@@ -189,40 +193,16 @@ export default function Header() {
                   key={link.label}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                  className={`block px-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-dark'
-                      : 'text-text-secondary dark:text-text-secondary-dark hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary-dark'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-default-600 hover:text-foreground hover:bg-default-100'
                   }`}
                 >
                   {link.label}
                 </Link>
               )
             })}
-
-            {/* Bascule Mode Sombre / Mode Clair dans le menu mobile */}
-            <div className="border-t border-gray-200 dark:border-white/10 mt-3 pt-3 px-3 flex items-center justify-between">
-              <span className="text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
-                Thème d&apos;affichage
-              </span>
-              <button
-                onClick={toggle}
-                type="button"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border dark:border-border-dark text-xs font-semibold text-text-primary dark:text-text-primary-dark hover:bg-primary/10 transition-colors"
-              >
-                {isDark ? (
-                  <>
-                    <SunIcon className="w-4 h-4 text-amber-400" />
-                    <span>Mode clair</span>
-                  </>
-                ) : (
-                  <>
-                    <MoonIcon className="w-4 h-4 text-primary" />
-                    <span>Mode sombre</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         </div>
       )}

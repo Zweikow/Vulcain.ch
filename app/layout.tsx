@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { HeroUIProviderWrapper } from '@/components/HeroUIProviderWrapper'
 
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 
@@ -84,7 +85,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <HeroUIProviderWrapper>{children}</HeroUIProviderWrapper>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -74,11 +74,11 @@ export default function ProductCard({
     : null
 
   return (
-    <div className="card p-3 flex flex-col gap-2 relative overflow-hidden">
+    <div className="group relative flex flex-col p-3 rounded-2xl bg-content1 text-content1-foreground border border-divider shadow-heroui-sm hover:shadow-heroui-md hover:-translate-y-1 transition-all duration-300 overflow-hidden">
       {/* Ruban promotionnel découpé en haut à gauche */}
       {ribbonText && (
         <div
-          className="absolute left-0 top-3 z-10 bg-[#B8837E] dark:bg-[#977390] text-white font-bold text-[11px] py-1 pl-2.5 pr-4 shadow-md tracking-wider select-none uppercase"
+          className="absolute left-0 top-3 z-10 bg-[#B8837E] dark:bg-[#977390] text-white font-bold text-[11px] py-1 pl-2.5 pr-4 shadow-sm tracking-wider select-none uppercase"
           style={{
             clipPath: 'polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%)',
           }}
@@ -91,21 +91,21 @@ export default function ProductCard({
       <button
         type="button"
         onClick={onOpenDetails}
-        className="flex flex-col gap-2 text-left w-full focus:outline-none group"
+        className="flex flex-col gap-2.5 text-left w-full focus:outline-none"
       >
         {/* Photo produit */}
-        <div className="relative w-full aspect-square rounded-md overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-transparent group-hover:border-border dark:group-hover:border-border-dark transition-colors">
+        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-default-100/60 dark:bg-default-50 border border-divider transition-all duration-300 group-hover:bg-default-100">
           {product.image ? (
             <Image
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 200px"
             />
           ) : (
             <div
-              className="w-full h-full flex items-center justify-center font-mono text-[11px] text-text-tertiary dark:text-text-tertiary-dark"
+              className="w-full h-full flex items-center justify-center font-mono text-[11px] text-default-400"
               style={{
                 backgroundImage:
                   'repeating-linear-gradient(45deg, rgba(122,149,165,.12) 0 12px, transparent 12px 24px)',
@@ -117,43 +117,43 @@ export default function ProductCard({
 
           {/* Badge « Nouveau » ou « Derniers exemplaires » en haut à droite si pas de ruban */}
           {product.isNew && !ribbonText && (
-            <span className="absolute left-2 top-2 rounded-pill bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-on-primary">
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-primary/90 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-semibold text-[#153243] shadow-xs">
               Nouveau
             </span>
           )}
           {product.isLastUnits && (
-            <span className="absolute right-2 top-2 rounded-pill bg-[#FFF8E1] px-2.5 py-0.5 text-[11px] font-semibold text-text-warning">
+            <span className="absolute right-2.5 top-2.5 rounded-full bg-amber-100/95 dark:bg-amber-950/80 backdrop-blur-md border border-amber-300/60 dark:border-amber-700/60 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900 dark:text-amber-200 shadow-xs">
               Derniers exemplaires
             </span>
           )}
         </div>
 
         {/* Informations produit */}
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-start justify-between gap-1">
-            <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-tight group-hover:underline">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-start justify-between gap-1.5">
+            <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-snug group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0" />
+            <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0 mt-0.5" />
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
+          <div className="flex items-center gap-1.5 text-[11px] text-default-500 font-medium">
             <span>{product.producerName || 'Drinkcider'}</span>
             {product.year && <span>· {product.year}</span>}
           </div>
-          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5 min-h-[2rem] leading-4">
+          <p className="text-xs text-default-600 dark:text-default-400 line-clamp-2 min-h-[2rem] leading-4">
             {product.description}
           </p>
         </div>
       </button>
 
       {/* Section Bas unifiée : Conditionnement + Prix & Sélecteur Panier */}
-      <div className="mt-auto pt-2 border-t border-border/50 dark:border-border-dark/50 flex flex-col gap-1.5">
+      <div className="mt-auto pt-2.5 border-t border-divider flex flex-col gap-1.5">
         {/* Mention du conditionnement */}
-        <div className="text-[11px] font-semibold text-text-secondary dark:text-text-secondary-dark leading-none">
+        <div className="text-[11px] font-medium text-default-500 leading-none">
           {packagingLabel}
         </div>
 
-        {/* Section Prix & Sélecteur Panier (Inspiré maquette) */}
+        {/* Section Prix & Sélecteur Panier */}
         <div className="flex items-end justify-between gap-2">
           {/* Prix */}
           <div className="flex flex-col min-w-0">
@@ -162,14 +162,14 @@ export default function ProductCard({
               <span className="font-bold text-base text-primary dark:text-primary-hover tabular whitespace-nowrap">
                 {formatCHF(unitBottlePriceCents)}
               </span>
-              <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal whitespace-nowrap">
-                / bouteille
+              <span className="text-[11px] text-default-500 font-normal whitespace-nowrap">
+                / btl
               </span>
             </div>
 
             {/* Ancien prix barré si rabais */}
             {origBottlePriceCents && (
-              <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight whitespace-nowrap">
+              <div className="text-[11px] text-default-400 tabular leading-tight whitespace-nowrap">
                 au lieu de <span className="line-through">{formatCHF(origBottlePriceCents)}</span>
               </div>
             )}
@@ -178,34 +178,26 @@ export default function ProductCard({
             {isCarton && (
               <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight whitespace-nowrap">
                 <span>{formatCHF(effectivePriceCents)}</span>
-                <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
-                  {' '}
-                  / carton
-                </span>
+                <span className="font-normal text-default-500"> / carton</span>
               </div>
             )}
           </div>
 
           {/* Pictogramme pack + Stepper quantité */}
           <div className="flex flex-col items-end gap-1 shrink-0">
-            {isCarton && (
-              <PackBadgeIcon
-                count={bottlesCount}
-                className="text-secondary dark:text-text-secondary-dark mb-0.5"
-              />
-            )}
+            {isCarton && <PackBadgeIcon count={bottlesCount} className="text-default-500 mb-0.5" />}
 
             {isOutOfStock ? (
-              <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-default-100 text-default-400 font-medium">
                 Épuisé
               </span>
             ) : (
-              <div className="flex items-center border border-border dark:border-border-dark rounded-md overflow-hidden bg-bg-card dark:bg-bg-card-dark h-8 shadow-xs">
+              <div className="flex items-center border border-divider rounded-xl overflow-hidden bg-default-100/70 dark:bg-default-50 p-0.5 h-8 shadow-xs">
                 <button
                   type="button"
                   onClick={onRemove}
                   disabled={quantity === 0}
-                  className="w-7 h-full flex items-center justify-center text-text-secondary dark:text-text-secondary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark disabled:opacity-30 transition-colors font-bold text-sm"
+                  className="w-7 h-full flex items-center justify-center text-default-600 dark:text-default-400 hover:bg-content1 hover:text-text-primary rounded-lg disabled:opacity-25 transition-all font-bold text-sm active:scale-90"
                   aria-label="Diminuer"
                 >
                   −
@@ -217,7 +209,7 @@ export default function ProductCard({
                   type="button"
                   onClick={onAdd}
                   disabled={quantity >= product.stock}
-                  className="w-7 h-full bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors font-bold text-sm"
+                  className="w-7 h-full bg-primary text-[#153243] flex items-center justify-center hover:bg-primary-hover rounded-lg disabled:opacity-25 transition-all font-bold text-sm active:scale-90 shadow-xs"
                   aria-label="Ajouter"
                 >
                   +

@@ -87,35 +87,78 @@ export default function BoutiqueClient({
       <Header />
       <DeliveryWarning />
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Bandeau d'accueil (DESIGN.md §4) */}
-        <section className="card p-8 mb-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
-            Cidrerie artisanale suisse · Cuvées &amp; Millésimes
-          </p>
-          <h1 className="mt-2 max-w-2xl font-display font-semibold text-3xl sm:text-4xl md:text-[44px] leading-tight text-text-primary dark:text-text-primary-dark">
-            Cidres &amp; poirés d&apos;auteurs suisses
-          </h1>
-          <p className="mt-2 text-lg sm:text-xl font-display italic text-[#284B63] dark:text-[#80ED99]">
-            L&apos;expression pure du terroir.
-          </p>
-          <p className="mt-4 max-w-lg text-text-secondary dark:text-text-secondary-dark">
-            Pur jus de fruits anciens suisses et fermentation 100% levures indigènes par Jacques
-            Perritaz. {products.length} références disponibles à la cave.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#catalogue" className="btn-primary">
-              Découvrir la cave
-            </a>
-            <a href="#commande" className="btn-secondary">
-              Passer la commande
-            </a>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Bandeau d'accueil HeroUI (Signature Glow + Floating Chip) */}
+        <section className="relative overflow-hidden rounded-3xl p-8 sm:p-12 mb-10 border border-divider bg-gradient-to-b from-content1 via-content1 to-default-100/60 shadow-heroui-md transition-all">
+          {/* Lueur ambiante HeroUI Glow */}
+          <div
+            className="absolute -top-24 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/20 dark:bg-primary/15 rounded-full blur-3xl pointer-events-none"
+            aria-hidden="true"
+          />
+
+          <div className="relative z-10 max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 backdrop-blur-md mb-4 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span>Cidrerie artisanale suisse · Cuvées &amp; Millésimes</span>
+            </div>
+
+            <h1 className="mt-1 font-display font-bold text-3xl sm:text-5xl md:text-[48px] leading-[1.15] tracking-tight bg-gradient-to-b from-text-primary via-text-primary to-text-secondary dark:from-white dark:via-white dark:to-white/70 bg-clip-text text-transparent">
+              Cidres &amp; poirés d&apos;auteurs suisses
+            </h1>
+
+            <p className="mt-2 text-lg sm:text-xl font-display italic text-primary dark:text-[#80ED99]">
+              L&apos;expression pure du terroir.
+            </p>
+
+            <p className="mt-4 text-sm sm:text-base text-default-500 dark:text-default-400 leading-relaxed max-w-xl">
+              Pur jus de fruits anciens suisses et fermentation 100% levures indigènes par Jacques
+              Perritaz. {products.length} références d&apos;exception disponibles à la cave.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a href="#catalogue" className="heroui-btn-primary">
+                <span>Découvrir la cave</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </a>
+              <a href="#commande" className="heroui-btn-secondary">
+                <span>Passer la commande</span>
+              </a>
+            </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        {/* HeroUI Tabs — Barre de Catégories Segmentée */}
+        <div id="catalogue" className="mb-8 overflow-x-auto pb-2 scrollbar-none">
+          <div className="inline-flex items-center p-1.5 rounded-2xl bg-default-100/80 backdrop-blur-md border border-divider gap-1 shadow-heroui-sm">
+            {categories.map((category) => {
+              const count = products.filter((p) => p.category === category).length
+              if (count === 0) return null
+              return (
+                <a
+                  key={category}
+                  href={`#categorie-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-default-600 hover:text-foreground hover:bg-content1 transition-all duration-200 inline-flex items-center gap-2 whitespace-nowrap active:scale-95"
+                >
+                  <span>{category}</span>
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-default-200 text-default-600">
+                    {count}
+                  </span>
+                </a>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Left: products + form */}
-          <div id="catalogue" className="flex flex-col gap-8">
+          <div className="flex flex-col gap-10">
             {categories.map((category) => {
               const categoryProducts = products.filter((p) => p.category === category)
               if (categoryProducts.length === 0) return null
@@ -124,20 +167,27 @@ export default function BoutiqueClient({
                 <section
                   key={category}
                   id={`categorie-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                  className="scroll-mt-24"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-primary">
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <span className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20">
                       {category.toLowerCase().includes('cidre') ? (
                         <ProduitsIcon className="w-5 h-5" />
                       ) : (
                         <BottleIcon className="w-5 h-5" />
                       )}
                     </span>
-                    <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
-                      {category}
-                    </h2>
+                    <div>
+                      <h2 className="font-display font-bold text-2xl text-foreground">
+                        {category}
+                      </h2>
+                      <p className="text-xs text-default-500">
+                        {categoryProducts.length} référence{categoryProducts.length > 1 ? 's' : ''}{' '}
+                        disponible{categoryProducts.length > 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {categoryProducts.map((product) => (
                       <ProductCard
                         key={product.id}
@@ -155,21 +205,21 @@ export default function BoutiqueClient({
             })}
 
             {/* Order form */}
-            <div id="commande">
+            <div id="commande" className="scroll-mt-24">
               <OrderForm items={cart} settings={settings} onSubmit={handleOrder} />
             </div>
           </div>
 
           {/* Right: cart (sticky on desktop) */}
           <div className="hidden lg:block">
-            <div className="sticky top-6">
+            <div className="sticky top-24">
               <Cart items={cart} settings={settings} onCheckout={() => {}} />
             </div>
           </div>
         </div>
 
         {/* Mobile cart summary */}
-        <div className="lg:hidden mt-6">
+        <div className="lg:hidden mt-8">
           <Cart items={cart} settings={settings} onCheckout={() => {}} />
         </div>
       </div>

@@ -135,212 +135,211 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <UserIcon className="w-5 h-5 text-text-secondary dark:text-text-secondary-dark" />
-        <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
-          Vos coordonnées
-        </h2>
+    <form onSubmit={handleSubmit} className="heroui-card p-6 flex flex-col gap-5">
+      <div className="flex items-center gap-3 pb-3 border-b border-divider">
+        <div className="w-9 h-9 rounded-xl bg-default-100 flex items-center justify-center text-default-600">
+          <UserIcon className="w-5 h-5" />
+        </div>
+        <div>
+          <h2 className="font-semibold text-base text-text-primary dark:text-text-primary-dark">
+            Vos coordonnées de livraison
+          </h2>
+          <p className="text-xs text-default-400">
+            Facturation par bulletin QR envoyé avec votre colis
+          </p>
+        </div>
       </div>
 
       {/* Name row */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Nom
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+            Nom *
           </label>
           <input
-            className={`input-field ${errors.firstName ? 'border-text-error' : ''}`}
+            className={`heroui-input ${errors.firstName ? '!border-red-500 !ring-red-500/20' : ''}`}
             placeholder="Votre nom"
             value={form.firstName}
             onChange={(e) => update('firstName', e.target.value)}
           />
-          {errors.firstName && <span className="text-xs text-text-error">{errors.firstName}</span>}
+          {errors.firstName && <span className="text-xs text-red-500">{errors.firstName}</span>}
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Prénom
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+            Prénom *
           </label>
           <input
-            className={`input-field ${errors.lastName ? 'border-text-error' : ''}`}
+            className={`heroui-input ${errors.lastName ? '!border-red-500 !ring-red-500/20' : ''}`}
             placeholder="Votre prénom"
             value={form.lastName}
             onChange={(e) => update('lastName', e.target.value)}
           />
-          {errors.lastName && <span className="text-xs text-text-error">{errors.lastName}</span>}
+          {errors.lastName && <span className="text-xs text-red-500">{errors.lastName}</span>}
         </div>
       </div>
 
       {/* Address */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Adresse
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+          Adresse *
         </label>
         <input
-          className={`input-field ${errors.address ? 'border-text-error' : ''}`}
+          className={`heroui-input ${errors.address ? '!border-red-500 !ring-red-500/20' : ''}`}
           placeholder="Rue et numéro"
           value={form.address}
           onChange={(e) => update('address', e.target.value)}
         />
-        {errors.address && <span className="text-xs text-text-error">{errors.address}</span>}
+        {errors.address && <span className="text-xs text-red-500">{errors.address}</span>}
       </div>
 
       {/* NPA + Lieu */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            NPA
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+            NPA (Code postal) *
           </label>
           <input
-            className={`input-field ${errors.npa ? 'border-text-error' : ''}`}
+            className={`heroui-input ${errors.npa ? '!border-red-500 !ring-red-500/20' : ''}`}
             placeholder="1000"
             value={form.npa}
             onChange={(e) => update('npa', e.target.value)}
           />
-          {errors.npa && <span className="text-xs text-text-error">{errors.npa}</span>}
+          {errors.npa && <span className="text-xs text-red-500">{errors.npa}</span>}
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Lieu
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+            Localité *
           </label>
           <input
-            className={`input-field ${errors.lieu ? 'border-text-error' : ''}`}
-            placeholder="Votre ville"
+            className={`heroui-input ${errors.lieu ? '!border-red-500 !ring-red-500/20' : ''}`}
+            placeholder="Votre ville ou village"
             value={form.lieu}
             onChange={(e) => update('lieu', e.target.value)}
           />
-          {errors.lieu && <span className="text-xs text-text-error">{errors.lieu}</span>}
+          {errors.lieu && <span className="text-xs text-red-500">{errors.lieu}</span>}
         </div>
       </div>
 
       {/* Delivery date */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Délai/souhaits pour la livraison
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+          Délai / Date souhaitée de livraison *
         </label>
         <input
           type="date"
-          className={`input-field ${errors.deliveryDate ? 'border-text-error' : ''}`}
+          className={`heroui-input ${errors.deliveryDate ? '!border-red-500 !ring-red-500/20' : ''}`}
           value={form.deliveryDate}
           onChange={(e) => update('deliveryDate', e.target.value)}
         />
-        {errors.deliveryDate && (
-          <span className="text-xs text-text-error">{errors.deliveryDate}</span>
-        )}
+        {errors.deliveryDate && <span className="text-xs text-red-500">{errors.deliveryDate}</span>}
       </div>
 
       {/* Email */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Email
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+          Email de confirmation *
         </label>
         <input
           type="email"
-          className={`input-field ${errors.email ? 'border-text-error' : ''}`}
+          className={`heroui-input ${errors.email ? '!border-red-500 !ring-red-500/20' : ''}`}
           placeholder="votre@email.ch"
           value={form.email}
           onChange={(e) => update('email', e.target.value)}
         />
-        {errors.email && <span className="text-xs text-text-error">{errors.email}</span>}
+        {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
       </div>
 
       {/* Message */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Message pour la livraison
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-default-600 dark:text-default-400">
+          Instructions spéciales ou message pour la livraison
         </label>
         <textarea
-          className="input-field resize-none"
+          className="heroui-input resize-none"
           rows={3}
-          placeholder="Votre message ou instructions de livraison..."
+          placeholder="Code d'immeuble, instructions de dépôt en cas d'absence..."
           value={form.message}
           onChange={(e) => update('message', e.target.value)}
         />
       </div>
 
-      {/* Marketing consent */}
-      <label className="flex items-start gap-2 cursor-pointer">
-        <div className="relative mt-0.5">
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={form.acceptsMarketing}
-            onChange={(e) => update('acceptsMarketing', e.target.checked)}
-          />
-          <div
-            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
-              form.acceptsMarketing
-                ? 'bg-primary border-primary'
-                : 'border-border dark:border-border-dark bg-bg-input dark:bg-bg-input-dark'
-            }`}
-          >
-            {form.acceptsMarketing && (
-              <svg
-                className="w-3 h-3 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            )}
+      {/* Checkboxes HeroUI Style */}
+      <div className="flex flex-col gap-3 pt-2 border-t border-divider">
+        {/* Marketing consent */}
+        <label className="flex items-start gap-3 cursor-pointer group select-none">
+          <div className="relative mt-0.5">
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={form.acceptsMarketing}
+              onChange={(e) => update('acceptsMarketing', e.target.checked)}
+            />
+            <div
+              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                form.acceptsMarketing
+                  ? 'bg-primary border-primary text-[#153243]'
+                  : 'border-divider bg-default-100 group-hover:border-default-400'
+              }`}
+            >
+              {form.acceptsMarketing && (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+            </div>
           </div>
-        </div>
-        <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          J&apos;accepte de recevoir des informations promotionnelles de Drinkcider
-        </span>
-      </label>
+          <span className="text-xs text-default-600 dark:text-default-400 group-hover:text-text-primary transition-colors">
+            J&apos;accepte de recevoir des informations et nouveautés exclusives de Drinkcider
+          </span>
+        </label>
 
-      {/* Confirmation de majorité — obligation légale, case bloquante */}
-      <label className="flex items-start gap-2 cursor-pointer">
-        <div className="relative mt-0.5">
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={ageConfirmed}
-            onChange={(e) => {
-              setAgeConfirmed(e.target.checked)
-              setErrors((prev) => ({ ...prev, ageConfirmed: undefined }))
-            }}
-          />
-          <div
-            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
-              ageConfirmed
-                ? 'bg-primary border-primary'
-                : errors.ageConfirmed
-                  ? 'border-text-error bg-bg-input dark:bg-bg-input-dark'
-                  : 'border-border dark:border-border-dark bg-bg-input dark:bg-bg-input-dark'
-            }`}
-          >
-            {ageConfirmed && (
-              <svg
-                className="w-3 h-3 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            )}
+        {/* Confirmation de majorité */}
+        <label className="flex items-start gap-3 cursor-pointer group select-none">
+          <div className="relative mt-0.5">
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={ageConfirmed}
+              onChange={(e) => {
+                setAgeConfirmed(e.target.checked)
+                setErrors((prev) => ({ ...prev, ageConfirmed: undefined }))
+              }}
+            />
+            <div
+              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                ageConfirmed
+                  ? 'bg-primary border-primary text-[#153243]'
+                  : errors.ageConfirmed
+                    ? '!border-red-500 bg-red-50 dark:bg-red-950/20'
+                    : 'border-divider bg-default-100 group-hover:border-default-400'
+              }`}
+            >
+              {ageConfirmed && (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+            </div>
           </div>
-        </div>
-        <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          Je confirme avoir 18 ans révolus
-        </span>
-      </label>
-      {errors.ageConfirmed && (
-        <span className="text-xs text-text-error -mt-2">{errors.ageConfirmed}</span>
-      )}
+          <span className="text-xs font-medium text-text-primary dark:text-text-primary-dark">
+            Je certifie sur l&apos;honneur avoir 18 ans révolus (la vente d&apos;alcool est
+            interdite aux mineurs) *
+          </span>
+        </label>
+        {errors.ageConfirmed && (
+          <span className="text-xs text-red-500 pl-8">{errors.ageConfirmed}</span>
+        )}
+      </div>
 
       {/* Honeypot — invisible pour les humains */}
       <input
@@ -358,9 +357,9 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
       <button
         type="submit"
         disabled={sending}
-        className="btn-primary w-full mt-2 disabled:opacity-50"
+        className="heroui-btn-primary w-full py-3.5 text-base rounded-2xl disabled:opacity-50 mt-2"
       >
-        {sending ? 'Envoi en cours…' : 'Passer la commande'}
+        {sending ? 'Traitement de votre commande en cours…' : 'Confirmer et passer commande'}
       </button>
     </form>
   )

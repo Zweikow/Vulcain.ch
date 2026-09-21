@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import { heroui } from '@heroui/react'
 
 // Palette Drinkcider — Sprint 1
 // #153243 Deep Space Blue  → sidebar, header
@@ -13,6 +14,7 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -70,6 +72,32 @@ const config: Config = {
           warning: '#E65100',
           'warning-dark': '#FF9800',
         },
+        // Tokens Sémantiques HeroUI (ex-NextUI)
+        content1: {
+          DEFAULT: 'var(--heroui-content1, #FFFFFF)',
+          foreground: 'var(--heroui-content1-foreground, #153243)',
+        },
+        content2: {
+          DEFAULT: 'var(--heroui-content2, #F4F4F6)',
+          foreground: 'var(--heroui-content2-foreground, #153243)',
+        },
+        content3: {
+          DEFAULT: 'var(--heroui-content3, #EAEAEF)',
+          foreground: 'var(--heroui-content3-foreground, #153243)',
+        },
+        divider: 'var(--heroui-divider, rgba(21, 50, 67, 0.08))',
+        default: {
+          50: 'var(--heroui-default-50, #FAFAF9)',
+          100: 'var(--heroui-default-100, #F4F4F5)',
+          200: 'var(--heroui-default-200, #E4E4E7)',
+          300: 'var(--heroui-default-300, #D4D4D8)',
+          400: 'var(--heroui-default-400, #A1A1AA)',
+          500: 'var(--heroui-default-500, #71717A)',
+          600: 'var(--heroui-default-600, #52525B)',
+          700: 'var(--heroui-default-700, #3F3F46)',
+          800: 'var(--heroui-default-800, #27272A)',
+          900: 'var(--heroui-default-900, #18181B)',
+        },
       },
       fontFamily: {
         body: ['Plus Jakarta Sans', 'sans-serif'],
@@ -78,11 +106,43 @@ const config: Config = {
       borderRadius: {
         sm: '6px',
         md: '10px',
-        lg: '16px',
+        lg: '14px',
+        xl: '18px',
+        '2xl': '22px',
+        '3xl': '28px',
         pill: '999px',
+      },
+      boxShadow: {
+        'heroui-sm': '0 2px 8px -2px rgba(0, 0, 0, 0.05)',
+        'heroui-md': '0 8px 24px -4px rgba(0, 0, 0, 0.08)',
+        'heroui-lg': '0 16px 36px -6px rgba(0, 0, 0, 0.12)',
+        'heroui-primary': '0 8px 24px -4px rgba(128, 237, 153, 0.35)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    heroui({
+      themes: {
+        light: {
+          colors: {
+            primary: {
+              DEFAULT: '#80ED99',
+              foreground: '#153243',
+            },
+            focus: '#80ED99',
+          },
+        },
+        dark: {
+          colors: {
+            primary: {
+              DEFAULT: '#80ED99',
+              foreground: '#153243',
+            },
+            focus: '#80ED99',
+          },
+        },
+      },
+    }),
+  ],
 }
 export default config

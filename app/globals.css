@@ -6,10 +6,42 @@
 
 :root {
   color-scheme: light;
+  --heroui-content1: #ffffff;
+  --heroui-content1-foreground: #153243;
+  --heroui-content2: #f8f9fa;
+  --heroui-content2-foreground: #153243;
+  --heroui-content3: #eff2f5;
+  --heroui-divider: rgba(21, 50, 67, 0.08);
+  --heroui-default-50: #fafaf9;
+  --heroui-default-100: #f4f4f6;
+  --heroui-default-200: #e4e7eb;
+  --heroui-default-300: #d1d5db;
+  --heroui-default-400: #9ca3af;
+  --heroui-default-500: #6b7280;
+  --heroui-default-600: #4b5563;
+  --heroui-default-700: #374151;
+  --heroui-default-800: #1f2937;
+  --heroui-default-900: #111827;
 }
 
 :root.dark {
   color-scheme: dark;
+  --heroui-content1: #131f2d;
+  --heroui-content1-foreground: #e6f1f8;
+  --heroui-content2: #18283a;
+  --heroui-content2-foreground: #e6f1f8;
+  --heroui-content3: #1f344b;
+  --heroui-divider: rgba(255, 255, 255, 0.08);
+  --heroui-default-50: #0b131c;
+  --heroui-default-100: #121e2c;
+  --heroui-default-200: #1a2a3d;
+  --heroui-default-300: #253a52;
+  --heroui-default-400: #4a6582;
+  --heroui-default-500: #718da9;
+  --heroui-default-600: #9ab2c8;
+  --heroui-default-700: #c2d5e4;
+  --heroui-default-800: #e1ecf4;
+  --heroui-default-900: #f4f8fb;
 }
 
 html:not(.dark),
@@ -22,12 +54,12 @@ html:not(.dark) body {
 html.dark,
 html.dark body {
   color-scheme: dark !important;
-  background-color: #0d1b2a;
+  background-color: #0b131d;
 }
 
 @layer base {
   body {
-    @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
+    @apply font-body bg-bg-page dark:bg-[#0B131D] text-text-primary dark:text-text-primary-dark antialiased;
   }
 
   /* Focus visible sur tous les éléments interactifs (DESIGN.md §6) */
@@ -38,21 +70,44 @@ html.dark body {
 }
 
 @layer components {
-  /* Texte sombre sur fond vert — jamais de blanc (DESIGN.md, correctif contraste) */
+  /* Composants standards (conservés pour rétrocompatibilité) */
   .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
+    @apply bg-primary hover:bg-primary-hover text-[#153243] font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95 shadow-heroui-sm hover:shadow-heroui-primary;
   }
   .btn-secondary {
-    @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+    @apply border border-divider text-text-primary dark:text-text-primary-dark bg-content1 hover:bg-default-100 font-medium px-4 py-2.5 rounded-xl transition-all active:scale-95;
   }
   .btn-danger {
-    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-xl transition-all active:scale-95;
   }
   .input-field {
-    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border dark:border-border-dark rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+    @apply w-full bg-default-100 hover:bg-default-200 focus:bg-content1 border border-divider focus:border-primary rounded-xl px-3.5 py-2.5 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-default-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all;
   }
   .card {
-    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
+    @apply bg-content1 rounded-2xl border border-divider shadow-heroui-sm transition-all;
+  }
+
+  /* Composants Signature HeroUI (ex-NextUI) */
+  .heroui-card {
+    @apply bg-content1 text-content1-foreground rounded-2xl border border-divider shadow-heroui-sm hover:shadow-heroui-md transition-all duration-300;
+  }
+  .heroui-card-elevated {
+    @apply bg-content1 text-content1-foreground rounded-3xl border border-divider shadow-heroui-md hover:shadow-heroui-lg transition-all duration-300;
+  }
+  .heroui-btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-[#153243] font-semibold px-5 py-2.5 rounded-xl shadow-heroui-primary active:scale-[0.98] transition-all duration-200 inline-flex items-center justify-center gap-2 select-none;
+  }
+  .heroui-btn-secondary {
+    @apply border border-divider bg-content1 hover:bg-default-100 text-text-primary dark:text-text-primary-dark font-medium px-4 py-2.5 rounded-xl active:scale-[0.98] transition-all duration-200 inline-flex items-center justify-center gap-2 select-none;
+  }
+  .heroui-chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold select-none border border-divider;
+  }
+  .heroui-input {
+    @apply w-full bg-default-100 hover:bg-default-200 focus:bg-content1 border border-divider hover:border-default-300 focus:border-primary rounded-xl px-3.5 py-2.5 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-default-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200;
+  }
+  .glass-header {
+    @apply backdrop-blur-xl bg-white/70 dark:bg-[#0B131D]/75 border-b border-divider;
   }
 }
 

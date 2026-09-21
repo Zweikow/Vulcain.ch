@@ -63,33 +63,45 @@ export default function Cart({ items, settings }: CartProps) {
   const missingForFranco = settings.francoCents - subtotalCents
 
   return (
-    <div className="card p-4 flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
-          Votre commande
-        </h2>
-        <InfoIcon className="w-4 h-4 text-text-tertiary dark:text-text-tertiary-dark shrink-0" />
+    <div className="heroui-card p-5 flex flex-col gap-4 relative overflow-hidden">
+      <div className="flex items-center justify-between gap-2 pb-3 border-b border-divider">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+          <h2 className="font-semibold text-base text-text-primary dark:text-text-primary-dark">
+            Votre commande
+          </h2>
+        </div>
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-default-100 text-default-600 border border-divider">
+          {items.reduce((s, i) => s + i.quantity, 0)}{' '}
+          {items.reduce((s, i) => s + i.quantity, 0) > 1 ? 'articles' : 'article'}
+        </span>
       </div>
 
       {!hasItems ? (
-        <p className="text-sm text-text-tertiary dark:text-text-tertiary-dark py-4 text-center">
-          Votre panier est vide
-        </p>
+        <div className="py-8 flex flex-col items-center justify-center text-center gap-2">
+          <div className="w-12 h-12 rounded-2xl bg-default-100 flex items-center justify-center text-default-400">
+            <InfoIcon className="w-6 h-6" />
+          </div>
+          <p className="text-sm font-medium text-default-500">Votre panier est actuellement vide</p>
+          <p className="text-xs text-default-400 max-w-[200px]">
+            Sélectionnez des bouteilles ou cartons pour commencer.
+          </p>
+        </div>
       ) : (
         <>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-3">
             {items.map((item) => {
               const isCarton = (item.product.bottlesPerUnit ?? 1) > 1
               return (
                 <div
                   key={item.product.id}
-                  className="flex justify-between items-center text-sm gap-2"
+                  className="flex justify-between items-center text-sm gap-2 p-2 rounded-xl bg-default-50/70 border border-divider/60"
                 >
                   <div className="flex flex-col">
                     <span className="text-text-primary dark:text-text-primary-dark font-medium leading-tight">
                       {item.product.name}
                     </span>
-                    <span className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-mono">
+                    <span className="text-[11px] text-default-500 font-mono mt-0.5">
                       {isCarton
                         ? `${item.quantity} carton${item.quantity > 1 ? 's' : ''} (${item.quantity * item.product.bottlesPerUnit} bout.)`
                         : `${item.quantity} bouteille${item.quantity > 1 ? 's' : ''}`}
@@ -102,7 +114,7 @@ export default function Cart({ items, settings }: CartProps) {
               )
             })}
 
-            <div className="border-t border-border dark:border-border-dark pt-2.5 flex flex-col gap-1.5">
+            <div className="border-t border-divider pt-3 flex flex-col gap-2">
               {promoDiscounts.map((d, idx) => (
                 <div
                   key={idx}
@@ -113,39 +125,70 @@ export default function Cart({ items, settings }: CartProps) {
                 </div>
               ))}
 
-              <div className="flex justify-between text-sm text-text-primary dark:text-text-primary-dark font-medium pt-1 border-t border-border/40 dark:border-border-dark/40">
+              <div className="flex justify-between text-sm text-default-600 dark:text-default-400 font-medium">
                 <span>Sous-total</span>
-                <span className="tabular">{formatCHF(subtotalCents)}</span>
-              </div>
-
-              <div className="flex justify-between text-sm text-text-secondary dark:text-text-secondary-dark">
-                <span>Frais de port</span>
-                <span className="tabular">
-                  {shippingCents === 0 ? 'Offerts' : formatCHF(shippingCents)}
+                <span className="tabular text-text-primary dark:text-text-primary-dark">
+                  {formatCHF(subtotalCents)}
                 </span>
               </div>
 
-              {missingForFranco > 0 && (
-                <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
-                  Ajoutez {formatCHF(missingForFranco)} d&apos;articles pour la livraison offerte.
-                </p>
+              <div className="flex justify-between text-sm text-default-600 dark:text-default-400">
+                <span>Frais de port</span>
+                <span className="tabular font-medium text-text-primary dark:text-text-primary-dark">
+                  {shippingCents === 0 ? (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                      Offerts
+                    </span>
+                  ) : (
+                    formatCHF(shippingCents)
+                  )}
+                </span>
+              </div>
+
+              {/* Barre de progression livraison offerte */}
+              {settings.francoCents > 0 && (
+                <div className="mt-1 p-2.5 rounded-xl bg-default-100/70 border border-divider flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-medium text-default-600">
+                      {missingForFranco <= 0
+                        ? '🎉 Livraison offerte atteinte !'
+                        : `Plus que ${formatCHF(missingForFranco)} pour la livraison offerte`}
+                    </span>
+                    <span className="font-semibold text-default-700">
+                      {Math.min(100, Math.round((subtotalCents / settings.francoCents) * 100))}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-default-200 overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500 rounded-full"
+                      style={{
+                        width: `${Math.min(100, Math.round((subtotalCents / settings.francoCents) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                </div>
               )}
 
-              <div className="flex justify-between font-semibold text-text-primary dark:text-text-primary-dark text-base pt-1 border-t border-border/50 dark:border-border-dark/50">
+              <div className="flex justify-between font-bold text-text-primary dark:text-text-primary-dark text-lg pt-2 border-t border-divider">
                 <span>Total</span>
-                <span className="tabular">{formatCHF(totalCents)}</span>
+                <span className="tabular text-primary dark:text-primary-hover">
+                  {formatCHF(totalCents)}
+                </span>
               </div>
             </div>
           </div>
 
-          <a href="#commande" className="btn-primary w-full text-center mt-2">
+          <a
+            href="#commande"
+            className="heroui-btn-primary w-full text-center py-3 text-sm rounded-xl"
+          >
             Terminer ma commande
           </a>
         </>
       )}
 
-      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark italic text-center mt-1">
-        Livraison en Suisse uniquement
+      <div className="text-[11px] text-default-400 italic text-center">
+        Expédition soignée en Suisse uniquement · CHF
       </div>
     </div>
   )

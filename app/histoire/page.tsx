@@ -127,17 +127,20 @@ export default function HistoirePage() {
                   pasteurisation, sans filtration forcée, ni artifice. Chaque millésime est une
                   œuvre vivante, tendue, minérale et éclatante.
                 </p>
-                <div className="p-4 rounded-xl bg-card dark:bg-card-dark border border-border dark:border-border-dark mt-2">
-                  <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark mb-1">
+                <div className="p-5 rounded-2xl bg-content1 border border-divider shadow-heroui-sm mt-2">
+                  <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark mb-1.5 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
                     Une alliance de confiance et d&apos;amitié
                   </h3>
-                  <p className="text-xs sm:text-sm text-text-secondary dark:text-text-secondary-dark">
+                  <p className="text-xs sm:text-sm text-default-600 dark:text-default-400 leading-relaxed">
                     Liés par des années de complicité et une estime réciproque, c&apos;est tout
                     naturellement que Jacques a confié à Bertrand la{' '}
-                    <strong>revente et la distribution officielle</strong> de ses précieux flacons.
-                    Cet accord fraternel permet à Jacques de consacrer toute son énergie à ses
-                    vergers et à ses fûts, tout en garantissant aux fidèles amateurs un accès
-                    direct, fidèle et soigné à ses créations.
+                    <strong className="text-text-primary dark:text-text-primary-dark">
+                      revente et la distribution officielle
+                    </strong>{' '}
+                    de ses précieux flacons. Cet accord fraternel permet à Jacques de consacrer
+                    toute son énergie à ses vergers et à ses fûts, tout en garantissant aux fidèles
+                    amateurs un accès direct, fidèle et soigné à ses créations.
                   </p>
                 </div>
               </div>
@@ -146,8 +149,8 @@ export default function HistoirePage() {
             {/* Image Jacques à droite (Desktop) */}
             <div className="lg:col-span-5 order-1 lg:order-2">
               <div className="relative group">
-                <div className="absolute -inset-2 bg-gradient-to-tr from-[#977390]/20 via-[#284B63]/20 to-transparent rounded-2xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity" />
-                <div className="relative overflow-hidden rounded-2xl border border-border dark:border-border-dark shadow-xl bg-card dark:bg-card-dark aspect-[4/3] sm:aspect-[4/3]">
+                <div className="absolute -inset-2 bg-gradient-to-tr from-[#977390]/20 via-[#284B63]/20 to-transparent rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition-opacity" />
+                <div className="relative overflow-hidden rounded-3xl border border-divider shadow-heroui-md bg-content1 aspect-[4/3] sm:aspect-[4/3]">
                   <Image
                     src="/images/histoire/jacques-perritaz.jpg"
                     alt="Jacques Perritaz — Maître Cidrier"
@@ -157,9 +160,11 @@ export default function HistoirePage() {
                   />
                 </div>
                 <div className="mt-3 text-center sm:text-right">
-                  <p className="text-xs font-medium text-text-tertiary dark:text-text-tertiary-dark">
-                    <strong>Jacques Perritaz</strong> · Maître Cidrier & Artisan des terroirs
-                    suisses
+                  <p className="text-xs font-medium text-default-400">
+                    <strong className="text-text-primary dark:text-text-primary-dark">
+                      Jacques Perritaz
+                    </strong>{' '}
+                    · Maître Cidrier & Artisan des terroirs suisses
                   </p>
                 </div>
               </div>
@@ -168,24 +173,24 @@ export default function HistoirePage() {
         </section>
 
         {/* Section Appel à l'action */}
-        <section className="py-16 px-4 max-w-4xl mx-auto text-center border-t border-border dark:border-border-dark mt-8">
+        <section className="py-16 px-4 max-w-4xl mx-auto text-center border-t border-divider mt-8">
           <h2 className="font-display font-semibold text-2xl sm:text-3xl text-text-primary dark:text-text-primary-dark">
             Goûtez à la différence du pur fruit
           </h2>
-          <p className="mt-3 text-sm sm:text-base text-text-secondary dark:text-text-secondary-dark max-w-xl mx-auto">
+          <p className="mt-3 text-sm sm:text-base text-default-600 dark:text-default-400 max-w-xl mx-auto">
             Retrouvez les cuvées emblématiques de Jacques Perritaz, prêtes à être expédiées
             directement chez vous en Suisse.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/#catalogue"
-              className="btn-primary w-full sm:w-auto px-8 py-3 text-sm font-semibold rounded-xl shadow-lg transition-transform hover:scale-105"
+              className="heroui-btn-primary w-full sm:w-auto px-8 py-3.5 text-sm font-semibold rounded-2xl shadow-heroui-primary"
             >
               Découvrir le catalogue des cuvées
             </Link>
             <a
               href="mailto:info@drinkcider.ch"
-              className="btn-secondary w-full sm:w-auto px-6 py-3 text-sm font-medium rounded-xl transition-colors"
+              className="heroui-btn-secondary w-full sm:w-auto px-6 py-3.5 text-sm font-medium rounded-2xl"
             >
               Contacter Bertrand
             </a>
