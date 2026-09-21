@@ -1,4 +1,3 @@
-import { Role } from '@prisma/client'
 import { SessionWatcher } from '@/components/admin/SessionWatcher'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { currentUser } from '@/lib/guards'

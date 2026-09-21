@@ -224,51 +224,59 @@ export default function BoutiqueClient({
         </div>
       </div>
 
-      {/* Pied de page sombre avec maillage interne, lien externe et mention légale (DESIGN.md §4) */}
-      <footer className="mt-12 bg-bg-header dark:bg-bg-header-dark px-4 py-12 text-sm text-white/80">
+      {/* Pied de page HeroUI avec maillage interne, lien externe et mention légale */}
+      <footer className="mt-16 bg-content1 dark:bg-[#070D14] border-t border-divider px-4 py-14 text-sm text-default-600 dark:text-default-400">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-divider">
             {/* Col 1 & 2 : Présentation & lien externe */}
             <div className="md:col-span-2">
-              <p className="font-display font-semibold text-lg text-white">Drinkcider</p>
-              <p className="mt-2 text-xs leading-relaxed text-white/70 max-w-md">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-display font-bold text-xl text-text-primary dark:text-text-primary-dark">
+                  Drinkcider
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-[#153243] dark:text-primary border border-primary/30">
+                  SUISSE
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed text-default-500 max-w-md">
                 Sélection et distribution artisanale de cidres et poirés d&apos;exception par
                 Jacques Perritaz à partir de fruits sauvages et variétés anciennes de Suisse.
                 Fermentation 100% levures indigènes, pur jus sans concentré.
               </p>
-              <p className="mt-3 text-xs text-white/60">
-                Membre et partenaire du patrimoine fruitier et gustatif suisse.{' '}
+              <div className="mt-4 flex items-center gap-2">
                 <a
                   href="https://www.terroir-fribourg.ch"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white hover:underline font-medium inline-flex items-center gap-1"
+                  className="heroui-chip bg-default-100 hover:bg-default-200 text-default-700 text-xs transition-colors"
                 >
-                  <span>Terroir Fribourg</span>
+                  <span>Partenaire Terroir Fribourg</span>
                   <span aria-hidden="true">↗</span>
                 </a>
-              </p>
+              </div>
             </div>
 
             {/* Col 3 : La Cave & Navigation interne */}
             <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-white">La Cave</p>
-              <ul className="mt-3 space-y-2 text-xs">
+              <p className="font-semibold text-xs uppercase tracking-wider text-text-primary dark:text-text-primary-dark">
+                La Cave
+              </p>
+              <ul className="mt-3.5 space-y-2.5 text-xs">
                 <li>
-                  <Link href="/#catalogue" className="hover:text-white transition-colors">
+                  <Link href="/#catalogue" className="hover:text-primary transition-colors">
                     Catalogue des cuvées
                   </Link>
                 </li>
                 <li>
-                  <Link href="/histoire" className="hover:text-white transition-colors">
-                    Notre Histoire & Terroir
+                  <Link href="/histoire" className="hover:text-primary transition-colors">
+                    Notre Histoire &amp; Terroir
                   </Link>
                 </li>
                 {categories.map((cat) => (
                   <li key={cat}>
                     <a
                       href={`#categorie-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                      className="hover:text-white transition-colors"
+                      className="hover:text-primary transition-colors"
                     >
                       {cat}
                     </a>
@@ -279,29 +287,29 @@ export default function BoutiqueClient({
 
             {/* Col 4 : Informations & Contact */}
             <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-white">
+              <p className="font-semibold text-xs uppercase tracking-wider text-text-primary dark:text-text-primary-dark">
                 Informations
               </p>
-              <ul className="mt-3 space-y-2 text-xs">
+              <ul className="mt-3.5 space-y-2.5 text-xs">
                 <li>
-                  <Link href="/cgv" className="hover:text-white transition-colors">
+                  <Link href="/cgv" className="hover:text-primary transition-colors">
                     Conditions de vente
                   </Link>
                 </li>
                 <li>
-                  <Link href="/mentions-legales" className="hover:text-white transition-colors">
+                  <Link href="/mentions-legales" className="hover:text-primary transition-colors">
                     Mentions légales
                   </Link>
                 </li>
                 <li>
-                  <Link href="/confidentialite" className="hover:text-white transition-colors">
+                  <Link href="/confidentialite" className="hover:text-primary transition-colors">
                     Protection des données
                   </Link>
                 </li>
                 <li>
                   <a
                     href="mailto:info@drinkcider.ch"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     Nous contacter
                   </a>
@@ -310,19 +318,20 @@ export default function BoutiqueClient({
             </div>
           </div>
 
-          <div className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/60">
+          <div className="pt-8 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-default-400">
             <div>
-              <p>© 2026 Drinkcider.ch · Tous droits réservés</p>
+              <p>© {new Date().getFullYear()} Drinkcider.ch · Distribution exclusive</p>
               {process.env.NEXT_PUBLIC_COMMIT_SHA && (
-                <p className="mt-0.5 font-mono text-[11px] text-white/40">
-                  version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}
+                <p className="mt-0.5 font-mono text-[11px] text-default-400">
+                  build: {process.env.NEXT_PUBLIC_COMMIT_SHA.slice(0, 7)}{' '}
                   {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
                 </p>
               )}
             </div>
-            <p className="rounded-md bg-[#FDF2F2] px-3.5 py-1.5 text-xs font-medium text-[#C62828] self-start md:self-center">
-              La vente d&apos;alcool est interdite aux mineurs.
-            </p>
+            <div className="inline-flex items-center gap-2 rounded-full bg-red-500/10 border border-red-500/20 px-3.5 py-1 text-xs font-semibold text-red-600 dark:text-red-400 self-start md:self-center">
+              <span>🔞</span>
+              <span>La vente d&apos;alcool est interdite aux mineurs de moins de 18 ans</span>
+            </div>
           </div>
         </div>
       </footer>
