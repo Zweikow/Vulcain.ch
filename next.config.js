@@ -104,7 +104,7 @@ const nextConfig = {
         headers: securityHeaders,
       },
       {
-        source: '/:path*\\.(?:svg|jpg|jpeg|png|webp|avif|ico|gif|woff|woff2)',
+        source: '/:path*\\.:ext(svg|jpg|jpeg|png|webp|avif|ico|gif|woff|woff2)',
         headers: [
           {
             key: 'Cache-Control',
