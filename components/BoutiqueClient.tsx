@@ -91,14 +91,17 @@ export default function BoutiqueClient({
         {/* Bandeau d'accueil (DESIGN.md §4) */}
         <section className="card p-8 mb-8">
           <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
-            Récolte 2026
+            Cidrerie artisanale suisse · Cuvées &amp; Millésimes
           </p>
-          <h1 className="mt-2 max-w-2xl font-display font-semibold text-4xl md:text-[46px] leading-tight text-text-primary dark:text-text-primary-dark">
-            L&apos;expression pure du terroir.
+          <h1 className="mt-2 max-w-2xl font-display font-semibold text-3xl sm:text-4xl md:text-[44px] leading-tight text-text-primary dark:text-text-primary-dark">
+            Cidres &amp; poirés d&apos;auteurs suisses
           </h1>
+          <p className="mt-2 text-lg sm:text-xl font-display italic text-[#284B63] dark:text-[#80ED99]">
+            L&apos;expression pure du terroir.
+          </p>
           <p className="mt-4 max-w-lg text-text-secondary dark:text-text-secondary-dark">
-            Cidres et poirés artisanaux, fermentés lentement sur levures indigènes.{' '}
-            {products.length} références disponibles à la cave.
+            Pur jus de fruits anciens suisses et fermentation 100% levures indigènes par Jacques
+            Perritaz. {products.length} références disponibles à la cave.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="#catalogue" className="btn-primary">

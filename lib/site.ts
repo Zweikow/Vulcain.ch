@@ -23,9 +23,9 @@ export const SITE_CONFIG = {
   legalName: 'Drinkcider',
   distributorDescription:
     'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux suisses (Jacques Perritaz).',
-  title: 'Drinkcider avec passion',
+  title: 'Drinkcider | Cidres artisanaux et poirés pur jus en Suisse',
   description:
-    'Cidres et poirés artisanaux par Drinkcider (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
+    'Boutique officielle Drinkcider : découvrez et commandez en ligne les cidres et poirés artisanaux suisses de Jacques Perritaz. 100% pur jus et levures indigènes. Livraison en Suisse.',
   keywords: [
     // Français
     'Drinkcider',
