@@ -46,6 +46,25 @@ export default $config({
     const site = new sst.aws.Nextjs('CidrerieSite', {
       domain: domain,
       link: [photosBucket], // Lie le bucket au site pour générer l'accès sécurisé
+      assets: {
+        fileOptions: [
+          {
+            files: [
+              '**/*.png',
+              '**/*.jpg',
+              '**/*.jpeg',
+              '**/*.webp',
+              '**/*.avif',
+              '**/*.svg',
+              '**/*.ico',
+              '**/*.gif',
+              '**/*.woff',
+              '**/*.woff2',
+            ],
+            cacheControl: 'public,max-age=31536000,immutable',
+          },
+        ],
+      },
       permissions: [
         {
           actions: ['ses:SendEmail', 'ses:SendRawEmail'],
