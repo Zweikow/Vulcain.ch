@@ -1,71 +1,108 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-}
-
-:root.dark {
-  color-scheme: dark;
-}
-
-html:not(.dark),
-html:not(.dark) body {
-  color-scheme: light !important;
-  background-color: #f7f6f0;
-  forced-color-adjust: none;
-}
-
-html.dark,
-html.dark body {
-  color-scheme: dark !important;
-  background-color: #0d1b2a;
-}
-
 @layer base {
-  body {
-    @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
+  :root {
+    /* Palette Artisanale Vulcain - Stone & Warm Cider */
+    --background: 40 25% 98%; /* #FAF8F5 - Papier/Pierre naturelle chaude */
+    --foreground: 215 28% 17%; /* #1e293b - Ardoise profonde */
+
+    --card: 0 0% 100%; /* Fond de carte blanc chaud */
+    --card-foreground: 215 28% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+
+    --primary: 36 82% 43%; /* #C77A14 - Ambre cidre chaud & naturel */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 36 85% 38%;
+
+    --secondary: 40 18% 92%; /* #ECE8E1 - Pierre beige douce */
+    --secondary-foreground: 215 28% 17%;
+
+    --muted: 40 14% 92%; /* #EDE9E3 */
+    --muted-foreground: 215 16% 45%; /* #5F6E80 */
+
+    --accent: 40 20% 90%; /* #EAE4DA */
+    --accent-foreground: 215 28% 17%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 14% 87%; /* #E2DCD3 - Bordure organique fine */
+    --input: 40 14% 87%;
+    --ring: 36 82% 43%;
+
+    --radius: 0.875rem; /* 14px - Arrondis élégants et naturels */
   }
 
-  /* Focus visible sur tous les éléments interactifs (DESIGN.md §6) */
+  .dark {
+    /* Mode Nocturne Haute Précision - Ardoise & Chêne Noirci */
+    --background: 215 32% 9%; /* #0F1722 - Ardoise nocturne */
+    --foreground: 40 20% 96%; /* #F6F4F0 */
+
+    --card: 215 26% 13%; /* #182230 - Carte surélevée */
+    --card-foreground: 40 20% 96%;
+
+    --popover: 215 26% 13%;
+    --popover-foreground: 40 20% 96%;
+
+    --primary: 36 88% 50%; /* #EE9B24 - Ambre lumineux doré */
+    --primary-foreground: 215 32% 9%;
+    --primary-hover: 36 90% 45%;
+
+    --secondary: 215 22% 18%; /* #243042 */
+    --secondary-foreground: 40 20% 96%;
+
+    --muted: 215 20% 17%;
+    --muted-foreground: 215 15% 65%; /* #92A3B8 */
+
+    --accent: 215 22% 20%;
+    --accent-foreground: 40 20% 96%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 20%; /* #263345 */
+    --input: 215 20% 20%;
+    --ring: 36 88% 50%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
   :focus-visible {
-    outline: 2px solid #5ed97f;
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 }
 
-@layer components {
-  /* Texte sombre sur fond vert — jamais de blanc (DESIGN.md, correctif contraste) */
-  .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
-  }
-  .btn-secondary {
-    @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
-  }
-  .btn-danger {
-    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
-  }
-  .input-field {
-    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border dark:border-border-dark rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
-  }
-  .card {
-    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
-  }
-}
-
 @layer utilities {
-  /* Montants alignés en colonne (DESIGN.md §1) */
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Dégradés d'ambiance organiques et discrets */
+  .bg-radial-subtle {
+    background: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.08), transparent 70%);
+  }
+
+  .bg-glass {
+    background-color: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
-/* --- Facture A4 -----------------------------------------------------------
-   Le document est calibré en millimètres : ce qui est à l'écran est ce qui
-   sort sur papier. C'est le support de travail réel à la cave (DESIGN.md §6). */
+/* --- Facture A4 et Swiss QR Bill (Conformité Suisse stricte) ------------- */
 .facture-page {
   width: 210mm;
   min-height: 297mm;
@@ -88,13 +125,7 @@ html.dark body {
   forced-color-adjust: none !important;
 }
 
-.facture-body {
-  padding: 11mm 16mm 2mm 16mm;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
+.facture-body,
 .facture-body-p2 {
   padding: 11mm 16mm 2mm 16mm;
   display: flex;

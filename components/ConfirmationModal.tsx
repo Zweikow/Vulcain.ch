@@ -1,6 +1,9 @@
 'use client'
 
 import { formatCHF } from '@/lib/money'
+import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface ConfirmationModalProps {
   orderId: string
@@ -14,53 +17,56 @@ export default function ConfirmationModal({
   onClose,
 }: ConfirmationModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="card p-8 w-full max-w-sm text-center flex flex-col items-center gap-4 shadow-xl">
-        {/* Success icon */}
-        <div className="w-12 h-12 rounded-full bg-primary-light dark:bg-primary-light-dark flex items-center justify-center">
-          <svg
-            className="w-6 h-6 text-primary"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md bg-card border border-border rounded-3xl p-8 text-center flex flex-col items-center gap-5 shadow-2xl animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Icône de succès */}
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="w-8 h-8" />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h2 className="font-display text-xl font-semibold text-text-primary dark:text-text-primary-dark">
-            Commande confirmée !
+        <div className="flex flex-col gap-1.5">
+          <Badge variant="success" className="mx-auto text-xs py-0.5 px-3">
+            Commande enregistrée
+          </Badge>
+          <h2 className="font-display text-2xl font-bold text-foreground mt-1">
+            Merci pour votre commande !
           </h2>
-          <p className="text-sm text-text-secondary dark:text-text-secondary-dark leading-relaxed">
-            Merci pour votre commande ! Un email de confirmation a été envoyé à votre adresse. Nous
-            vous contacterons pour les détails et délais.
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Votre commande a bien été transmise à la cave. Vous recevrez un courriel récapitulatif
+            avec la facture et le QR-code de paiement suisse.
           </p>
         </div>
 
-        <div className="w-full bg-bg-page dark:bg-bg-page-dark rounded-md p-3 flex flex-col gap-1.5">
-          <div className="flex justify-between text-sm">
-            <span className="text-text-secondary dark:text-text-secondary-dark">
-              N° de commande
+        {/* Détails de la commande */}
+        <div className="w-full bg-secondary/50 rounded-2xl p-4 border border-border/60 flex flex-col gap-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-muted-foreground text-xs uppercase tracking-wider font-mono">
+              Référence
             </span>
-            <span className="font-semibold text-primary">{orderId}</span>
+            <span className="font-mono font-bold text-primary">{orderId}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-text-secondary dark:text-text-secondary-dark">Total</span>
-            <span className="font-semibold text-text-primary dark:text-text-primary-dark">
+          <div className="flex justify-between items-center text-sm border-t border-border/40 pt-2">
+            <span className="text-muted-foreground text-xs">Montant total</span>
+            <span className="font-bold text-base text-foreground font-mono tabular">
               {formatCHF(totalCents)}
             </span>
           </div>
         </div>
 
-        <button onClick={onClose} className="btn-primary w-full">
-          Fermer
-        </button>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+          <span>Expédition soignée par Planzer Vins &amp; Spiritueux</span>
+        </div>
+
+        <Button onClick={onClose} variant="default" size="lg" className="w-full font-semibold">
+          Retour à la boutique
+        </Button>
       </div>
     </div>
   )

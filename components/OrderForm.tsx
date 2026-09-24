@@ -5,7 +5,10 @@ import { CustomerInfo, CartItem } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
 import { shippingCentsFor } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
-import { UserIcon } from '@/components/Icons'
+import { User, Check, ShieldCheck, Mail, MapPin, Calendar } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 interface OrderFormProps {
   items: CartItem[]
@@ -68,14 +71,15 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
 
   const validate = () => {
     const e: typeof errors = {}
-    if (!form.firstName) e.firstName = 'Requis'
-    if (!form.lastName) e.lastName = 'Requis'
-    if (!form.address) e.address = 'Requis'
-    if (!form.npa) e.npa = 'Requis'
-    if (!form.lieu) e.lieu = 'Requis'
-    if (!form.deliveryDate) e.deliveryDate = 'Requis'
-    if (!form.email) e.email = 'Requis'
-    if (!ageConfirmed) e.ageConfirmed = "La vente d'alcool est réservée aux personnes majeures"
+    if (!form.firstName) e.firstName = 'Prénom requis'
+    if (!form.lastName) e.lastName = 'Nom requis'
+    if (!form.address) e.address = 'Adresse requise'
+    if (!form.npa) e.npa = 'NPA requis'
+    if (!form.lieu) e.lieu = 'Localité requise'
+    if (!form.deliveryDate) e.deliveryDate = 'Délai souhaité requis'
+    if (!form.email) e.email = 'Adresse e-mail requise'
+    if (!ageConfirmed)
+      e.ageConfirmed = "La vente d'alcool en Suisse est réservée aux personnes majeures (+18 ans)"
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -88,7 +92,6 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
       return
     }
 
-    // Aucun prix n'est envoyé : le serveur recalcule tout depuis la base.
     const payload = {
       firstName: form.firstName,
       lastName: form.lastName,
@@ -105,7 +108,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
         quantity: i.quantity,
       })),
       turnstileToken: turnstileToken.current,
-      website: '', // honeypot field — always empty for real users
+      website: '', // honeypot
     }
 
     setSending(true)
@@ -135,233 +138,246 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <UserIcon className="w-5 h-5 text-text-secondary dark:text-text-secondary-dark" />
-        <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
-          Vos coordonnées
-        </h2>
-      </div>
-
-      {/* Name row */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Nom
-          </label>
-          <input
-            className={`input-field ${errors.firstName ? 'border-text-error' : ''}`}
-            placeholder="Votre nom"
-            value={form.firstName}
-            onChange={(e) => update('firstName', e.target.value)}
-          />
-          {errors.firstName && <span className="text-xs text-text-error">{errors.firstName}</span>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Prénom
-          </label>
-          <input
-            className={`input-field ${errors.lastName ? 'border-text-error' : ''}`}
-            placeholder="Votre prénom"
-            value={form.lastName}
-            onChange={(e) => update('lastName', e.target.value)}
-          />
-          {errors.lastName && <span className="text-xs text-text-error">{errors.lastName}</span>}
-        </div>
-      </div>
-
-      {/* Address */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Adresse
-        </label>
-        <input
-          className={`input-field ${errors.address ? 'border-text-error' : ''}`}
-          placeholder="Rue et numéro"
-          value={form.address}
-          onChange={(e) => update('address', e.target.value)}
-        />
-        {errors.address && <span className="text-xs text-text-error">{errors.address}</span>}
-      </div>
-
-      {/* NPA + Lieu */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            NPA
-          </label>
-          <input
-            className={`input-field ${errors.npa ? 'border-text-error' : ''}`}
-            placeholder="1000"
-            value={form.npa}
-            onChange={(e) => update('npa', e.target.value)}
-          />
-          {errors.npa && <span className="text-xs text-text-error">{errors.npa}</span>}
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-            Lieu
-          </label>
-          <input
-            className={`input-field ${errors.lieu ? 'border-text-error' : ''}`}
-            placeholder="Votre ville"
-            value={form.lieu}
-            onChange={(e) => update('lieu', e.target.value)}
-          />
-          {errors.lieu && <span className="text-xs text-text-error">{errors.lieu}</span>}
-        </div>
-      </div>
-
-      {/* Delivery date */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Délai/souhaits pour la livraison
-        </label>
-        <input
-          type="date"
-          className={`input-field ${errors.deliveryDate ? 'border-text-error' : ''}`}
-          value={form.deliveryDate}
-          onChange={(e) => update('deliveryDate', e.target.value)}
-        />
-        {errors.deliveryDate && (
-          <span className="text-xs text-text-error">{errors.deliveryDate}</span>
-        )}
-      </div>
-
-      {/* Email */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Email
-        </label>
-        <input
-          type="email"
-          className={`input-field ${errors.email ? 'border-text-error' : ''}`}
-          placeholder="votre@email.ch"
-          value={form.email}
-          onChange={(e) => update('email', e.target.value)}
-        />
-        {errors.email && <span className="text-xs text-text-error">{errors.email}</span>}
-      </div>
-
-      {/* Message */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-          Message pour la livraison
-        </label>
-        <textarea
-          className="input-field resize-none"
-          rows={3}
-          placeholder="Votre message ou instructions de livraison..."
-          value={form.message}
-          onChange={(e) => update('message', e.target.value)}
-        />
-      </div>
-
-      {/* Marketing consent */}
-      <label className="flex items-start gap-2 cursor-pointer">
-        <div className="relative mt-0.5">
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={form.acceptsMarketing}
-            onChange={(e) => update('acceptsMarketing', e.target.checked)}
-          />
-          <div
-            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
-              form.acceptsMarketing
-                ? 'bg-primary border-primary'
-                : 'border-border dark:border-border-dark bg-bg-input dark:bg-bg-input-dark'
-            }`}
-          >
-            {form.acceptsMarketing && (
-              <svg
-                className="w-3 h-3 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            )}
+    <Card className="border border-border/80 bg-card shadow-sm">
+      <CardHeader className="pb-4 border-b border-border/50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <User className="w-4 h-4" />
+          </div>
+          <div>
+            <CardTitle className="text-lg font-semibold text-foreground">
+              Coordonnées de livraison &amp; Facturation
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Expédition en Suisse par transporteur spécialisé vins &amp; cidres
+            </p>
           </div>
         </div>
-        <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          J&apos;accepte de recevoir des informations promotionnelles de Drinkcider
-        </span>
-      </label>
+      </CardHeader>
 
-      {/* Confirmation de majorité — obligation légale, case bloquante */}
-      <label className="flex items-start gap-2 cursor-pointer">
-        <div className="relative mt-0.5">
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={ageConfirmed}
-            onChange={(e) => {
-              setAgeConfirmed(e.target.checked)
-              setErrors((prev) => ({ ...prev, ageConfirmed: undefined }))
-            }}
-          />
-          <div
-            className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${
-              ageConfirmed
-                ? 'bg-primary border-primary'
-                : errors.ageConfirmed
-                  ? 'border-text-error bg-bg-input dark:bg-bg-input-dark'
-                  : 'border-border dark:border-border-dark bg-bg-input dark:bg-bg-input-dark'
-            }`}
-          >
-            {ageConfirmed && (
-              <svg
-                className="w-3 h-3 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
+      <CardContent className="pt-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Ligne Nom / Prénom */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground">
+                Prénom <span className="text-primary">*</span>
+              </label>
+              <Input
+                className={errors.firstName ? 'border-destructive' : ''}
+                placeholder="Ex. Alexandre"
+                value={form.firstName}
+                onChange={(e) => update('firstName', e.target.value)}
+              />
+              {errors.firstName && (
+                <span className="text-xs text-destructive">{errors.firstName}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground">
+                Nom <span className="text-primary">*</span>
+              </label>
+              <Input
+                className={errors.lastName ? 'border-destructive' : ''}
+                placeholder="Ex. Bovet"
+                value={form.lastName}
+                onChange={(e) => update('lastName', e.target.value)}
+              />
+              {errors.lastName && (
+                <span className="text-xs text-destructive">{errors.lastName}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Adresse postale */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>
+                Adresse de livraison <span className="text-primary">*</span>
+              </span>
+            </label>
+            <Input
+              className={errors.address ? 'border-destructive' : ''}
+              placeholder="Rue, numéro et compléments"
+              value={form.address}
+              onChange={(e) => update('address', e.target.value)}
+            />
+            {errors.address && <span className="text-xs text-destructive">{errors.address}</span>}
+          </div>
+
+          {/* NPA + Ville */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-1.5 sm:col-span-1">
+              <label className="text-xs font-semibold text-foreground">
+                NPA <span className="text-primary">*</span>
+              </label>
+              <Input
+                className={errors.npa ? 'border-destructive' : ''}
+                placeholder="Ex. 1700"
+                value={form.npa}
+                onChange={(e) => update('npa', e.target.value)}
+              />
+              {errors.npa && <span className="text-xs text-destructive">{errors.npa}</span>}
+            </div>
+
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <label className="text-xs font-semibold text-foreground">
+                Localité (Suisse) <span className="text-primary">*</span>
+              </label>
+              <Input
+                className={errors.lieu ? 'border-destructive' : ''}
+                placeholder="Ex. Fribourg"
+                value={form.lieu}
+                onChange={(e) => update('lieu', e.target.value)}
+              />
+              {errors.lieu && <span className="text-xs text-destructive">{errors.lieu}</span>}
+            </div>
+          </div>
+
+          {/* Date souhaitée + Email */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>
+                  Date de livraison souhaitée <span className="text-primary">*</span>
+                </span>
+              </label>
+              <Input
+                type="date"
+                className={errors.deliveryDate ? 'border-destructive' : ''}
+                value={form.deliveryDate}
+                onChange={(e) => update('deliveryDate', e.target.value)}
+              />
+              {errors.deliveryDate && (
+                <span className="text-xs text-destructive">{errors.deliveryDate}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>
+                  Adresse e-mail (pour la facture) <span className="text-primary">*</span>
+                </span>
+              </label>
+              <Input
+                type="email"
+                className={errors.email ? 'border-destructive' : ''}
+                placeholder="votre@email.ch"
+                value={form.email}
+                onChange={(e) => update('email', e.target.value)}
+              />
+              {errors.email && <span className="text-xs text-destructive">{errors.email}</span>}
+            </div>
+          </div>
+
+          {/* Message ou instructions particulières */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Instructions pour le livreur (optionnel)
+            </label>
+            <textarea
+              className="flex min-h-[80px] w-full rounded-xl border border-input bg-card px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              rows={3}
+              placeholder="Ex. Laisser devant la porte d'entrée en cas d'absence, digicode..."
+              value={form.message}
+              onChange={(e) => update('message', e.target.value)}
+            />
+          </div>
+
+          {/* Consentements & Checkboxes */}
+          <div className="flex flex-col gap-3 pt-2 border-t border-border/50">
+            {/* Consentement marketing */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative mt-0.5 shrink-0">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={form.acceptsMarketing}
+                  onChange={(e) => update('acceptsMarketing', e.target.checked)}
                 />
-              </svg>
+                <div className="w-4 h-4 rounded-md border border-input bg-card peer-checked:bg-primary peer-checked:border-primary flex items-center justify-center transition-colors">
+                  {form.acceptsMarketing && (
+                    <Check className="w-3 h-3 text-primary-foreground stroke-[3]" />
+                  )}
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
+                Je souhaite recevoir occasionnellement les annonces des nouveaux millésimes et
+                cuvées spéciales de Jacques Perritaz.
+              </span>
+            </label>
+
+            {/* Obligation légale majorité */}
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="relative mt-0.5 shrink-0">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={ageConfirmed}
+                  onChange={(e) => {
+                    setAgeConfirmed(e.target.checked)
+                    setErrors((prev) => ({ ...prev, ageConfirmed: undefined }))
+                  }}
+                />
+                <div
+                  className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                    ageConfirmed
+                      ? 'bg-primary border-primary'
+                      : errors.ageConfirmed
+                        ? 'border-destructive bg-card'
+                        : 'border-input bg-card'
+                  }`}
+                >
+                  {ageConfirmed && <Check className="w-3 h-3 text-primary-foreground stroke-[3]" />}
+                </div>
+              </div>
+              <span className="text-xs font-medium text-foreground leading-relaxed">
+                Je certifie avoir 18 ans révolus (obligation légale suisse pour l&apos;achat de
+                boissons fermentées).
+              </span>
+            </label>
+            {errors.ageConfirmed && (
+              <span className="text-xs text-destructive font-medium pl-7">
+                {errors.ageConfirmed}
+              </span>
             )}
           </div>
-        </div>
-        <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
-          Je confirme avoir 18 ans révolus
-        </span>
-      </label>
-      {errors.ageConfirmed && (
-        <span className="text-xs text-text-error -mt-2">{errors.ageConfirmed}</span>
-      )}
 
-      {/* Honeypot — invisible pour les humains */}
-      <input
-        type="text"
-        name="website"
-        style={{ display: 'none' }}
-        tabIndex={-1}
-        autoComplete="off"
-        aria-hidden="true"
-      />
+          {/* Honeypot invisible anti-spam */}
+          <input
+            type="text"
+            name="website"
+            style={{ display: 'none' }}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
 
-      {/* Turnstile invisible */}
-      <TurnstileWidget onToken={handleTurnstileToken} />
+          {/* Cloudflare Turnstile */}
+          <TurnstileWidget onToken={handleTurnstileToken} />
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="btn-primary w-full mt-2 disabled:opacity-50"
-      >
-        {sending ? 'Envoi en cours…' : 'Passer la commande'}
-      </button>
-    </form>
+          <Button
+            type="submit"
+            disabled={sending || items.length === 0}
+            variant="default"
+            size="lg"
+            className="w-full mt-2 font-semibold shadow-sm"
+          >
+            {sending ? (
+              'Transmission sécurisée en cours…'
+            ) : (
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Confirmer et commander sur facture</span>
+              </span>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

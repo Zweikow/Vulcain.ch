@@ -4,14 +4,18 @@ import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
-import { PackBadgeIcon, SparklesIcon, GiftIcon } from '@/components/admin/AdminIcons'
+import { PackBadgeIcon } from '@/components/admin/AdminIcons'
+import { CardSpotlight } from '@/components/ui/card-spotlight'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Plus, Minus, Sparkles, Gift } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
   quantity: number
   onAdd: () => void
   onRemove: () => void
-  onSetQuantity: (quantity: number) => void
+  onSetQuantity?: (quantity: number) => void
   onOpenDetails: () => void
 }
 
@@ -20,7 +24,6 @@ export default function ProductCard({
   quantity,
   onAdd,
   onRemove,
-  onSetQuantity: _onSetQuantity,
   onOpenDetails,
 }: ProductCardProps) {
   const isOutOfStock = product.stock === 0
@@ -74,192 +77,188 @@ export default function ProductCard({
     : null
 
   return (
-    <div className="card p-3 flex flex-col gap-2 relative overflow-hidden">
-      {/* Ruban promotionnel découpé en haut à gauche */}
+    <CardSpotlight className="h-full flex flex-col justify-between overflow-hidden group">
+      {/* Ruban promotionnel artisanal */}
       {ribbonText && (
-        <div
-          className="absolute left-0 top-3 z-10 bg-[#B8837E] dark:bg-[#977390] text-white font-bold text-[11px] py-1 pl-2.5 pr-4 shadow-md tracking-wider select-none uppercase"
-          style={{
-            clipPath: 'polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%)',
-          }}
-        >
-          {ribbonText}
+        <div className="absolute left-2.5 top-2.5 z-20">
+          <Badge
+            variant="default"
+            className="bg-primary text-primary-foreground font-bold text-[11px] shadow-sm tracking-wide uppercase px-2.5 py-0.5"
+          >
+            {ribbonText}
+          </Badge>
         </div>
       )}
 
-      {/* Zone cliquable pour ouvrir la fiche détaillée */}
-      <button
-        type="button"
+      {/* Zone cliquable vers la fiche détaillée */}
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onOpenDetails}
-        className="flex flex-col gap-2 text-left w-full focus:outline-none group"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onOpenDetails()
+          }
+        }}
+        className="p-3.5 flex flex-col gap-2.5 text-left w-full focus:outline-none cursor-pointer flex-1"
       >
-        {/* Photo produit */}
-        <div className="relative w-full aspect-square rounded-md overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-transparent group-hover:border-border dark:group-hover:border-border-dark transition-colors">
+        {/* Photo produit avec effet de zoom doux */}
+        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-muted/40 border border-border/50">
           {product.image ? (
             <Image
               src={product.image}
               alt={product.name}
               fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 200px"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 300px"
             />
           ) : (
-            <div
-              className="w-full h-full flex items-center justify-center font-mono text-[11px] text-text-tertiary dark:text-text-tertiary-dark"
-              style={{
-                backgroundImage:
-                  'repeating-linear-gradient(45deg, rgba(122,149,165,.12) 0 12px, transparent 12px 24px)',
-              }}
-            >
-              photo bouteille 1:1
+            <div className="w-full h-full flex items-center justify-center font-serif italic text-xs text-muted-foreground">
+              Cuvée artisanale
             </div>
           )}
 
-          {/* Badge « Nouveau » ou « Derniers exemplaires » en haut à droite si pas de ruban */}
-          {product.isNew && !ribbonText && (
-            <span className="absolute left-2 top-2 rounded-pill bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-on-primary">
-              Nouveau
-            </span>
-          )}
-          {product.isLastUnits && (
-            <span className="absolute right-2 top-2 rounded-pill bg-[#FFF8E1] px-2.5 py-0.5 text-[11px] font-semibold text-text-warning">
-              Derniers exemplaires
-            </span>
-          )}
+          {/* Badges de statut */}
+          <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 items-end">
+            {product.isNew && !ribbonText && (
+              <Badge variant="amber" className="text-[10px] py-0 px-2 shadow-xs">
+                Nouveau
+              </Badge>
+            )}
+            {product.isLastUnits && (
+              <Badge variant="destructive" className="text-[10px] py-0 px-2 shadow-xs">
+                Dernières bouteilles
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Informations produit */}
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-start justify-between gap-1">
-            <h3 className="font-semibold text-sm text-text-primary dark:text-text-primary-dark leading-tight group-hover:underline">
+        <div className="flex flex-col gap-1 flex-1">
+          <div className="flex items-start justify-between gap-1.5">
+            <h3 className="font-display font-semibold text-base text-foreground leading-snug group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0" />
+            <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0 mt-0.5" />
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-medium">
+
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
             <span>{product.producerName || 'Drinkcider'}</span>
             {product.year && <span>· {product.year}</span>}
           </div>
-          <p className="text-xs text-text-secondary dark:text-text-secondary-dark line-clamp-2 mt-0.5 min-h-[2rem] leading-4">
+
+          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
             {product.description}
           </p>
         </div>
-      </button>
+      </div>
 
-      {/* Section Bas unifiée : Conditionnement + Prix & Sélecteur Panier */}
-      <div className="mt-auto pt-2 border-t border-border/50 dark:border-border-dark/50 flex flex-col gap-1.5">
-        {/* Mention du conditionnement */}
-        <div className="text-[11px] font-semibold text-text-secondary dark:text-text-secondary-dark leading-none">
-          {packagingLabel}
+      {/* Bas de carte : Prix et sélecteur de quantité */}
+      <div className="p-3.5 pt-0 mt-auto flex flex-col gap-2">
+        <div className="text-[11px] font-medium text-muted-foreground border-t border-border/40 pt-2 flex items-center justify-between">
+          <span>{packagingLabel}</span>
+          {isCarton && (
+            <span className="inline-flex items-center gap-1 text-primary">
+              <PackBadgeIcon count={bottlesCount} className="w-4 h-4" />
+            </span>
+          )}
         </div>
 
-        {/* Section Prix & Sélecteur Panier (Inspiré maquette) */}
         <div className="flex items-end justify-between gap-2">
-          {/* Prix */}
+          {/* Bloc Prix */}
           <div className="flex flex-col min-w-0">
-            {/* Prix par bouteille */}
-            <div className="flex items-baseline gap-1 whitespace-nowrap">
-              <span className="font-bold text-base text-primary dark:text-primary-hover tabular whitespace-nowrap">
+            <div className="flex items-baseline gap-1">
+              <span className="font-bold text-lg text-foreground font-mono tabular">
                 {formatCHF(unitBottlePriceCents)}
               </span>
-              <span className="text-[11px] text-text-secondary dark:text-text-secondary-dark font-normal whitespace-nowrap">
-                / bouteille
-              </span>
+              <span className="text-[11px] text-muted-foreground">/ bout.</span>
             </div>
 
-            {/* Ancien prix barré si rabais */}
             {origBottlePriceCents && (
-              <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark tabular leading-tight whitespace-nowrap">
-                au lieu de <span className="line-through">{formatCHF(origBottlePriceCents)}</span>
+              <div className="text-[11px] text-muted-foreground/80 line-through tabular">
+                {formatCHF(origBottlePriceCents)}
               </div>
             )}
 
-            {/* Prix total du carton si carton */}
             {isCarton && (
-              <div className="text-[11px] font-semibold text-text-primary dark:text-text-primary-dark mt-0.5 tabular leading-tight whitespace-nowrap">
+              <div className="text-[11px] font-medium text-muted-foreground tabular mt-0.5">
                 <span>{formatCHF(effectivePriceCents)}</span>
-                <span className="font-normal text-text-secondary dark:text-text-secondary-dark">
-                  {' '}
-                  / carton
-                </span>
+                <span className="text-[10px]"> / carton</span>
               </div>
             )}
           </div>
 
-          {/* Pictogramme pack + Stepper quantité */}
-          <div className="flex flex-col items-end gap-1 shrink-0">
-            {isCarton && (
-              <PackBadgeIcon
-                count={bottlesCount}
-                className="text-secondary dark:text-text-secondary-dark mb-0.5"
-              />
-            )}
-
+          {/* Stepper ou Épuisé */}
+          <div className="shrink-0">
             {isOutOfStock ? (
-              <span className="text-xs px-2 py-1 rounded-pill bg-gray-100 dark:bg-gray-800 text-text-tertiary dark:text-text-tertiary-dark">
+              <Badge variant="subtle" className="text-xs py-1 px-2.5">
                 Épuisé
-              </span>
+              </Badge>
+            ) : quantity === 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onAdd}
+                className="h-8 px-3 rounded-lg border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Ajouter</span>
+              </Button>
             ) : (
-              <div className="flex items-center border border-border dark:border-border-dark rounded-md overflow-hidden bg-bg-card dark:bg-bg-card-dark h-8 shadow-xs">
+              <div className="flex items-center border border-primary/30 rounded-lg bg-card overflow-hidden h-8 shadow-xs">
                 <button
                   type="button"
                   onClick={onRemove}
-                  disabled={quantity === 0}
-                  className="w-7 h-full flex items-center justify-center text-text-secondary dark:text-text-secondary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark disabled:opacity-30 transition-colors font-bold text-sm"
+                  className="w-7 h-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   aria-label="Diminuer"
                 >
-                  −
+                  <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="px-1.5 text-xs font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[48px] text-center whitespace-nowrap">
-                  {quantity} {isCarton ? 'Cart.' : 'Btl.'}
+                <span className="px-2 text-xs font-bold text-foreground font-mono tabular min-w-[28px] text-center select-none">
+                  {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={onAdd}
                   disabled={quantity >= product.stock}
-                  className="w-7 h-full bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-30 transition-colors font-bold text-sm"
+                  className="w-7 h-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
                   aria-label="Ajouter"
                 >
-                  +
+                  <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* Message d'avantage promotionnel en direct */}
+        {promo && quantity > 0 && (
+          <div className="text-[11px] pt-1 border-t border-border/40">
+            {promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity && (
+              <>
+                {quantity >= promo.buyQuantity ? (
+                  <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                    <span>
+                      {Math.floor(quantity / promo.buyQuantity) * promo.getFreeQuantity}{' '}
+                      {isCarton ? 'carton(s)' : 'bouteille(s)'} offert(s) !
+                    </span>
+                  </span>
+                ) : (
+                  quantity === promo.buyQuantity - 1 && (
+                    <span className="text-primary font-medium flex items-center gap-1.5">
+                      <Gift className="w-3.5 h-3.5 shrink-0" />
+                      <span>+1 {isCarton ? 'carton' : 'bouteille'} = le suivant offert !</span>
+                    </span>
+                  )
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Messages promotionnels dynamiques selon quantité dans le panier */}
-      {promo && quantity > 0 && (
-        <div className="mt-1 pt-1.5 border-t border-border/50 dark:border-border-dark/50 text-[11px]">
-          {promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity && (
-            <>
-              {quantity >= promo.buyQuantity ? (
-                <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <SparklesIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span>
-                    {Math.floor(quantity / promo.buyQuantity) * promo.getFreeQuantity}{' '}
-                    {isCarton ? 'carton(s)' : 'bouteille(s)'} offert(s) !
-                  </span>
-                </span>
-              ) : (
-                quantity === promo.buyQuantity - 1 && (
-                  <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
-                    <GiftIcon className="w-3.5 h-3.5 shrink-0" />
-                    <span>+1 {isCarton ? 'carton' : 'bouteille'} = le suivant est offert !</span>
-                  </span>
-                )
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Alerte stock max */}
-      {quantity > 0 && quantity >= product.stock && (
-        <span className="text-[10px] text-text-warning font-medium mt-0.5">
-          Stock maximum atteint
-        </span>
-      )}
-    </div>
+    </CardSpotlight>
   )
 }
