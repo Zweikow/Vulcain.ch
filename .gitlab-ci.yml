@@ -228,8 +228,8 @@ rds:snapshot:
       when: manual
       allow_failure: true
   script:
-    - SNAPSHOT_ID="vulcain-manual-$(date +%Y%m%d-%H%M%S)"
-    - echo "Création du snapshot manuel : $SNAPSHOT_ID..."
+    - export SNAPSHOT_ID="vulcain-manual-$(date +%Y%m%d-%H%M%S)"
+    - echo "Création du snapshot manuel - $SNAPSHOT_ID..."
     - aws rds create-db-snapshot --db-instance-identifier vulcain-db-dev --db-snapshot-identifier $SNAPSHOT_ID --region eu-central-2
     - echo "Snapshot $SNAPSHOT_ID initié avec succès."
 
