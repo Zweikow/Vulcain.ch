@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Header from '@/components/Header'
 import DeliveryWarning from '@/components/DeliveryWarning'
 import ProductCard from '@/components/ProductCard'
@@ -278,8 +279,14 @@ export default function BoutiqueClient({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-border/50">
             {/* Col 1 & 2 : Présentation & Terroir Fribourg */}
             <div className="md:col-span-2 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <Wine className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/images/logo-drinkcider.svg"
+                  alt="Cidrerie du Vulcain"
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 rounded-full object-cover border border-amber-600/30 dark:border-amber-400/30 shadow-xs"
+                />
                 <span className="font-display font-bold text-base text-foreground">
                   Cidrerie du Vulcain
                 </span>
@@ -289,17 +296,31 @@ export default function BoutiqueClient({
                 Jacques Perritaz au Mouret (Canton de Fribourg, Suisse). Fruits sauvages non traités
                 issus de vergers traditionnels à haute-tige.
               </p>
-              <p className="text-muted-foreground/80">
-                Partenaire actif du patrimoine fruitier et gourmand suisse.{' '}
-                <a
-                  href="https://www.terroir-fribourg.ch"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:text-primary transition-colors underline font-medium"
-                >
-                  Terroir Fribourg ↗
-                </a>
-              </p>
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground/80 mt-1">
+                <span>
+                  Partenaire actif :{' '}
+                  <a
+                    href="https://www.terroir-fribourg.ch"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-primary transition-colors underline font-medium"
+                  >
+                    Terroir Fribourg ↗
+                  </a>
+                </span>
+                <span>·</span>
+                <span>
+                  Instagram :{' '}
+                  <a
+                    href="https://www.instagram.com/drinkcider.ch/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-primary transition-colors underline font-medium"
+                  >
+                    @drinkcider.ch ↗
+                  </a>
+                </span>
+              </div>
             </div>
 
             {/* Col 3 : Navigation */}

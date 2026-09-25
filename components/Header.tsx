@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useTheme } from '@/components/ThemeProvider'
-import { Sun, Moon, Menu, X, ChevronDown, Wine } from 'lucide-react'
+import { Sun, Moon, Menu, X, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -36,8 +37,15 @@ export default function Header() {
           {/* LOGO Artisanal */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2.5 group focus:outline-none">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                <Wine className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-amber-600/30 dark:border-amber-400/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                <Image
+                  src="/images/logo-drinkcider.svg"
+                  alt="Cidrerie du Vulcain"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                  priority
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg text-foreground tracking-tight leading-none group-hover:text-primary transition-colors">

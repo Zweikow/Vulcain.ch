@@ -11,7 +11,14 @@ import {
   sendPaymentReminderAction,
 } from '@/app/admin/(protected)/commandes/paiements/actions'
 import { sendInvoiceEmailAction } from '@/app/admin/(protected)/commandes/[id]/actions'
-import { FileTextIcon, SearchIcon, EyeIcon, MailIcon } from '@/components/admin/AdminIcons'
+import {
+  FileTextIcon,
+  SearchIcon,
+  EyeIcon,
+  MailIcon,
+  CoinsIcon,
+} from '@/components/admin/AdminIcons'
+import { CamtImportModal } from '@/components/admin/CamtImportModal'
 
 export interface FactureItem {
   id: string
@@ -106,6 +113,9 @@ export function FacturesTable({
   const [payModalOrder, setPayModalOrder] = useState<FactureItem | null>(null)
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS[0])
   const [paidDateStr, setPaidDateStr] = useState(() => new Date().toISOString().split('T')[0])
+
+  // Modale de rapprochement bancaire CAMT
+  const [isCamtModalOpen, setIsCamtModalOpen] = useState(false)
 
   // Modale de relance
   const [reminderModalOrder, setReminderModalOrder] = useState<FactureItem | null>(null)
@@ -429,22 +439,34 @@ export function FacturesTable({
           </button>
         </div>
 
-        {/* Champ de recherche */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-80">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              name="q"
-              defaultValue={searchQuery}
-              placeholder="N° commande, facture, client..."
-              className="input text-sm w-full pl-9 pr-3 py-1.5"
-            />
-            <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-          </div>
-          <button type="submit" className="btn-secondary text-sm py-1.5 px-3 shrink-0">
-            Filtrer
+        {/* Actions & Moteur de recherche */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-72">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="N° commande, facture, client..."
+                className="input text-sm w-full pl-9 pr-3 py-1.5"
+              />
+              <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+            </div>
+            <button type="submit" className="btn-secondary text-sm py-1.5 px-3 shrink-0">
+              Filtrer
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={() => setIsCamtModalOpen(true)}
+            className="btn-primary text-xs sm:text-sm py-1.5 px-3.5 flex items-center justify-center gap-2 font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg shadow-sm shrink-0 transition-colors"
+            title="Importer un fichier CAMT.054 (avis de crédit) ou CAMT.053 (relevé) ISO 20022"
+          >
+            <CoinsIcon className="w-4 h-4" />
+            <span>Rapprochement CAMT</span>
           </button>
-        </form>
+        </div>
       </div>
 
       {/* 4. Table des Factures */}
@@ -789,6 +811,9 @@ export function FacturesTable({
           </div>
         </div>
       )}
+
+      {/* 7. Modale de rapprochement bancaire CAMT */}
+      <CamtImportModal isOpen={isCamtModalOpen} onClose={() => setIsCamtModalOpen(false)} />
     </div>
   )
 }

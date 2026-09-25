@@ -196,11 +196,20 @@ export default function HistoirePage() {
       {/* Footer épuré */}
       <footer className="bg-bg-header dark:bg-bg-header-dark px-4 py-10 text-sm text-white/80 border-t border-white/10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
-          <div>
-            <p className="font-semibold text-white text-sm">Drinkcider</p>
-            <p className="mt-0.5">
-              © {new Date().getFullYear()} Drinkcider.ch · Distribution officielle
-            </p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/images/logo-drinkcider.svg"
+              alt="Drinkcider"
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-full object-cover border border-amber-500/30"
+            />
+            <div>
+              <p className="font-semibold text-white text-sm">Drinkcider</p>
+              <p className="mt-0.5">
+                © {new Date().getFullYear()} Drinkcider.ch · Distribution officielle
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-6">
             <Link href="/" className="hover:text-white transition-colors">

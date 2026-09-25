@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -115,7 +116,16 @@ export function AdminSidebar({ user }: { user: any }) {
     <>
       {/* Barre supérieure mobile */}
       <div className="md:hidden flex items-center justify-between p-4 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white print:hidden">
-        <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/images/logo-drinkcider.svg"
+            alt="Drinkcider"
+            width={24}
+            height={24}
+            className="w-6 h-6 rounded-full object-cover shrink-0 border border-amber-500/30"
+          />
+          <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
+        </div>
         <div className="flex items-center gap-2">
           <ThemeToggle compact />
           <button
@@ -162,9 +172,18 @@ export function AdminSidebar({ user }: { user: any }) {
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}
       >
-        <div className="p-5 border-b border-white/10 hidden md:block">
-          <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
-          <div className="text-xs opacity-60 mt-0.5">{ROLE_LABELS[role]}</div>
+        <div className="p-4 border-b border-white/10 hidden md:flex items-center gap-3">
+          <Image
+            src="/images/logo-drinkcider.svg"
+            alt="Drinkcider"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full object-cover shrink-0 border border-amber-500/30 shadow-xs"
+          />
+          <div>
+            <div className="font-display font-semibold text-sm leading-tight">Drinkcider</div>
+            <div className="text-xs opacity-60 mt-0.5">{ROLE_LABELS[role]}</div>
+          </div>
         </div>
 
         <nav className="flex-1 p-3 overflow-y-auto flex flex-col gap-1.5">
