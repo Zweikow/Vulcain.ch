@@ -65,8 +65,11 @@ let produitsData = {};
 // Panier global
 let panier = {};
 
+// Dernière facture générée (pour téléchargement direct)
+let derniereFacture = null;
+
 // Initialisation
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initialiserProduits();
     initialiserEmailJS();
     genererCatalogue();
@@ -400,20 +403,32 @@ async function envoyerCommande(formData) {
         const dateStr = now.toLocaleDateString('fr-CH');
         const heureStr = now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' });
 
-        // === SOLUTION HYBRIDE ===
-        
-        // 📧 ÉTAPE 1: Envoyer à L'ADMIN via FormSubmit (avec PDF en pièce jointe)
-        console.log('📧 Envoi à l\'admin via FormSubmit avec PDF...');
-        await envoyerViaFormSubmit(donneesCommande, panierTexte, resultPDF.numeroFacture, pdfBlob);
-        
-        // 📧 ÉTAPE 2: Envoyer confirmation au CLIENT via EmailJS (beau template HTML)
-        console.log('📧 Envoi confirmation client via EmailJS...');
+        // Enregistrer la facture pour téléchargement client
+        derniereFacture = {
+            pdf: resultPDF.pdf,
+            numeroFacture: resultPDF.numeroFacture
+        };
+
+        // === SOLUTION HYBRIDE ET RÉSILIENTE ===
+
+        // 📧 ÉTAPE 1: Envoyer confirmation au CLIENT et copie ADMIN via EmailJS (fiable et prioritaire)
+        console.log('📧 Envoi confirmation client/admin via EmailJS...');
         await envoyerConfirmationClient(donneesCommande, panierTexte, resultPDF.numeroFacture, dateStr, heureStr);
+        console.log('✅ Confirmation envoyée via EmailJS avec succès');
+
+        // 📧 ÉTAPE 2: Tentative d'envoi du PDF à l'admin via FormSubmit (optionnel / non-bloquant)
+        try {
+            console.log('📧 Tentative d\'envoi à l\'admin via FormSubmit avec PDF...');
+            await envoyerViaFormSubmit(donneesCommande, panierTexte, resultPDF.numeroFacture, pdfBlob);
+            console.log('✅ Email admin avec PDF envoyé via FormSubmit');
+        } catch (formSubmitErr) {
+            console.warn('⚠️ FormSubmit non disponible (serveur ou CORS). La commande a tout de même été transmise avec succès via EmailJS :', formSubmitErr);
+        }
 
         console.log(`✅ SUCCÈS! Commande ${resultPDF.numeroFacture} traitée:
-        → Admin: FormSubmit (PDF joint) ✅ 
-        → Client: EmailJS (template HTML) ✅`);
-        
+        → Confirmation EmailJS: ✅
+        → Facture PDF disponible: ✅`);
+
     } catch (error) {
         console.error('Erreur lors de l\'envoi de la commande:', error);
         throw error;
@@ -424,13 +439,12 @@ async function envoyerCommande(formData) {
 async function envoyerViaFormSubmit(donneesCommande, panierTexte, numeroFacture, pdfBlob) {
     try {
         const formData = new FormData();
-        
+
         // Configuration FormSubmit
-        formData.append('access_key', 'YOUR_FORMSUBMIT_KEY'); // À remplacer par ta clé
         formData.append('subject', `🍎 Nouvelle commande Cidrerie du Vulcain #${numeroFacture}`);
         formData.append('from_name', `${donneesCommande.prenom} ${donneesCommande.nom}`);
         formData.append('reply_to', donneesCommande.email);
-        
+
         // Contenu de l'email pour l'admin
         const messageAdmin = `
 📋 NOUVELLE COMMANDE #${numeroFacture}
@@ -449,29 +463,31 @@ ${donneesCommande.remarques || 'Aucune remarque'}
 
 📎 La facture PDF détaillée est jointe à cet email.
         `;
-        
+
         formData.append('message', messageAdmin);
-        
+
         // Joindre le PDF
         formData.append('attachment', pdfBlob, `Facture_${numeroFacture}.pdf`);
-        
-        // Options FormSubmit pour éviter la redirection
-        formData.append('_next', 'https://formsubmit.co/thanks.html');
+
+        // Options FormSubmit
         formData.append('_captcha', 'false');
         formData.append('_template', 'table');
-        
-        // Envoyer à FormSubmit
-        const response = await fetch('https://formsubmit.co/commandes@cidrerie-vulcain.ch', {
+
+        // Envoyer à l'endpoint AJAX FormSubmit
+        const response = await fetch('https://formsubmit.co/ajax/commandes@cidrerie-vulcain.ch', {
             method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
             body: formData
         });
-        
+
         if (!response.ok) {
             throw new Error(`FormSubmit error: ${response.status}`);
         }
-        
+
         console.log('✅ Email admin envoyé via FormSubmit');
-        
+
     } catch (error) {
         console.error('❌ Erreur FormSubmit:', error);
         throw error;
@@ -491,18 +507,18 @@ async function envoyerConfirmationClient(donneesCommande, panierTexte, numeroFac
             npa: donneesCommande.npa,
             lieu: donneesCommande.lieu,
             remarques: donneesCommande.remarques || 'Aucune remarque',
-            
+
             // Informations commande
             panier: panierTexte,
             total: calculerTotal().toFixed(2),
             order_id: numeroFacture,
             subject: `Confirmation de commande #${numeroFacture} - Cidrerie du Vulcain`,
-            
+
             // Date et heure
             date: dateStr,
             heure: heureStr,
             timestamp: numeroFacture,
-            
+
             // Informations expéditeur
             from_name: "Cidrerie du Vulcain",
             from_email: "commandes@cidrerie-vulcain.ch",
@@ -515,9 +531,9 @@ async function envoyerConfirmationClient(donneesCommande, panierTexte, numeroFac
             EMAILJS_CONFIG.templateId,
             templateParams
         );
-        
+
         console.log('✅ Confirmation client envoyée via EmailJS');
-        
+
     } catch (error) {
         console.error('❌ Erreur EmailJS:', error);
         throw error;
@@ -527,6 +543,28 @@ async function envoyerConfirmationClient(donneesCommande, panierTexte, numeroFac
 function afficherModalConfirmation() {
     const modal = document.getElementById('modal-confirmation');
     if (modal) {
+        // Ajouter le bouton de téléchargement direct de la facture si disponible
+        let downloadBtn = document.getElementById('btn-download-facture');
+        if (!downloadBtn && derniereFacture && derniereFacture.pdf) {
+            downloadBtn = document.createElement('button');
+            downloadBtn.id = 'btn-download-facture';
+            downloadBtn.className = 'btn-modal';
+            downloadBtn.style.backgroundColor = '#4a7c59';
+            downloadBtn.style.color = '#ffffff';
+            downloadBtn.style.display = 'block';
+            downloadBtn.style.width = '100%';
+            downloadBtn.style.marginBottom = '12px';
+            downloadBtn.textContent = '📄 Télécharger ma facture (PDF)';
+            downloadBtn.onclick = function () {
+                if (derniereFacture && derniereFacture.pdf) {
+                    derniereFacture.pdf.save(`Facture_${derniereFacture.numeroFacture}.pdf`);
+                }
+            };
+            const closeBtn = modal.querySelector('.modal-content button.btn-modal');
+            if (closeBtn && closeBtn.parentNode) {
+                closeBtn.parentNode.insertBefore(downloadBtn, closeBtn);
+            }
+        }
         modal.style.display = 'block';
     }
 }
@@ -541,7 +579,7 @@ function closeModal() {
 function reinitialiserFormulaire() {
     // Vider le panier
     panier = {};
-    
+
     // Remettre tous les inputs à 0
     Object.values(PRODUITS).forEach(categorie => {
         categorie.forEach(produit => {
@@ -567,7 +605,7 @@ function initialiserModal() {
         closeBtn.onclick = closeModal;
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target === modal) {
             closeModal();
         }
@@ -575,7 +613,7 @@ function initialiserModal() {
 }
 
 // Affichage de la phrase d'information en haut de page
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
     const info = document.createElement('div');
     info.className = 'info-banner';
     info.style.background = '#ffe4b2';
@@ -606,7 +644,7 @@ function genererNumeroFacture() {
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     const seconds = String(now.getSeconds()).padStart(2, '0');
-    
+
     return `F${year}${month}${day}-${hours}${minutes}${seconds}`;
 }
 
@@ -616,39 +654,39 @@ function genererNumeroFacture() {
 async function genererFacturePDF(donneesCommande) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
+
     // Configuration des couleurs et polices
     const couleurPrimaire = [74, 124, 89]; // Vert cidrerie
     const couleurSecondaire = [139, 69, 19]; // Brun terre
-    
+
     // En-tête de la facture
     doc.setFontSize(20);
     doc.setTextColor(...couleurPrimaire);
     doc.text('🍎 CIDRERIE DU VULCAIN', 20, 20);
-    
+
     // Informations entreprise
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(INVOICE_CONFIG.companyAddress, 20, 30);
     doc.text(`Tél: ${INVOICE_CONFIG.companyPhone}`, 20, 40);
     doc.text(`Email: ${INVOICE_CONFIG.companyEmail}`, 20, 45);
-    
+
     // Numéro et date facture
     const numeroFacture = genererNumeroFacture();
     doc.setFontSize(14);
     doc.setTextColor(...couleurSecondaire);
     doc.text(`FACTURE N° ${numeroFacture}`, 120, 20);
-    
+
     const dateFacture = new Date().toLocaleDateString('fr-CH');
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text(`Date: ${dateFacture}`, 120, 30);
-    
+
     // Informations client
     doc.setFontSize(12);
     doc.setTextColor(...couleurPrimaire);
     doc.text('FACTURÉ À:', 20, 65);
-    
+
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text(`${donneesCommande.prenom} ${donneesCommande.nom}`, 20, 75);
@@ -656,15 +694,15 @@ async function genererFacturePDF(donneesCommande) {
     doc.text(`${donneesCommande.npa} ${donneesCommande.lieu}`, 20, 89);
     doc.text(`Tél: ${donneesCommande.telephone}`, 20, 96);
     doc.text(`Email: ${donneesCommande.email}`, 20, 103);
-    
+
     // Ligne de séparation
     doc.setDrawColor(...couleurPrimaire);
     doc.line(20, 115, 190, 115);
-    
+
     // Tableau des produits
     const produitsTableau = [];
     let sousTotal = 0;
-    
+
     Object.entries(donneesCommande.panier).forEach(([id, item]) => {
         const unite = item.uniteCommande || 1;
         const total = item.prix * item.quantite * unite;
@@ -689,7 +727,7 @@ async function genererFacturePDF(donneesCommande) {
             }
         }
     });
-    
+
     // Configuration du tableau
     doc.autoTable({
         startY: 125,
@@ -714,41 +752,41 @@ async function genererFacturePDF(donneesCommande) {
             3: { cellWidth: 35, halign: 'right' }
         }
     });
-    
+
     // Calculs finaux
     const fraisLivraison = 10.00;
     const totalHT = sousTotal + fraisLivraison;
     const tva = totalHT * INVOICE_CONFIG.taxRate;
     const totalTTC = totalHT + tva;
-    
+
     // Totaux
     const tableauY = doc.lastAutoTable.finalY + 10;
-    
+
     doc.setFontSize(10);
     doc.text('Sous-total produits:', 130, tableauY);
     doc.text(`${sousTotal.toFixed(2)} CHF`, 175, tableauY);
-    
+
     doc.text('Frais de livraison:', 130, tableauY + 7);
     doc.text(`${fraisLivraison.toFixed(2)} CHF`, 175, tableauY + 7);
-    
+
     doc.text('Total HT:', 130, tableauY + 14);
     doc.text(`${totalHT.toFixed(2)} CHF`, 175, tableauY + 14);
-    
+
     doc.text(`TVA (${(INVOICE_CONFIG.taxRate * 100).toFixed(1)}%):`, 130, tableauY + 21);
     doc.text(`${tva.toFixed(2)} CHF`, 175, tableauY + 21);
-    
+
     // Total final
     doc.setFontSize(12);
     doc.setTextColor(...couleurSecondaire);
     doc.text('TOTAL TTC:', 130, tableauY + 32);
     doc.text(`${totalTTC.toFixed(2)} CHF`, 175, tableauY + 32);
-    
+
     // Informations de paiement
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text('Conditions de paiement: À réception', 20, tableauY + 50);
     doc.text('Livraison uniquement en Suisse 🇨🇭', 20, tableauY + 57);
-    
+
     // Remarques client si présentes
     if (donneesCommande.remarques && donneesCommande.remarques.trim()) {
         doc.setFontSize(10);
@@ -759,12 +797,12 @@ async function genererFacturePDF(donneesCommande) {
         const remarques = doc.splitTextToSize(donneesCommande.remarques, 170);
         doc.text(remarques, 20, tableauY + 77);
     }
-    
+
     // Pied de page
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text('Merci pour votre confiance ! - Cidrerie du Vulcain', 20, 280);
-    
+
     return {
         pdf: doc,
         numeroFacture: numeroFacture,
