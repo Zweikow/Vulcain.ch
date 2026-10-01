@@ -60,15 +60,15 @@ export default function ProductDetailModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Partie Gauche : Image */}
-        <div className="w-full md:w-1/2 bg-muted/30 border-b md:border-b-0 md:border-r border-border/50 flex items-center justify-center p-8 shrink-0 relative min-h-[300px]">
+        {/* Partie Gauche : Image sans cadre visible */}
+        <div className="w-full md:w-1/2 bg-card flex items-center justify-center p-8 shrink-0 relative min-h-[300px]">
           {product.image ? (
             <div className="relative w-full max-w-[280px] aspect-[1/2]">
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-contain drop-shadow-xl"
+                className="object-contain mix-blend-multiply dark:mix-blend-normal"
                 sizes="(max-width: 768px) 100vw, 400px"
                 priority
               />

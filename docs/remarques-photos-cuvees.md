@@ -64,26 +64,26 @@ Au total, **29 photos simples** sont à prendre pour compléter le catalogue :
 
 ### Tableau récapitulatif par cuvée :
 
-| Art. # | Slug                        | Nom de la Cuvée                      | Photo 1 (Duo) |  Photo 2 (Seule Face)   |           Photo 3 (Seule Dos)           | Action à mener                                |
-| :----: | :-------------------------- | :----------------------------------- | :-----------: | :---------------------: | :-------------------------------------: | :-------------------------------------------- |
-| **13** | `poire-la-premoudiere-2022` | Poiré La Prémoudière 2022            |     ✅ OK     | ✅ OK (shoot précédent) | ❌ Manquante (seul gros plan étiquette) | **Prendre 1 photo bouteille complète de dos** |
-| **25** | `a-propos-dailes-2021`      | A Propos d'Ailes 2021                |     ✅ OK     |   ✅ OK (`083852861`)   |           ✅ OK (`083833116`)           | **Aucune (100% complet et conforme)**         |
-| **33** | `botsi-de-glace-2017`       | Botsi de glace 2017 (37.5cl)         |     ✅ OK     |   ✅ OK (`083943812`)   |           🍾 Étiquette unique           | **Aucune (bouteille fine complète)**          |
-| **32** | `cidre-glace-2012`          | Cidre Glace Transparente 2012 (50cl) |     ✅ OK     |   ✅ OK (`084022954`)   |           🍾 Étiquette unique           | **Aucune (bouteille fine complète)**          |
-| **15** | `lande-foy-2022`            | La Lande Foy 2022                    |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **14** | `trois-pepins-2023`         | Trois Pépins 2023                    |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **22** | `la-fribourgeoise-2021`     | La Fribourgeoise 2021                |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **31** | `trois-pepins-2010`         | Trois Pépins 2010                    |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **23** | `premiers-emois-2021`       | Premiers Émois 2021                  |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **21** | `cidre-de-fer-2020`         | Cidre de Fer 2020                    |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **24** | `brute-de-rue-2021`         | Brute de Rue 2021                    |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **16** | `belle-brutale-2017`        | Belle Brutale 2017                   |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **26** | `quatre-pepins-2022`        | Quatre Pépins 2022                   |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **30** | `quatre-pepins-2023`        | Quatre Pépins 2023                   |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **28** | `turgowy-2023`              | Turgowy 2023                         |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **19** | `turgowy-2020`              | Turgowy 2020                         |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **18** | `turgowy-2019`              | Turgowy 2019                         |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
-| **29** | `baie-de-rue-2023`          | Baie de Rue 2023                     |     ✅ OK     |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| Art. # | Slug                        | Nom de la Cuvée                      |          Photo 1 (Duo)           |  Photo 2 (Seule Face)   |           Photo 3 (Seule Dos)           | Action à mener                                |
+| :----: | :-------------------------- | :----------------------------------- | :------------------------------: | :---------------------: | :-------------------------------------: | :-------------------------------------------- |
+| **13** | `poire-la-premoudiere-2022` | Poiré La Prémoudière 2022            |              ✅ OK               | ✅ OK (shoot précédent) | ❌ Manquante (seul gros plan étiquette) | **Prendre 1 photo bouteille complète de dos** |
+| **25** | `a-propos-dailes-2021`      | A Propos d'Ailes 2021                |              ✅ OK               |   ✅ OK (`083852861`)   |           ✅ OK (`083833116`)           | **Aucune (100% complet et conforme)**         |
+| **33** | `botsi-de-glace-2017`       | Botsi de glace 2017 (37.5cl)         | 🍾 Étiquette unique (pas de duo) |   ✅ OK (`083943812`)   |           🍾 Étiquette unique           | **Aucune (bouteille fine complète)**          |
+| **32** | `cidre-glace-2012`          | Cidre Glace Transparente 2012 (50cl) | 🍾 Étiquette unique (pas de duo) |   ✅ OK (`084022954`)   |           🍾 Étiquette unique           | **Aucune (bouteille fine complète)**          |
+| **15** | `lande-foy-2022`            | La Lande Foy 2022                    |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **14** | `trois-pepins-2023`         | Trois Pépins 2023                    |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **22** | `la-fribourgeoise-2021`     | La Fribourgeoise 2021                |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **31** | `trois-pepins-2010`         | Trois Pépins 2010                    |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **23** | `premiers-emois-2021`       | Premiers Émois 2021                  |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **21** | `cidre-de-fer-2020`         | Cidre de Fer 2020                    |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **24** | `brute-de-rue-2021`         | Brute de Rue 2021                    |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **16** | `belle-brutale-2017`        | Belle Brutale 2017                   |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **26** | `quatre-pepins-2022`        | Quatre Pépins 2022                   |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **30** | `quatre-pepins-2023`        | Quatre Pépins 2023                   |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **28** | `turgowy-2023`              | Turgowy 2023                         |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **19** | `turgowy-2020`              | Turgowy 2020                         |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **18** | `turgowy-2019`              | Turgowy 2019                         |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
+| **29** | `baie-de-rue-2023`          | Baie de Rue 2023                     |              ✅ OK               |      ❌ Manquante       |              ❌ Manquante               | **Prendre 2 photos (1 face + 1 dos)**         |
 
 ---
 

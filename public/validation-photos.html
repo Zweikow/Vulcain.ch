@@ -622,7 +622,7 @@
         "slug": "botsi-de-glace-2017",
         "name": "Botsi de glace 2017",
         "category": "Vin liquoreux de poire à botzi (37.5cl)",
-        "duoRaw": "PXL_20261001_083933185.RAW-01.jpg",
+        "duoRaw": null,
         "frontRaw": "PXL_20261001_083943812.RAW-01.jpg",
         "backRaw": null,
         "needsFront": false,
@@ -633,7 +633,7 @@
         "slug": "cidre-glace-2012",
         "name": "Cidre Glace Transparente 2012",
         "category": "Cidre de glace liquoreux (50cl)",
-        "duoRaw": "PXL_20261001_084014172.RAW-01.jpg",
+        "duoRaw": null,
         "frontRaw": "PXL_20261001_084022954.RAW-01.jpg",
         "backRaw": null,
         "needsFront": false,
@@ -844,20 +844,31 @@
             <div class="photo-slot">
               <div class="photo-slot-header">
                 <span class="photo-slot-title">Photo 1 • Deux Bouteilles</span>
-                <span class="photo-status-badge badge-ok">✓ Ancré au sol</span>
+                ${c.duoRaw ? 
+                  '<span class="photo-status-badge badge-ok">✓ Ancré au sol</span>' : 
+                  '<span class="photo-status-badge badge-info">🏷️ Étiquette panoramique (pas de duo)</span>'
+                }
               </div>
-              <div class="photo-preview-wrap" onclick="openLightbox('${duoJpg}', '${c.name} — Photo 1 (Duo devant / derrière)')">
-                <img src="${duoJpg}" alt="${c.name} duo" loading="lazy">
-                <div class="zoom-hint">🔍 Zoom HD</div>
-              </div>
-              <div class="raw-thumb-compare">
-                <img src="photo-all-bottle-raw/${c.duoRaw}" alt="Raw original">
-                <div style="flex:1;">
-                  <div style="font-weight:600; color:#d1d5db;">Photo brute originale</div>
-                  <div style="font-size:11px; color:#9ca3af; font-family:monospace;">${c.duoRaw}</div>
+              ${c.duoRaw ? `
+                <div class="photo-preview-wrap" onclick="openLightbox('${duoJpg}', '${c.name} — Photo 1 (Duo devant / derrière)')">
+                  <img src="${duoJpg}" alt="${c.name} duo" loading="lazy">
+                  <div class="zoom-hint">🔍 Zoom HD</div>
                 </div>
-                <span class="view-raw-link" onclick="openLightbox('photo-all-bottle-raw/${c.duoRaw}', 'RAW: ${c.duoRaw}')">Voir RAW</span>
-              </div>
+                <div class="raw-thumb-compare">
+                  <img src="photo-all-bottle-raw/${c.duoRaw}" alt="Raw original">
+                  <div style="flex:1;">
+                    <div style="font-weight:600; color:#d1d5db;">Photo brute originale</div>
+                    <div style="font-size:11px; color:#9ca3af; font-family:monospace;">${c.duoRaw}</div>
+                  </div>
+                  <span class="view-raw-link" onclick="openLightbox('photo-all-bottle-raw/${c.duoRaw}', 'RAW: ${c.duoRaw}')">Voir RAW</span>
+                </div>
+              ` : `
+                <div class="photo-preview-wrap" style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#9ca3af; text-align:center; padding:20px;">
+                  <span style="font-size:28px;">🍾</span>
+                  <span style="font-size:13px; font-weight:700; color:#e5e7eb;">Pas d'étiquette au dos</span>
+                  <span style="font-size:12px; color:#9ca3af; line-height: 1.4;">Cette bouteille fine comporte une étiquette panoramique unique. Pas d'image duo nécessaire.</span>
+                </div>
+              `}
             </div>
 
             <!-- Photo 2: Bouteille Seule Devant -->
