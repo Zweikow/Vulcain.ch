@@ -1,12 +1,24 @@
 'use client'
 
+import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, Leaf, Sprout, Gift, ShoppingBag, Plus, Minus } from 'lucide-react'
+import {
+  X,
+  Leaf,
+  Sprout,
+  Gift,
+  ShoppingBag,
+  Plus,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
+import { getCuveeGallery } from '@/lib/cuvees-gallery'
 
 interface ProductDetailModalProps {
   product: Product
@@ -42,6 +54,41 @@ export default function ProductDetailModal({
 
   const isCarton = product.bottlesPerUnit > 1
 
+  const gallery = useMemo(() => {
+    return getCuveeGallery(product.image)
+  }, [product.image])
+
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  // Réinitialiser à la première photo au changement de produit
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [product.id])
+
+  const nextImage = () => {
+    if (gallery.length <= 1) return
+    setActiveIndex((prev) => (prev + 1) % gallery.length)
+  }
+
+  const prevImage = () => {
+    if (gallery.length <= 1) return
+    setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length)
+  }
+
+  // Navigation clavier
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gallery.length <= 1) return
+      if (e.key === 'ArrowRight') {
+        setActiveIndex((prev) => (prev + 1) % gallery.length)
+      } else if (e.key === 'ArrowLeft') {
+        setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gallery.length])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
@@ -60,19 +107,93 @@ export default function ProductDetailModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Partie Gauche : Image sans cadre visible */}
-        <div className="w-full md:w-1/2 bg-card flex items-center justify-center p-8 shrink-0 relative min-h-[300px]">
-          {product.image ? (
-            <div className="relative w-full max-w-[280px] aspect-[1/2]">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="object-contain mix-blend-multiply dark:mix-blend-normal"
-                sizes="(max-width: 768px) 100vw, 400px"
-                priority
-              />
-            </div>
+        {/* Partie Gauche : Carrousel d'images sans cadre */}
+        <div className="w-full md:w-1/2 bg-card flex flex-col items-center justify-between p-6 sm:p-8 shrink-0 relative min-h-[380px] md:min-h-[500px]">
+          {gallery.length > 0 ? (
+            <>
+              {/* Entête indicateur du slide */}
+              <div className="w-full flex items-center justify-between z-10 mb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                  {gallery[activeIndex]?.label || 'Visuel'}
+                </span>
+                {gallery.length > 1 && (
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {activeIndex + 1} / {gallery.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Image principale avec boutons Précédent / Suivant */}
+              <div className="relative w-full flex-1 max-w-[280px] aspect-[1/2] max-h-[360px] flex items-center justify-center my-auto">
+                <Image
+                  key={gallery[activeIndex].url}
+                  src={gallery[activeIndex].url}
+                  alt={`${product.name} - ${gallery[activeIndex].label}`}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  priority
+                />
+
+                {/* Flèches de navigation carrousel */}
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        prevImage()
+                      }}
+                      className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/90 hover:bg-background border border-border/80 text-foreground flex items-center justify-center shadow-md hover:scale-105 transition-all"
+                      aria-label="Image précédente"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        nextImage()
+                      }}
+                      className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/90 hover:bg-background border border-border/80 text-foreground flex items-center justify-center shadow-md hover:scale-105 transition-all"
+                      aria-label="Image suivante"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Miniatures cliquables */}
+              {gallery.length > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-4 flex-wrap z-10">
+                  {gallery.map((img, idx) => (
+                    <button
+                      key={img.url}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveIndex(idx)
+                      }}
+                      className={`relative w-14 h-14 rounded-xl overflow-hidden border transition-all bg-background/50 ${
+                        idx === activeIndex
+                          ? 'border-primary ring-2 ring-primary/40 scale-105 shadow-sm'
+                          : 'border-border/60 opacity-60 hover:opacity-100 hover:border-border'
+                      }`}
+                      title={img.label}
+                    >
+                      <Image
+                        src={img.url}
+                        alt={img.label}
+                        fill
+                        className="object-contain p-1"
+                        sizes="56px"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <div className="w-full h-full min-h-[280px] flex items-center justify-center font-serif italic text-sm text-muted-foreground">
               Cuvée artisanale Vulcain
