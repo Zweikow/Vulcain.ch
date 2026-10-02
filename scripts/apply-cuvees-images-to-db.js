@@ -15,7 +15,7 @@ const CUVEES_CLEAN_MAPPING = [
   { art: 22, slug: 'la-fribourgeoise-2021', file: 'la-fribourgeoise-2021-duo.jpg' },
   { art: 23, slug: 'premiers-emois-2021', file: 'premiers-emois-2021-duo.jpg' },
   { art: 24, slug: 'brute-de-rue-2021', file: 'brute-de-rue-2021-duo.jpg' },
-  { art: 25, slug: 'a-propos-dailes-2021', file: 'a-propos-dailes-2021-duo.jpg' },
+  { art: 25, slug: 'a-propos-dailes-2021', file: 'a-propos-dailes-2021-transparent.png' },
   { art: 26, slug: 'quatre-pepins-2022', file: 'quatre-pepins-2022-duo.jpg' },
   { art: 28, slug: 'turgowy-2023', file: 'turgowy-2023-duo.jpg' },
   { art: 29, slug: 'baie-de-rue-2023', file: 'baie-de-rue-2023-duo.jpg' },

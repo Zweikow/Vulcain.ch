@@ -14,8 +14,12 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
   ],
   'a-propos-dailes-2021': [
     {
+      url: '/photo-bouteilles-raw/a-propos-dailes-2021-transparent.png',
+      label: 'Duo Détouré (Transparent)',
+    },
+    {
       url: '/photo-bouteilles-raw/a-propos-dailes-2021-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
+      label: 'Deux Bouteilles (Ambiance)',
     },
     { url: '/photo-bouteilles-raw/a-propos-dailes-2021-face.jpg', label: 'Bouteille Face' },
     { url: '/photo-bouteilles-raw/a-propos-dailes-2021-dos.jpg', label: 'Bouteille Dos' },
