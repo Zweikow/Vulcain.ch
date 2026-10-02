@@ -4,42 +4,37 @@ const path = require('path')
 
 const prisma = new PrismaClient()
 
-const CUVEES_MAPPING = [
-  { art: 13, slug: 'poire-la-premoudiere-2022', name: 'Poiré La Prémoudière 2022' },
-  { art: 14, slug: 'trois-pepins-2023', name: '3 Pépins 2023' },
-  { art: 15, slug: 'lande-foy-2022', name: 'Lande Foy 2022' },
-  { art: 16, slug: 'belle-brutale-2017', name: 'Belle Brutale 2017' },
-  { art: 18, slug: 'turgowy-2019', name: 'Turgowy 2019' },
-  { art: 19, slug: 'turgowy-2020', name: 'Turgowy 2020' },
-  { art: 21, slug: 'cidre-de-fer-2020', name: 'Fer 2020' },
-  { art: 22, slug: 'la-fribourgeoise-2021', name: 'Fribourgeoise 2021' },
-  { art: 23, slug: 'premiers-emois-2021', name: 'Premiers Emois 2021' },
-  { art: 24, slug: 'brute-de-rue-2021', name: 'Brute de Rue 2021' },
-  { art: 25, slug: 'a-propos-dailes-2021', name: "A propos d'Ailes 2021" },
-  { art: 26, slug: 'quatre-pepins-2022', name: '4 Pépins 2022' },
-  { art: 28, slug: 'turgowy-2023', name: 'Turgowy 2023' },
-  { art: 29, slug: 'baie-de-rue-2023', name: 'Baie de Rue 2023' },
-  { art: 30, slug: 'quatre-pepins-2023', name: '4 Pépins 2023' },
-  { art: 31, slug: 'trois-pepins-2010', name: '3 Pépins 2010' },
-  { art: 32, slug: 'cidre-glace-2012', name: 'Cidre Glace 2012' },
-  { art: 33, slug: 'botsi-de-glace-2017', name: 'Botsi de glace 2017' },
+const CUVEES_RAW_MAPPING = [
+  { art: 13, slug: 'poire-la-premoudiere-2022', file: 'PXL_20261001_083129993.RAW-01.jpg' },
+  { art: 14, slug: 'trois-pepins-2023', file: 'PXL_20261001_084225959.RAW-01.jpg' },
+  { art: 15, slug: 'lande-foy-2022', file: 'PXL_20261001_084109501.RAW-01.jpg' },
+  { art: 16, slug: 'belle-brutale-2017', file: 'PXL_20261001_093814943.RAW-01.jpg' },
+  { art: 18, slug: 'turgowy-2019', file: 'PXL_20261001_094633146.RAW-01.jpg' },
+  { art: 19, slug: 'turgowy-2020', file: 'PXL_20261001_094524600.RAW-01.jpg' },
+  { art: 21, slug: 'cidre-de-fer-2020', file: 'PXL_20261001_093525290.RAW-01.jpg' },
+  { art: 22, slug: 'la-fribourgeoise-2021', file: 'PXL_20261001_084353184.RAW-01.jpg' },
+  { art: 23, slug: 'premiers-emois-2021', file: 'PXL_20261001_093739190.RAW-01.jpg' },
+  { art: 24, slug: 'brute-de-rue-2021', file: 'PXL_20261001_093652810.RAW-01.jpg' },
+  { art: 25, slug: 'a-propos-dailes-2021', file: 'PXL_20261001_083736991.RAW-01.jpg' },
+  { art: 26, slug: 'quatre-pepins-2022', file: 'PXL_20261001_094206445.RAW-01.jpg' },
+  { art: 28, slug: 'turgowy-2023', file: 'PXL_20261001_094422248.RAW-01.jpg' },
+  { art: 29, slug: 'baie-de-rue-2023', file: 'PXL_20261001_094735590.RAW-01.jpg' },
+  { art: 30, slug: 'quatre-pepins-2023', file: 'PXL_20261001_094326839.RAW-01.jpg' },
+  { art: 31, slug: 'trois-pepins-2010', file: 'PXL_20261001_084723380.RAW-01.jpg' },
+  { art: 32, slug: 'cidre-glace-2012', file: 'PXL_20261001_084022954.RAW-01.jpg' },
+  { art: 33, slug: 'botsi-de-glace-2017', file: 'PXL_20261001_083943812.RAW-01.jpg' },
 ]
 
-const VALIDATED_ARTS = [13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33]
-
 async function main() {
-  console.log('=== Mise à jour des photos des cuvées validées dans PostgreSQL ===')
+  console.log('=== Mise à jour des photos des cuvées avec les photos RAW authentiques ===')
   let updated = 0
 
-  for (const c of CUVEES_MAPPING) {
-    if (!VALIDATED_ARTS.includes(c.art)) {
-      continue
-    }
-    const imgUrl = `/images/cuvees/${c.slug}.jpg`
-    const fullPath = path.join(__dirname, '..', 'public', 'images', 'cuvees', `${c.slug}.jpg`)
+  for (const c of CUVEES_RAW_MAPPING) {
+    const imgUrl = `/photo-bouteilles-raw/${c.file}`
+    const fullPath = path.join(__dirname, '..', 'public', 'photo-bouteilles-raw', c.file)
 
     if (!fs.existsSync(fullPath)) {
-      console.warn(`[ATTENTION] Fichier image manquant : ${fullPath}`)
+      console.warn(`[ATTENTION] Fichier raw manquant : ${fullPath}`)
       continue
     }
 
@@ -59,7 +54,9 @@ async function main() {
     }
   }
 
-  console.log(`\n=== ${updated}/${CUVEES_MAPPING.length} produits mis à jour avec succès ! ===`)
+  console.log(
+    `\n=== ${updated}/${CUVEES_RAW_MAPPING.length} produits mis à jour vers les photos RAW ! ===`
+  )
 }
 
 main()

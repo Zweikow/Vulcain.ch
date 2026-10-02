@@ -55,8 +55,8 @@ export default function ProductDetailModal({
   const isCarton = product.bottlesPerUnit > 1
 
   const gallery = useMemo(() => {
-    return getCuveeGallery(product.image)
-  }, [product.image])
+    return getCuveeGallery(product.image, product.articleNumber)
+  }, [product.image, product.articleNumber])
 
   const [activeIndex, setActiveIndex] = useState(0)
 
