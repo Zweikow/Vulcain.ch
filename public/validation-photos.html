@@ -562,20 +562,7 @@
     </div>
   </div>
 
-  <div style="max-width: 1440px; margin: 16px auto 0; padding: 0 32px;">
-    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 16px 20px;">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 8px;">
-        <span style="font-size: 18px;">💡</span>
-        <strong style="color: #fbbf24; font-size: 14px;">Diagnostic Photo 2 (Bouteille seule devant) & Photo 3 (Bouteille seule derrière)</strong>
-      </div>
-      <p style="font-size: 13px; color: #d1d5db; line-height: 1.5; margin-bottom: 10px;">
-        Sur la série brute du 1er octobre, <strong>seule la cuvée <em>A Propos d'Ailes 2021</em></strong> (et les 2 bouteilles fines Botsi & Transparente) disposait de photos de la <strong>bouteille entière isolée</strong> (du bouchon jusqu'au culot). Pour les 14 autres cuvées, seules des photos en <strong>gros plan serré sur l'étiquette</strong> avaient été prises (coupant le bouchon et le col), ce qui créait un effet de tronc tronqué flottant.
-      </p>
-      <div style="font-size: 12px; color: #9ca3af;">
-        Pour obtenir un résultat identique à <em>A Propos d'Ailes</em> et <em>Poiré La Prémoudière</em>, 2 photos par cuvée sont à prendre : <strong>1 bouteille seule complète de face</strong> et <strong>1 bouteille seule complète de dos</strong> (bouchon + col + culot dans le champ).
-      </div>
-    </div>
-  </div>
+
 
   <main id="cuveesList">
     <!-- Populated by JavaScript -->
@@ -816,9 +803,9 @@
         card.className = `cuvee-card ${isValidated ? 'is-validated' : ''}`;
         card.id = `card-${c.slug}`;
 
-        const duoJpg = `images/cuvees/${c.slug}-duo.jpg${CACHE_BUST}`;
-        const frontJpg = `images/cuvees/${c.slug}-etiquette-devant.jpg${CACHE_BUST}`;
-        const backJpg = c.backRaw ? `images/cuvees/${c.slug}-etiquette-derriere.jpg${CACHE_BUST}` : null;
+        const duoPhoto = c.duoRaw ? `photo-bouteilles-raw/${c.duoRaw}` : null;
+        const frontPhoto = c.frontRaw ? `photo-bouteilles-raw/${c.frontRaw}` : null;
+        const backPhoto = c.backRaw ? `photo-bouteilles-raw/${c.backRaw}` : null;
 
         card.innerHTML = `
           <div class="cuvee-header">
@@ -840,89 +827,72 @@
           </div>
 
           <div class="images-grid">
-            <!-- Photo 1: Duo -->
+            <!-- Photo 1: Duo (Deux Bouteilles) -->
             <div class="photo-slot">
               <div class="photo-slot-header">
                 <span class="photo-slot-title">Photo 1 • Deux Bouteilles</span>
-                ${c.duoRaw ? 
-                  '<span class="photo-status-badge badge-ok">✓ Ancré au sol</span>' : 
+                ${duoPhoto ? 
+                  '<span class="photo-status-badge badge-ok">✓ Photo brute authentique</span>' : 
                   '<span class="photo-status-badge badge-info">🏷️ Étiquette panoramique (pas de duo)</span>'
                 }
               </div>
-              ${c.duoRaw ? `
-                <div class="photo-preview-wrap" onclick="openLightbox('${duoJpg}', '${c.name} — Photo 1 (Duo devant / derrière)')">
-                  <img src="${duoJpg}" alt="${c.name} duo" loading="lazy">
-                  <div class="zoom-hint">🔍 Zoom HD</div>
+              ${duoPhoto ? `
+                <div class="photo-preview-wrap" onclick="openLightbox('${duoPhoto}', '${c.name} — Photo 1 (Deux bouteilles)')">
+                  <img src="${duoPhoto}" alt="${c.name} duo" loading="lazy">
+                  <div class="zoom-hint">🔍 Agrandir</div>
                 </div>
-                <div class="raw-thumb-compare">
-                  <img src="photo-all-bottle-raw/${c.duoRaw}" alt="Raw original">
-                  <div style="flex:1;">
-                    <div style="font-weight:600; color:#d1d5db;">Photo brute originale</div>
-                    <div style="font-size:11px; color:#9ca3af; font-family:monospace;">${c.duoRaw}</div>
-                  </div>
-                  <span class="view-raw-link" onclick="openLightbox('photo-all-bottle-raw/${c.duoRaw}', 'RAW: ${c.duoRaw}')">Voir RAW</span>
-                </div>
+                <div style="font-size:11px; color:#9ca3af; font-family:monospace; margin-top:6px;">${c.duoRaw}</div>
               ` : `
                 <div class="photo-preview-wrap" style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#9ca3af; text-align:center; padding:20px;">
                   <span style="font-size:28px;">🍾</span>
                   <span style="font-size:13px; font-weight:700; color:#e5e7eb;">Pas d'étiquette au dos</span>
-                  <span style="font-size:12px; color:#9ca3af; line-height: 1.4;">Cette bouteille fine comporte une étiquette panoramique unique. Pas d'image duo nécessaire.</span>
+                  <span style="font-size:12px; color:#9ca3af; line-height: 1.4;">Cette bouteille fine comporte une étiquette panoramique unique.</span>
                 </div>
               `}
             </div>
 
-            <!-- Photo 2: Bouteille Seule Devant -->
+            <!-- Photo 2: Bouteille Seule (Face) -->
             <div class="photo-slot">
               <div class="photo-slot-header">
-                <span class="photo-slot-title">Photo 2 • Seule (Face)</span>
-                ${c.needsFront ? 
-                  '<span class="photo-status-badge badge-warn">⚠️ À reprendre : bouteille complète</span>' : 
-                  '<span class="photo-status-badge badge-ok">✓ Bouteille complète conforme</span>'
+                <span class="photo-slot-title">Photo 2 • Face</span>
+                ${frontPhoto ? 
+                  '<span class="photo-status-badge badge-ok">✓ Photo brute authentique</span>' : 
+                  '<span class="photo-status-badge badge-info">-</span>'
                 }
               </div>
-              <div class="photo-preview-wrap" onclick="openLightbox('${frontJpg}', '${c.name} — Photo 2 (Bouteille seule de face)')">
-                <img src="${frontJpg}" alt="${c.name} seule devant" loading="lazy">
-                <div class="zoom-hint">🔍 Zoom HD</div>
-              </div>
-              <div class="raw-thumb-compare">
-                <img src="photo-all-bottle-raw/${c.frontRaw}" alt="Raw original">
-                <div style="flex:1;">
-                  <div style="font-weight:600; color:#d1d5db;">${c.needsFront ? '⚠️ Gros plan actuel (tronqué)' : 'Photo brute originale (bouteille complète)'}</div>
-                  <div style="font-size:11px; color:#9ca3af; font-family:monospace;">${c.frontRaw}</div>
+              ${frontPhoto ? `
+                <div class="photo-preview-wrap" onclick="openLightbox('${frontPhoto}', '${c.name} — Photo 2 (Face)')">
+                  <img src="${frontPhoto}" alt="${c.name} face" loading="lazy">
+                  <div class="zoom-hint">🔍 Agrandir</div>
                 </div>
-                <span class="view-raw-link" onclick="openLightbox('photo-all-bottle-raw/${c.frontRaw}', 'RAW: ${c.frontRaw}')">Voir RAW</span>
-              </div>
+                <div style="font-size:11px; color:#9ca3af; font-family:monospace; margin-top:6px;">${c.frontRaw}</div>
+              ` : `
+                <div class="photo-preview-wrap" style="display:flex; align-items:center; justify-content:center; padding:20px; color:#9ca3af;">
+                  <span>Aucune photo</span>
+                </div>
+              `}
             </div>
 
-            <!-- Photo 3: Bouteille Seule Derrière -->
+            <!-- Photo 3: Bouteille Seule (Dos) -->
             <div class="photo-slot">
               <div class="photo-slot-header">
-                <span class="photo-slot-title">Photo 3 • Seule (Dos)</span>
-                ${!c.backRaw ? 
-                  '<span class="photo-status-badge badge-info">🏷️ Étiquette panoramique</span>' :
-                  c.needsBack ? 
-                  '<span class="photo-status-badge badge-warn">⚠️ À reprendre : bouteille complète</span>' : 
-                  '<span class="photo-status-badge badge-ok">✓ Bouteille complète conforme</span>'
+                <span class="photo-slot-title">Photo 3 • Dos</span>
+                ${backPhoto ? 
+                  '<span class="photo-status-badge badge-ok">✓ Photo brute authentique</span>' : 
+                  '<span class="photo-status-badge badge-info">🏷️ Étiquette panoramique</span>'
                 }
               </div>
-              ${backJpg ? `
-                <div class="photo-preview-wrap" onclick="openLightbox('${backJpg}', '${c.name} — Photo 3 (Bouteille seule de dos)')">
-                  <img src="${backJpg}" alt="${c.name} seule derriere" loading="lazy">
-                  <div class="zoom-hint">🔍 Zoom HD</div>
+              ${backPhoto ? `
+                <div class="photo-preview-wrap" onclick="openLightbox('${backPhoto}', '${c.name} — Photo 3 (Dos)')">
+                  <img src="${backPhoto}" alt="${c.name} dos" loading="lazy">
+                  <div class="zoom-hint">🔍 Agrandir</div>
                 </div>
-                <div class="raw-thumb-compare">
-                  <img src="photo-all-bottle-raw/${c.backRaw}" alt="Raw original">
-                  <div style="flex:1;">
-                    <div style="font-weight:600; color:#d1d5db;">${c.needsBack ? '⚠️ Gros plan actuel (tronqué)' : 'Photo brute originale (bouteille complète)'}</div>
-                    <div style="font-size:11px; color:#9ca3af; font-family:monospace;">${c.backRaw}</div>
-                  </div>
-                  <span class="view-raw-link" onclick="openLightbox('photo-all-bottle-raw/${c.backRaw}', 'RAW: ${c.backRaw}')">Voir RAW</span>
-                </div>
+                <div style="font-size:11px; color:#9ca3af; font-family:monospace; margin-top:6px;">${c.backRaw}</div>
               ` : `
                 <div class="photo-preview-wrap" style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px; color:#9ca3af; text-align:center; padding:20px;">
                   <span style="font-size:28px;">🍾</span>
                   <span style="font-size:13px; font-weight:700; color:#e5e7eb;">Étiquette panoramique unique</span>
-                  <span style="font-size:12px; color:#9ca3af; line-height: 1.4;">Cette bouteille fine (37.5cl / 50cl) comporte une seule étiquette panoramique visible en intégralité sur la photo 2.</span>
+                  <span style="font-size:12px; color:#9ca3af; line-height: 1.4;">Cette bouteille comporte une seule étiquette panoramique.</span>
                 </div>
               `}
             </div>

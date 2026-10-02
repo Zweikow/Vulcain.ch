@@ -25,7 +25,7 @@ const CUVEES_MAPPING = [
   { art: 33, slug: 'botsi-de-glace-2017', name: 'Botsi de glace 2017' },
 ]
 
-const VALIDATED_ARTS = [13, 25, 32, 33]
+const VALIDATED_ARTS = [13, 14, 15, 16, 18, 19, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32, 33]
 
 async function main() {
   console.log('=== Mise à jour des photos des cuvées validées dans PostgreSQL ===')
