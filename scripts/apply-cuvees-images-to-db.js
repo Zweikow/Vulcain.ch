@@ -4,37 +4,37 @@ const path = require('path')
 
 const prisma = new PrismaClient()
 
-const CUVEES_RAW_MAPPING = [
-  { art: 13, slug: 'poire-la-premoudiere-2022', file: 'PXL_20261001_083129993.RAW-01.jpg' },
-  { art: 14, slug: 'trois-pepins-2023', file: 'PXL_20261001_084225959.RAW-01.jpg' },
-  { art: 15, slug: 'lande-foy-2022', file: 'PXL_20261001_084109501.RAW-01.jpg' },
-  { art: 16, slug: 'belle-brutale-2017', file: 'PXL_20261001_093814943.RAW-01.jpg' },
-  { art: 18, slug: 'turgowy-2019', file: 'PXL_20261001_094633146.RAW-01.jpg' },
-  { art: 19, slug: 'turgowy-2020', file: 'PXL_20261001_094524600.RAW-01.jpg' },
-  { art: 21, slug: 'cidre-de-fer-2020', file: 'PXL_20261001_093525290.RAW-01.jpg' },
-  { art: 22, slug: 'la-fribourgeoise-2021', file: 'PXL_20261001_084353184.RAW-01.jpg' },
-  { art: 23, slug: 'premiers-emois-2021', file: 'PXL_20261001_093739190.RAW-01.jpg' },
-  { art: 24, slug: 'brute-de-rue-2021', file: 'PXL_20261001_093652810.RAW-01.jpg' },
-  { art: 25, slug: 'a-propos-dailes-2021', file: 'PXL_20261001_083736991.RAW-01.jpg' },
-  { art: 26, slug: 'quatre-pepins-2022', file: 'PXL_20261001_094206445.RAW-01.jpg' },
-  { art: 28, slug: 'turgowy-2023', file: 'PXL_20261001_094422248.RAW-01.jpg' },
-  { art: 29, slug: 'baie-de-rue-2023', file: 'PXL_20261001_094735590.RAW-01.jpg' },
-  { art: 30, slug: 'quatre-pepins-2023', file: 'PXL_20261001_094326839.RAW-01.jpg' },
-  { art: 31, slug: 'trois-pepins-2010', file: 'PXL_20261001_084723380.RAW-01.jpg' },
-  { art: 32, slug: 'cidre-glace-2012', file: 'PXL_20261001_084022954.RAW-01.jpg' },
-  { art: 33, slug: 'botsi-de-glace-2017', file: 'PXL_20261001_083943812.RAW-01.jpg' },
+const CUVEES_CLEAN_MAPPING = [
+  { art: 13, slug: 'poire-la-premoudiere-2022', file: 'poire-la-premoudiere-2022-duo.jpg' },
+  { art: 14, slug: 'trois-pepins-2023', file: 'trois-pepins-2023-duo.jpg' },
+  { art: 15, slug: 'lande-foy-2022', file: 'lande-foy-2022-duo.jpg' },
+  { art: 16, slug: 'belle-brutale-2017', file: 'belle-brutale-2017-duo.jpg' },
+  { art: 18, slug: 'turgowy-2019', file: 'turgowy-2019-duo.jpg' },
+  { art: 19, slug: 'turgowy-2020', file: 'turgowy-2020-duo.jpg' },
+  { art: 21, slug: 'cidre-de-fer-2020', file: 'cidre-de-fer-2020-duo.jpg' },
+  { art: 22, slug: 'la-fribourgeoise-2021', file: 'la-fribourgeoise-2021-duo.jpg' },
+  { art: 23, slug: 'premiers-emois-2021', file: 'premiers-emois-2021-duo.jpg' },
+  { art: 24, slug: 'brute-de-rue-2021', file: 'brute-de-rue-2021-duo.jpg' },
+  { art: 25, slug: 'a-propos-dailes-2021', file: 'a-propos-dailes-2021-duo.jpg' },
+  { art: 26, slug: 'quatre-pepins-2022', file: 'quatre-pepins-2022-duo.jpg' },
+  { art: 28, slug: 'turgowy-2023', file: 'turgowy-2023-duo.jpg' },
+  { art: 29, slug: 'baie-de-rue-2023', file: 'baie-de-rue-2023-duo.jpg' },
+  { art: 30, slug: 'quatre-pepins-2023', file: 'quatre-pepins-2023-duo.jpg' },
+  { art: 31, slug: 'trois-pepins-2010', file: 'trois-pepins-2010-duo.jpg' },
+  { art: 32, slug: 'cidre-glace-2012', file: 'cidre-glace-2012-face.jpg' },
+  { art: 33, slug: 'botsi-de-glace-2017', file: 'botsi-de-glace-2017-face.jpg' },
 ]
 
 async function main() {
-  console.log('=== Mise à jour des photos des cuvées avec les photos RAW authentiques ===')
+  console.log('=== Mise à jour des photos des cuvées avec les noms propres renommés ===')
   let updated = 0
 
-  for (const c of CUVEES_RAW_MAPPING) {
+  for (const c of CUVEES_CLEAN_MAPPING) {
     const imgUrl = `/photo-bouteilles-raw/${c.file}`
     const fullPath = path.join(__dirname, '..', 'public', 'photo-bouteilles-raw', c.file)
 
     if (!fs.existsSync(fullPath)) {
-      console.warn(`[ATTENTION] Fichier raw manquant : ${fullPath}`)
+      console.warn(`[ATTENTION] Fichier photo manquant : ${fullPath}`)
       continue
     }
 
@@ -55,7 +55,7 @@ async function main() {
   }
 
   console.log(
-    `\n=== ${updated}/${CUVEES_RAW_MAPPING.length} produits mis à jour vers les photos RAW ! ===`
+    `\n=== ${updated}/${CUVEES_CLEAN_MAPPING.length} produits mis à jour vers les photos RAW renommées ! ===`
   )
 }
 

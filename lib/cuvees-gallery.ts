@@ -6,142 +6,142 @@ export interface GalleryImage {
 export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
   'poire-la-premoudiere-2022': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_083129993.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20260925_150842844.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_083149019.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-dos.jpg', label: 'Bouteille Dos' },
   ],
   'a-propos-dailes-2021': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_083736991.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/a-propos-dailes-2021-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_083852861.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_083833116.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/a-propos-dailes-2021-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/a-propos-dailes-2021-dos.jpg', label: 'Bouteille Dos' },
   ],
   'botsi-de-glace-2017': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_083943812.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/botsi-de-glace-2017-face.jpg',
       label: 'Bouteille (Étiquette panoramique)',
     },
   ],
   'cidre-glace-2012': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_084022954.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/cidre-glace-2012-face.jpg',
       label: 'Bouteille (Étiquette panoramique)',
     },
   ],
   'lande-foy-2022': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_084109501.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/lande-foy-2022-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084132367.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084146258.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/lande-foy-2022-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/lande-foy-2022-dos.jpg', label: 'Bouteille Dos' },
   ],
   'trois-pepins-2023': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_084225959.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/trois-pepins-2023-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084250701.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084303316.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/trois-pepins-2023-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/trois-pepins-2023-dos.jpg', label: 'Bouteille Dos' },
   ],
   'la-fribourgeoise-2021': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_084353184.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/la-fribourgeoise-2021-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084417343.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084502368.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/la-fribourgeoise-2021-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/la-fribourgeoise-2021-dos.jpg', label: 'Bouteille Dos' },
   ],
   'trois-pepins-2010': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_084723380.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/trois-pepins-2010-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084738623.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_084751609.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/trois-pepins-2010-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/trois-pepins-2010-dos.jpg', label: 'Bouteille Dos' },
   ],
   'premiers-emois-2021': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_093739190.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/premiers-emois-2021-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093432083.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093405721.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/premiers-emois-2021-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/premiers-emois-2021-dos.jpg', label: 'Bouteille Dos' },
   ],
   'cidre-de-fer-2020': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_093525290.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/cidre-de-fer-2020-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093604613.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093621023.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/cidre-de-fer-2020-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/cidre-de-fer-2020-dos.jpg', label: 'Bouteille Dos' },
   ],
   'brute-de-rue-2021': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_093652810.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/brute-de-rue-2021-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093703496.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093712077.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/brute-de-rue-2021-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/brute-de-rue-2021-dos.jpg', label: 'Bouteille Dos' },
   ],
   'belle-brutale-2017': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_093814943.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/belle-brutale-2017-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093832803.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_093846489.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/belle-brutale-2017-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/belle-brutale-2017-dos.jpg', label: 'Bouteille Dos' },
   ],
   'quatre-pepins-2022': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094206445.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/quatre-pepins-2022-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094229486.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094249388.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/quatre-pepins-2022-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/quatre-pepins-2022-dos.jpg', label: 'Bouteille Dos' },
   ],
   'quatre-pepins-2023': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094326839.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/quatre-pepins-2023-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094347407.RAW-01.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/quatre-pepins-2023-face.jpg', label: 'Bouteille Face' },
   ],
   'turgowy-2023': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094422248.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/turgowy-2023-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094438218.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094455169.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/turgowy-2023-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/turgowy-2023-dos.jpg', label: 'Bouteille Dos' },
   ],
   'turgowy-2020': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094524600.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/turgowy-2020-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094544910.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094558424.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/turgowy-2020-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/turgowy-2020-dos.jpg', label: 'Bouteille Dos' },
   ],
   'turgowy-2019': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094633146.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/turgowy-2019-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094647857.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094709837.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/turgowy-2019-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/turgowy-2019-dos.jpg', label: 'Bouteille Dos' },
   ],
   'baie-de-rue-2023': [
     {
-      url: '/photo-bouteilles-raw/PXL_20261001_094735590.RAW-01.jpg',
+      url: '/photo-bouteilles-raw/baie-de-rue-2023-duo.jpg',
       label: 'Deux Bouteilles (Face & Dos)',
     },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094750351.RAW-01.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/PXL_20261001_094807896.RAW-01.jpg', label: 'Bouteille Dos' },
+    { url: '/photo-bouteilles-raw/baie-de-rue-2023-face.jpg', label: 'Bouteille Face' },
+    { url: '/photo-bouteilles-raw/baie-de-rue-2023-dos.jpg', label: 'Bouteille Dos' },
   ],
 }
 
