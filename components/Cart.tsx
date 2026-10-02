@@ -103,7 +103,7 @@ export default function Cart({
             </div>
           </div>
           {hasItems && (
-            <Badge variant="amber" className="font-mono text-xs">
+            <Badge variant="default" className="font-mono text-xs bg-primary text-text-on-primary">
               {totalQuantity} {totalQuantity > 1 ? 'articles' : 'article'}
             </Badge>
           )}

@@ -59,6 +59,7 @@ export default function ProductDetailModal({
   }, [product.image, product.articleNumber])
 
   const [activeIndex, setActiveIndex] = useState(0)
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
 
   // Réinitialiser à la première photo au changement de produit
   useEffect(() => {
@@ -89,13 +90,15 @@ export default function ProductDetailModal({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [gallery.length])
 
+  const currentImg = gallery[activeIndex]
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-card border border-border rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-4xl bg-card border border-border dark:border-border-dark rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Bouton Fermer */}
@@ -114,7 +117,7 @@ export default function ProductDetailModal({
               {/* Entête indicateur du slide */}
               <div className="w-full flex items-center justify-between z-10 mb-2">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                  {gallery[activeIndex]?.label || 'Visuel'}
+                  {currentImg?.label || 'Visuel'}
                 </span>
                 {gallery.length > 1 && (
                   <span className="text-xs font-mono text-muted-foreground">
@@ -125,15 +128,27 @@ export default function ProductDetailModal({
 
               {/* Image principale avec boutons Précédent / Suivant */}
               <div className="relative w-full flex-1 max-w-[280px] aspect-[1/2] max-h-[360px] flex items-center justify-center my-auto">
-                <Image
-                  key={gallery[activeIndex].url}
-                  src={gallery[activeIndex].url}
-                  alt={`${product.name} - ${gallery[activeIndex].label}`}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  priority
-                />
+                {currentImg && !failedImages[currentImg.url] ? (
+                  <Image
+                    key={currentImg.url}
+                    src={currentImg.url}
+                    alt={`${product.name} - ${currentImg.label}`}
+                    fill
+                    unoptimized
+                    onError={() => setFailedImages((prev) => ({ ...prev, [currentImg.url]: true }))}
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    priority
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center p-4 gap-2 text-muted-foreground">
+                    <span className="text-3xl">🍾</span>
+                    <span className="font-serif italic text-sm">{product.name}</span>
+                    <span className="text-[11px] text-muted-foreground/70">
+                      {currentImg?.label || 'Cuvée artisanale'}
+                    </span>
+                  </div>
+                )}
 
                 {/* Flèches de navigation carrousel */}
                 {gallery.length > 1 && (
@@ -182,13 +197,21 @@ export default function ProductDetailModal({
                       }`}
                       title={img.label}
                     >
-                      <Image
-                        src={img.url}
-                        alt={img.label}
-                        fill
-                        className="object-contain p-1"
-                        sizes="56px"
-                      />
+                      {!failedImages[img.url] ? (
+                        <Image
+                          src={img.url}
+                          alt={img.label}
+                          fill
+                          unoptimized
+                          onError={() => setFailedImages((prev) => ({ ...prev, [img.url]: true }))}
+                          className="object-contain p-1"
+                          sizes="56px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs font-serif">
+                          🍾
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -339,7 +362,7 @@ export default function ProductDetailModal({
                 </div>
 
                 {quantity > 0 && quantity >= product.stock && (
-                  <span className="text-xs text-amber-600 dark:text-amber-400 font-medium text-center">
+                  <span className="text-xs text-text-warning font-medium text-center">
                     Stock maximal disponible atteint pour cette cuvée.
                   </span>
                 )}

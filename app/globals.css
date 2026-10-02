@@ -6,69 +6,69 @@
 
 @layer base {
   :root {
-    /* Palette Artisanale Vulcain - Stone & Warm Cider */
-    --background: 40 25% 98%; /* #FAF8F5 - Papier/Pierre naturelle chaude */
-    --foreground: 215 28% 17%; /* #1e293b - Ardoise profonde */
+    /* Palette Drinkcider - Fresh Light Green & Deep Space Slate */
+    --background: 48 30% 96%; /* #F7F6F0 - Pierre claire naturelle */
+    --foreground: 202 52% 17%; /* #153243 - Deep Space Blue */
 
-    --card: 0 0% 100%; /* Fond de carte blanc chaud */
-    --card-foreground: 215 28% 17%;
+    --card: 0 0% 100%; /* #FFFFFF - Fond de carte blanc pur */
+    --card-foreground: 202 52% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
+    --popover-foreground: 202 52% 17%;
 
-    --primary: 36 82% 43%; /* #C77A14 - Ambre cidre chaud & naturel */
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 36 85% 38%;
+    --primary: 134 76% 72%; /* #80ED99 - Vert frais emblématique */
+    --primary-foreground: 202 52% 17%; /* #153243 - Texte foncé sur vert */
+    --primary-hover: 136 60% 61%; /* #5ED97F */
 
-    --secondary: 40 18% 92%; /* #ECE8E1 - Pierre beige douce */
-    --secondary-foreground: 215 28% 17%;
+    --secondary: 205 42% 27%; /* #284B63 - Yale Blue */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 40 14% 92%; /* #EDE9E3 */
-    --muted-foreground: 215 16% 45%; /* #5F6E80 */
+    --muted: 213 25% 95%; /* #EEF1F5 */
+    --muted-foreground: 198 21% 39%; /* #4F6D7A */
 
-    --accent: 40 20% 90%; /* #EAE4DA */
-    --accent-foreground: 215 28% 17%;
+    --accent: 213 25% 95%;
+    --accent-foreground: 202 52% 17%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 14% 87%; /* #E2DCD3 - Bordure organique fine */
-    --input: 40 14% 87%;
-    --ring: 36 82% 43%;
+    --border: 213 25% 91%; /* #E2E8EF - Bordure fine propre */
+    --input: 213 25% 91%;
+    --ring: 136 60% 61%; /* #5ED97F */
 
-    --radius: 0.875rem; /* 14px - Arrondis élégants et naturels */
+    --radius: 0.75rem;
   }
 
   .dark {
-    /* Mode Nocturne Haute Précision - Ardoise & Chêne Noirci */
-    --background: 215 32% 9%; /* #0F1722 - Ardoise nocturne */
-    --foreground: 40 20% 96%; /* #F6F4F0 */
+    /* Mode Nocturne - Ardoise Profonde & Vert Frais */
+    --background: 212 53% 11%; /* #0D1B2A - Deep Midnight Navy */
+    --foreground: 206 48% 90%; /* #D6E8F5 */
 
-    --card: 215 26% 13%; /* #182230 - Carte surélevée */
-    --card-foreground: 40 20% 96%;
+    --card: 210 43% 15%; /* #152535 */
+    --card-foreground: 206 48% 90%;
 
-    --popover: 215 26% 13%;
-    --popover-foreground: 40 20% 96%;
+    --popover: 210 43% 15%;
+    --popover-foreground: 206 48% 90%;
 
-    --primary: 36 88% 50%; /* #EE9B24 - Ambre lumineux doré */
-    --primary-foreground: 215 32% 9%;
-    --primary-hover: 36 90% 45%;
+    --primary: 134 76% 72%; /* #80ED99 */
+    --primary-foreground: 202 52% 17%; /* #153243 */
+    --primary-hover: 136 60% 61%;
 
-    --secondary: 215 22% 18%; /* #243042 */
-    --secondary-foreground: 40 20% 96%;
+    --secondary: 205 42% 27%;
+    --secondary-foreground: 206 48% 90%;
 
-    --muted: 215 20% 17%;
-    --muted-foreground: 215 15% 65%; /* #92A3B8 */
+    --muted: 214 49% 17%; /* #162840 */
+    --muted-foreground: 200 19% 63%; /* #8FA6B2 */
 
-    --accent: 215 22% 20%;
-    --accent-foreground: 40 20% 96%;
+    --accent: 214 49% 17%;
+    --accent-foreground: 206 48% 90%;
 
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 20%; /* #263345 */
-    --input: 215 20% 20%;
-    --ring: 36 88% 50%;
+    --border: 212 41% 20%; /* #1E3248 */
+    --input: 212 41% 20%;
+    --ring: 136 60% 61%;
   }
 
   * {
@@ -82,6 +82,25 @@
   :focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Classes composants historiques préservées */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-secondary {
+    @apply border border-border text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-danger {
+    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .input-field {
+    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+  }
+  .card {
+    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border;
   }
 }
 

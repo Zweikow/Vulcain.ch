@@ -37,6 +37,62 @@ export type AdminProduct = {
   articleNumber: number
 }
 
+const AVAILABLE_RAW_PHOTOS = [
+  {
+    path: '/photo-bouteilles-raw/a-propos-dailes-2021-transparent.png',
+    label: "A propos d'Ailes 2021 (Détouré Transparent)",
+  },
+  {
+    path: '/photo-bouteilles-raw/a-propos-dailes-2021-duo.jpg',
+    label: "A propos d'Ailes 2021 (Duo)",
+  },
+  {
+    path: '/photo-bouteilles-raw/a-propos-dailes-2021-face.jpg',
+    label: "A propos d'Ailes 2021 (Face)",
+  },
+  {
+    path: '/photo-bouteilles-raw/a-propos-dailes-2021-dos.jpg',
+    label: "A propos d'Ailes 2021 (Dos)",
+  },
+  { path: '/photo-bouteilles-raw/trois-pepins-2023-duo.jpg', label: '3 Pépins 2023 (Duo)' },
+  { path: '/photo-bouteilles-raw/trois-pepins-2023-face.jpg', label: '3 Pépins 2023 (Face)' },
+  { path: '/photo-bouteilles-raw/trois-pepins-2023-dos.jpg', label: '3 Pépins 2023 (Dos)' },
+  { path: '/photo-bouteilles-raw/trois-pepins-2010-duo.jpg', label: '3 Pépins 2010 (Duo)' },
+  { path: '/photo-bouteilles-raw/quatre-pepins-2022-duo.jpg', label: '4 Pépins 2022 (Duo)' },
+  { path: '/photo-bouteilles-raw/quatre-pepins-2023-duo.jpg', label: '4 Pépins 2023 (Duo)' },
+  {
+    path: '/photo-bouteilles-raw/poire-la-premoudiere-2022-duo.jpg',
+    label: 'Poiré La Prémoudière 2022 (Duo)',
+  },
+  {
+    path: '/photo-bouteilles-raw/poire-la-premoudiere-2022-face.jpg',
+    label: 'Poiré La Prémoudière 2022 (Face)',
+  },
+  {
+    path: '/photo-bouteilles-raw/la-fribourgeoise-2021-duo.jpg',
+    label: 'La Fribourgeoise 2021 (Duo)',
+  },
+  {
+    path: '/photo-bouteilles-raw/la-fribourgeoise-2021-face.jpg',
+    label: 'La Fribourgeoise 2021 (Face)',
+  },
+  { path: '/photo-bouteilles-raw/cidre-de-fer-2020-duo.jpg', label: 'Cidre de Fer 2020 (Duo)' },
+  { path: '/photo-bouteilles-raw/cidre-de-fer-2020-face.jpg', label: 'Cidre de Fer 2020 (Face)' },
+  { path: '/photo-bouteilles-raw/belle-brutale-2017-duo.jpg', label: 'Belle Brutale 2017 (Duo)' },
+  { path: '/photo-bouteilles-raw/premiers-emois-2021-duo.jpg', label: 'Premiers Émois 2021 (Duo)' },
+  { path: '/photo-bouteilles-raw/brute-de-rue-2021-duo.jpg', label: 'Brute de Rue 2021 (Duo)' },
+  { path: '/photo-bouteilles-raw/baie-de-rue-2023-duo.jpg', label: 'Baie de Rue 2023 (Duo)' },
+  { path: '/photo-bouteilles-raw/turgowy-2019-duo.jpg', label: 'Turgowy 2019 (Duo)' },
+  { path: '/photo-bouteilles-raw/turgowy-2020-duo.jpg', label: 'Turgowy 2020 (Duo)' },
+  { path: '/photo-bouteilles-raw/turgowy-2023-duo.jpg', label: 'Turgowy 2023 (Duo)' },
+  { path: '/photo-bouteilles-raw/lande-foy-2022-duo.jpg', label: 'Lande Foy 2022 (Duo)' },
+  { path: '/photo-bouteilles-raw/cidre-glace-2012-face.jpg', label: 'Cidre Glacé 2012 (Face)' },
+  {
+    path: '/photo-bouteilles-raw/botsi-de-glace-2017-face.jpg',
+    label: 'Botsi de Glace 2017 (Face)',
+  },
+]
+
 interface AdminProductModalProps {
   product?: AdminProduct
   categories: { id: string; name: string }[]
@@ -61,6 +117,7 @@ export default function AdminProductModal({
   const [showNewProducer, setShowNewProducer] = useState(false)
   const [newProducerName, setNewProducerName] = useState('')
   const [isCreatingProducer, setIsCreatingProducer] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const [form, setForm] = useState({
     name: product?.name ?? '',
@@ -89,6 +146,15 @@ export default function AdminProductModal({
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleImageUrlChange = (val: string) => {
+    let cleaned = val.trim()
+    if (cleaned.startsWith('photo-bouteilles-raw/')) {
+      cleaned = '/' + cleaned
+    }
+    update('imageUrl', cleaned)
+    setImageError(false)
   }
 
   const priceCents = chfInputToCents(form.priceChf)
@@ -192,9 +258,9 @@ export default function AdminProductModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="card w-full max-w-lg shadow-xl overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between p-5 border-b border-border dark:border-border-dark">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div className="w-full max-w-lg bg-white dark:bg-[#152535] border border-border dark:border-border-dark rounded-xl shadow-2xl overflow-y-auto max-h-[90vh] z-50">
+        <div className="flex items-center justify-between p-5 border-b border-border dark:border-border-dark bg-white dark:bg-[#152535] sticky top-0 z-20">
           <h2 className="font-semibold text-text-primary dark:text-text-primary-dark">
             {product ? 'Modifier le produit' : 'Ajouter un produit'}
             {product && (
@@ -212,7 +278,10 @@ export default function AdminProductModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="p-5 flex flex-col gap-4 bg-white dark:bg-[#152535]"
+        >
           {/* Nom du produit */}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
@@ -547,47 +616,98 @@ export default function AdminProductModal({
           </div>
 
           {/* Image */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-              Image du produit
-            </label>
-            <div className="border-2 border-dashed border-border dark:border-border-dark rounded-md p-4 flex flex-col items-center gap-3 text-text-tertiary dark:text-text-tertiary-dark relative">
-              <span className="font-mono text-[11px]">photo bouteille 1:1 — 800×600 min</span>
-              {form.imageUrl ? (
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={form.imageUrl}
-                    alt="Aperçu"
-                    className="w-24 h-24 object-contain rounded-md border border-border"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => update('imageUrl', '')}
-                    className="text-xs text-text-error hover:underline"
-                  >
-                    Retirer l&apos;image
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-md pointer-events-none">
-                    Sélectionner un fichier
-                  </span>
-                </>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                Image du produit
+              </label>
+              {form.imageUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    update('imageUrl', '')
+                    setImageError(false)
+                  }}
+                  className="text-xs text-text-error hover:underline"
+                >
+                  Retirer l&apos;image
+                </button>
               )}
             </div>
-            <input
-              className="input-field mt-1 text-xs"
-              placeholder="https://… (URL S3 générée automatiquement)"
-              value={form.imageUrl}
-              onChange={(e) => update('imageUrl', e.target.value)}
-            />
+
+            <div className="border-2 border-dashed border-border dark:border-border-dark rounded-lg p-3 flex flex-col items-center gap-2 bg-bg-page/40 dark:bg-bg-page-dark/40 relative">
+              {form.imageUrl ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="relative w-28 h-28 rounded-lg border border-border dark:border-border-dark bg-white dark:bg-[#152535] overflow-hidden flex items-center justify-center shadow-xs">
+                    {!imageError ? (
+                      <img
+                        src={form.imageUrl}
+                        alt="Aperçu"
+                        onError={() => setImageError(true)}
+                        onLoad={() => setImageError(false)}
+                        className="w-full h-full object-contain p-1"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-2 text-text-error">
+                        <span className="text-xl">⚠️</span>
+                        <span className="text-[10px] font-semibold mt-1">Image introuvable</span>
+                        <span className="text-[9px] text-text-tertiary">Vérifiez l&apos;URL</span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-mono text-text-tertiary max-w-[320px] truncate text-center">
+                    {form.imageUrl}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 text-center py-2">
+                  <span className="text-2xl">📷</span>
+                  <span className="text-xs text-text-secondary dark:text-text-secondary-dark font-medium">
+                    Sélectionner un fichier ou choisir dans le catalogue
+                  </span>
+                  <span className="font-mono text-[10px] text-text-tertiary">
+                    Format carré 1:1 conseillé
+                  </span>
+                </div>
+              )}
+
+              {/* Upload file input */}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                title="Cliquer pour uploader une image"
+              />
+            </div>
+
+            {/* Sélecteur rapide des photos du catalogue local */}
+            <div className="flex flex-col gap-1 mt-1">
+              <select
+                className="input-field text-xs py-1.5 cursor-pointer"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleImageUrlChange(e.target.value)
+                  }
+                }}
+              >
+                <option value="">📁 Choisir une photo parmi le catalogue local...</option>
+                {AVAILABLE_RAW_PHOTOS.map((photo) => (
+                  <option key={photo.path} value={photo.path}>
+                    {photo.label}
+                  </option>
+                ))}
+              </select>
+
+              {/* URL ou chemin exact */}
+              <input
+                className="input-field text-xs font-mono"
+                placeholder="Ex: /photo-bouteilles-raw/trois-pepins-2023-duo.jpg ou https://…"
+                value={form.imageUrl}
+                onChange={(e) => handleImageUrlChange(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-1 border-t border-border dark:border-border-dark pt-3">

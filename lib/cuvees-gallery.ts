@@ -170,27 +170,37 @@ export const ARTICLE_SLUG_MAP: Record<number, string> = {
   33: 'botsi-de-glace-2017',
 }
 
-/**
- * Retourne la liste des images de la galerie pour un produit donné.
- * Si le produit correspond à une cuvée connue, retourne la galerie de ses photos brutes authentiques.
- * Sinon, retourne l'image principale seule.
- */
 export function getCuveeGallery(imageUrl?: string | null, articleNumber?: number): GalleryImage[] {
+  let images: GalleryImage[] = []
+
   if (articleNumber && ARTICLE_SLUG_MAP[articleNumber]) {
     const slug = ARTICLE_SLUG_MAP[articleNumber]
     if (CUVEE_GALLERY_MAP[slug]) {
-      return CUVEE_GALLERY_MAP[slug]
+      images = [...CUVEE_GALLERY_MAP[slug]]
+    }
+  } else if (imageUrl) {
+    for (const [slug, gallery] of Object.entries(CUVEE_GALLERY_MAP)) {
+      if (imageUrl.includes(slug) || gallery.some((img) => img.url === imageUrl)) {
+        images = [...gallery]
+        break
+      }
     }
   }
 
-  if (!imageUrl) return []
-
-  // Recherche directe par slug ou par URL exacte d'image
-  for (const [slug, gallery] of Object.entries(CUVEE_GALLERY_MAP)) {
-    if (imageUrl.includes(slug) || gallery.some((img) => img.url === imageUrl)) {
-      return gallery
+  // Si le produit a une image spécifique définie en base (upload ou sélection manuelle),
+  // on s'assure qu'elle est toujours présente et en toute première position
+  if (imageUrl && imageUrl.trim()) {
+    const cleanUrl = imageUrl.trim()
+    const existingIndex = images.findIndex((img) => img.url === cleanUrl)
+    if (existingIndex > 0) {
+      // Déplacer l'image sélectionnée en première position
+      const [found] = images.splice(existingIndex, 1)
+      images.unshift(found)
+    } else if (existingIndex === -1) {
+      // Image personnalisée ajoutée manuellement par l'utilisateur
+      images.unshift({ url: cleanUrl, label: 'Visuel principal' })
     }
   }
 
-  return [{ url: imageUrl, label: 'Bouteille' }]
+  return images.length > 0 ? images : imageUrl ? [{ url: imageUrl, label: 'Bouteille' }] : []
 }

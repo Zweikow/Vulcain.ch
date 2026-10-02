@@ -5,7 +5,6 @@ import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
 import { PackBadgeIcon } from '@/components/admin/AdminIcons'
-import { CardSpotlight } from '@/components/ui/card-spotlight'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Plus, Minus, Sparkles, Gift } from 'lucide-react'
@@ -77,8 +76,8 @@ export default function ProductCard({
     : null
 
   return (
-    <CardSpotlight className="h-full flex flex-col justify-between overflow-hidden group">
-      {/* Ruban promotionnel artisanal */}
+    <div className="card h-full flex flex-col justify-between overflow-hidden group p-0 bg-card border border-border dark:border-border-dark rounded-xl shadow-xs hover:shadow-md transition-shadow relative">
+      {/* Ruban promotionnel */}
       {ribbonText && (
         <div className="absolute left-2.5 top-2.5 z-20">
           <Badge
@@ -103,13 +102,14 @@ export default function ProductCard({
         }}
         className="p-3.5 flex flex-col gap-2.5 text-left w-full focus:outline-none cursor-pointer flex-1"
       >
-        {/* Photo produit avec effet de zoom doux */}
-        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-muted/40 border border-border/50">
+        {/* Photo produit */}
+        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-border/50">
           {product.image ? (
             <Image
               src={product.image}
               alt={product.name}
               fill
+              unoptimized
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 300px"
             />
@@ -122,9 +122,9 @@ export default function ProductCard({
           {/* Badges de statut */}
           <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 items-end">
             {product.isNew && !ribbonText && (
-              <Badge variant="amber" className="text-[10px] py-0 px-2 shadow-xs">
+              <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-on-primary shadow-xs">
                 Nouveau
-              </Badge>
+              </span>
             )}
             {product.isLastUnits && (
               <Badge variant="destructive" className="text-[10px] py-0 px-2 shadow-xs">
@@ -137,7 +137,7 @@ export default function ProductCard({
         {/* Informations produit */}
         <div className="flex flex-col gap-1 flex-1">
           <div className="flex items-start justify-between gap-1.5">
-            <h3 className="font-display font-semibold text-base text-foreground leading-snug group-hover:text-primary transition-colors">
+            <h3 className="font-display font-semibold text-base text-foreground leading-snug group-hover:underline transition-colors">
               {product.name}
             </h3>
             <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0 mt-0.5" />
@@ -159,7 +159,7 @@ export default function ProductCard({
         <div className="text-[11px] font-medium text-muted-foreground border-t border-border/40 pt-2 flex items-center justify-between">
           <span>{packagingLabel}</span>
           {isCarton && (
-            <span className="inline-flex items-center gap-1 text-primary">
+            <span className="inline-flex items-center gap-1 text-secondary dark:text-muted-foreground">
               <PackBadgeIcon count={bottlesCount} className="w-4 h-4" />
             </span>
           )}
@@ -198,16 +198,15 @@ export default function ProductCard({
             ) : quantity === 0 ? (
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={onAdd}
-                className="h-8 px-3 rounded-lg border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs"
+                className="h-8 px-3 rounded-md bg-primary hover:bg-primary-hover text-text-on-primary font-semibold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Ajouter</span>
               </Button>
             ) : (
-              <div className="flex items-center border border-primary/30 rounded-lg bg-card overflow-hidden h-8 shadow-xs">
+              <div className="flex items-center border border-border dark:border-border-dark rounded-md bg-card overflow-hidden h-8 shadow-xs">
                 <button
                   type="button"
                   onClick={onRemove}
@@ -223,7 +222,7 @@ export default function ProductCard({
                   type="button"
                   onClick={onAdd}
                   disabled={quantity >= product.stock}
-                  className="w-7 h-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-colors"
+                  className="w-7 h-full bg-primary text-text-on-primary flex items-center justify-center hover:bg-primary-hover disabled:opacity-40 transition-colors"
                   aria-label="Ajouter"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -248,7 +247,7 @@ export default function ProductCard({
                   </span>
                 ) : (
                   quantity === promo.buyQuantity - 1 && (
-                    <span className="text-primary font-medium flex items-center gap-1.5">
+                    <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1.5">
                       <Gift className="w-3.5 h-3.5 shrink-0" />
                       <span>+1 {isCarton ? 'carton' : 'bouteille'} = le suivant offert !</span>
                     </span>
@@ -259,6 +258,6 @@ export default function ProductCard({
           </div>
         )}
       </div>
-    </CardSpotlight>
+    </div>
   )
 }

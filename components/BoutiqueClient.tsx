@@ -100,12 +100,18 @@ export default function BoutiqueClient({
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* HERO SECTION AVEC ACETERNITY SPOTLIGHT */}
         <section className="relative overflow-hidden rounded-3xl border border-border/80 bg-card p-8 sm:p-12 mb-12 shadow-sm">
-          {/* Spotlight Aceternity discret ambre / doré */}
-          <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="hsl(var(--primary))" />
+          {/* Spotlight Aceternity discret vert doux */}
+          <Spotlight
+            className="-top-40 left-0 md:left-60 md:-top-20"
+            fill="rgba(128, 237, 153, 0.15)"
+          />
 
           <div className="relative z-10 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <Badge variant="amber" className="flex items-center gap-1.5 py-1 px-3">
+              <Badge
+                variant="default"
+                className="flex items-center gap-1.5 py-1 px-3 bg-primary text-text-on-primary font-semibold"
+              >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Cuvées &amp; Millésimes 100% Terroir Suisse</span>
               </Badge>
@@ -285,7 +291,7 @@ export default function BoutiqueClient({
                   alt="Cidrerie du Vulcain"
                   width={36}
                   height={36}
-                  className="w-9 h-9 rounded-full object-cover border border-amber-600/30 dark:border-amber-400/30 shadow-xs"
+                  className="w-9 h-9 rounded-full object-cover border border-border/80 shadow-xs"
                 />
                 <span className="font-display font-bold text-base text-foreground">
                   Cidrerie du Vulcain

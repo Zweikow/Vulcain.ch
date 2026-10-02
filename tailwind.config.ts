@@ -11,7 +11,12 @@ const config: Config = {
     extend: {
       colors: {
         // shadcn/ui semantic tokens (HSL variables)
-        border: 'hsl(var(--border))',
+        border: {
+          DEFAULT: 'hsl(var(--border))',
+          dark: '#1E3248',
+          light: '#EEF1F5',
+          'light-dark': '#162840',
+        },
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
@@ -46,7 +51,6 @@ const config: Config = {
           'mauve-dark': '#6B4F68',
           navy: '#153243',
           blue: '#284B63',
-          amber: '#D0871E',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',

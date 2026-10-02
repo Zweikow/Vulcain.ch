@@ -37,7 +37,7 @@ export default function Header() {
           {/* LOGO Artisanal */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2.5 group focus:outline-none">
-              <div className="w-9 h-9 rounded-full overflow-hidden border border-amber-600/30 dark:border-amber-400/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-border/80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                 <Image
                   src="/images/logo-drinkcider.svg"
                   alt="Cidrerie du Vulcain"
