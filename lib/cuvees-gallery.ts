@@ -5,22 +5,18 @@ export interface GalleryImage {
 
 export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
   'poire-la-premoudiere-2022': [
-    { url: '/images/cuvees/poire-la-premoudiere-2022-transparent.png', label: 'Packshot Studio' },
-    { url: '/images/cuvees/poire-la-premoudiere-2022-duo.jpg', label: 'Duo Studio' },
-    { url: '/images/cuvees/poire-la-premoudiere-2022-raw-duo.jpg', label: 'Photo Authentique' },
+    { url: '/images/cuvees/poire-la-premoudiere-2022-transparent.png', label: 'Bouteille Solo' },
+    { url: '/images/cuvees/poire-la-premoudiere-2022-duo.jpg', label: 'Duo Face & Dos' },
   ],
   'a-propos-dailes-2021': [
-    { url: '/images/cuvees/a-propos-dailes-2021-transparent.png', label: 'Packshot Studio' },
-    { url: '/images/cuvees/a-propos-dailes-2021-duo.jpg', label: 'Duo Studio' },
-    { url: '/images/cuvees/a-propos-dailes-2021-raw-duo.jpg', label: 'Photo Authentique' },
+    { url: '/images/cuvees/a-propos-dailes-2021-transparent.png', label: 'Bouteille Solo' },
+    { url: '/images/cuvees/a-propos-dailes-2021-duo.jpg', label: 'Duo Face & Dos' },
   ],
   'botsi-de-glace-2017': [
-    { url: '/images/cuvees/botsi-de-glace-2017-transparent.png', label: 'Packshot Studio' },
-    { url: '/images/cuvees/botsi-de-glace-2017-raw.jpg', label: 'Photo Authentique' },
+    { url: '/images/cuvees/botsi-de-glace-2017-transparent.png', label: 'Bouteille Solo' },
   ],
   'cidre-glace-2012': [
-    { url: '/images/cuvees/cidre-glace-2012-transparent.png', label: 'Packshot Studio' },
-    { url: '/images/cuvees/cidre-glace-2012-raw.jpg', label: 'Photo Authentique' },
+    { url: '/images/cuvees/cidre-glace-2012-transparent.png', label: 'Bouteille Solo' },
   ],
   'trois-pepins-2023': [
     { url: '/images/cuvees/trois-pepins-2023.jpg', label: 'Bouteilles Duo face & dos' },
