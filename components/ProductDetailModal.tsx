@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
@@ -59,7 +58,6 @@ export default function ProductDetailModal({
   }, [product.image, product.articleNumber])
 
   const [activeIndex, setActiveIndex] = useState(0)
-  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
 
   // Réinitialiser à la première photo au changement de produit
   useEffect(() => {
@@ -128,24 +126,19 @@ export default function ProductDetailModal({
 
               {/* Image principale avec boutons Précédent / Suivant */}
               <div className="relative w-full flex-1 max-w-[280px] aspect-[1/2] max-h-[360px] flex items-center justify-center my-auto">
-                {currentImg && !failedImages[currentImg.url] ? (
-                  <Image
+                {currentImg ? (
+                  <img
                     key={currentImg.url}
                     src={currentImg.url}
                     alt={`${product.name} - ${currentImg.label}`}
-                    fill
-                    unoptimized
-                    onError={() => setFailedImages((prev) => ({ ...prev, [currentImg.url]: true }))}
-                    className="object-contain"
-                    sizes="(max-width: 768px) 100vw, 400px"
-                    priority
+                    className="max-h-[360px] w-auto max-w-full object-contain select-none transition-all duration-200"
+                    loading="eager"
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center p-4 gap-2 text-muted-foreground">
-                    <span className="text-3xl">🍾</span>
                     <span className="font-serif italic text-sm">{product.name}</span>
                     <span className="text-[11px] text-muted-foreground/70">
-                      {currentImg?.label || 'Cuvée artisanale'}
+                      {product.origin || 'Cuvée artisanale'}
                     </span>
                   </div>
                 )}
@@ -190,28 +183,19 @@ export default function ProductDetailModal({
                         e.stopPropagation()
                         setActiveIndex(idx)
                       }}
-                      className={`relative w-14 h-14 rounded-xl overflow-hidden border transition-all bg-background/50 ${
+                      className={`relative w-14 h-14 rounded-xl overflow-hidden border transition-all bg-background/50 flex items-center justify-center p-1 ${
                         idx === activeIndex
                           ? 'border-primary ring-2 ring-primary/40 scale-105 shadow-sm'
                           : 'border-border/60 opacity-60 hover:opacity-100 hover:border-border'
                       }`}
                       title={img.label}
                     >
-                      {!failedImages[img.url] ? (
-                        <Image
-                          src={img.url}
-                          alt={img.label}
-                          fill
-                          unoptimized
-                          onError={() => setFailedImages((prev) => ({ ...prev, [img.url]: true }))}
-                          className="object-contain p-1"
-                          sizes="56px"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-serif">
-                          🍾
-                        </div>
-                      )}
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-contain select-none"
+                        loading="lazy"
+                      />
                     </button>
                   ))}
                 </div>
