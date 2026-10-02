@@ -36,8 +36,8 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/images/cuvees/trois-pepins-2023-etiquette-derriere.jpg', label: 'Contre-étiquette' },
   ],
   'lande-foy-2022': [
+    { url: '/images/cuvees/lande-foy-2022-transparent.png', label: 'Bouteille' },
     { url: '/images/cuvees/lande-foy-2022-duo.jpg', label: 'Duo face & dos' },
-    { url: '/images/cuvees/lande-foy-2022.jpg', label: 'Bouteille' },
     { url: '/images/cuvees/lande-foy-2022-etiquette-devant.jpg', label: 'Étiquette' },
     { url: '/images/cuvees/lande-foy-2022-etiquette-derriere.jpg', label: 'Contre-étiquette' },
   ],
@@ -116,7 +116,7 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/images/cuvees/trois-pepins-2010-etiquette-derriere.jpg', label: 'Contre-étiquette' },
   ],
   'cidre-glace-2012': [
-    { url: '/images/cuvees/cidre-glace-2012.jpg', label: 'Bouteille' },
+    { url: '/images/cuvees/cidre-glace-2012-transparent.png', label: 'Bouteille' },
     { url: '/images/cuvees/cidre-glace-2012-etiquette-devant.jpg', label: 'Étiquette panoramique' },
   ],
 }
