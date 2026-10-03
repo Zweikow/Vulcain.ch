@@ -3,149 +3,102 @@ export interface GalleryImage {
   label: string
 }
 
+// Packshots fond blanc générés par scripts/packshot.py depuis les photos brutes
+// (public/photo-bouteilles-raw, hors git). Trois images au plus, dans cet ordre :
+// duo, étiquette, contre-étiquette.
 export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
   'poire-la-premoudiere-2022': [
     {
-      url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
+      url: '/packshots/poire-la-premoudiere-2022-face.jpg',
+      label: 'Deux bouteilles (face et dos)',
     },
-    { url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/poire-la-premoudiere-2022-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/poire-la-premoudiere-2022-face-gauche-etiquette.jpg', label: 'Étiquette' },
+    {
+      url: '/packshots/poire-la-premoudiere-2022-face-droite-etiquette.jpg',
+      label: 'Contre-étiquette',
+    },
   ],
   'a-propos-dailes-2021': [
-    {
-      url: '/photo-bouteilles-raw/a-propos-dailes-2021-transparent.png',
-      label: 'Duo Détouré (Transparent)',
-    },
-    {
-      url: '/photo-bouteilles-raw/a-propos-dailes-2021-duo.jpg',
-      label: 'Deux Bouteilles (Ambiance)',
-    },
-    { url: '/photo-bouteilles-raw/a-propos-dailes-2021-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/a-propos-dailes-2021-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/a-propos-dailes-2021-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/a-propos-dailes-2021-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/a-propos-dailes-2021-dos.jpg', label: 'Contre-étiquette' },
   ],
   'botsi-de-glace-2017': [
-    {
-      url: '/photo-bouteilles-raw/botsi-de-glace-2017-face.jpg',
-      label: 'Bouteille (Étiquette panoramique)',
-    },
+    { url: '/packshots/botsi-de-glace-2017-extra.jpg', label: 'Bouteille' },
+    { url: '/packshots/botsi-de-glace-2017-face.jpg', label: 'Étiquette panoramique' },
   ],
   'cidre-glace-2012': [
-    {
-      url: '/photo-bouteilles-raw/cidre-glace-2012-face.jpg',
-      label: 'Bouteille (Étiquette panoramique)',
-    },
+    { url: '/packshots/cidre-glace-2012-extra.jpg', label: 'Bouteille' },
+    { url: '/packshots/cidre-glace-2012-face.jpg', label: 'Étiquette panoramique' },
   ],
   'lande-foy-2022': [
-    {
-      url: '/photo-bouteilles-raw/lande-foy-2022-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/lande-foy-2022-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/lande-foy-2022-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/lande-foy-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/lande-foy-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/lande-foy-2022-dos.jpg', label: 'Contre-étiquette' },
   ],
   'trois-pepins-2023': [
-    {
-      url: '/photo-bouteilles-raw/trois-pepins-2023-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/trois-pepins-2023-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/trois-pepins-2023-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/trois-pepins-2023-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/trois-pepins-2023-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/trois-pepins-2023-dos.jpg', label: 'Contre-étiquette' },
   ],
   'la-fribourgeoise-2021': [
-    {
-      url: '/photo-bouteilles-raw/la-fribourgeoise-2021-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/la-fribourgeoise-2021-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/la-fribourgeoise-2021-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/la-fribourgeoise-2021-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/la-fribourgeoise-2021-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/la-fribourgeoise-2021-dos.jpg', label: 'Contre-étiquette' },
   ],
   'trois-pepins-2010': [
-    {
-      url: '/photo-bouteilles-raw/trois-pepins-2010-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/trois-pepins-2010-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/trois-pepins-2010-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/trois-pepins-2010-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/trois-pepins-2010-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/trois-pepins-2010-dos.jpg', label: 'Contre-étiquette' },
   ],
   'premiers-emois-2021': [
-    {
-      url: '/photo-bouteilles-raw/premiers-emois-2021-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/premiers-emois-2021-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/premiers-emois-2021-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/premiers-emois-2021-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/premiers-emois-2021-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/premiers-emois-2021-dos-etiquette.jpg', label: 'Contre-étiquette' },
   ],
   'cidre-de-fer-2020': [
-    {
-      url: '/photo-bouteilles-raw/cidre-de-fer-2020-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/cidre-de-fer-2020-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/cidre-de-fer-2020-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/cidre-de-fer-2020-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/cidre-de-fer-2020-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/cidre-de-fer-2020-dos.jpg', label: 'Contre-étiquette' },
   ],
   'brute-de-rue-2021': [
-    {
-      url: '/photo-bouteilles-raw/brute-de-rue-2021-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/brute-de-rue-2021-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/brute-de-rue-2021-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/brute-de-rue-2021-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/brute-de-rue-2021-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/brute-de-rue-2021-dos.jpg', label: 'Contre-étiquette' },
   ],
   'belle-brutale-2017': [
-    {
-      url: '/photo-bouteilles-raw/belle-brutale-2017-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/belle-brutale-2017-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/belle-brutale-2017-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/belle-brutale-2017-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/belle-brutale-2017-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/belle-brutale-2017-dos.jpg', label: 'Contre-étiquette' },
   ],
   'quatre-pepins-2022': [
-    {
-      url: '/photo-bouteilles-raw/quatre-pepins-2022-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/quatre-pepins-2022-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/quatre-pepins-2022-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/quatre-pepins-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/quatre-pepins-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/quatre-pepins-2022-dos.jpg', label: 'Contre-étiquette' },
   ],
   'quatre-pepins-2023': [
-    {
-      url: '/photo-bouteilles-raw/quatre-pepins-2023-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/quatre-pepins-2023-face.jpg', label: 'Bouteille Face' },
+    { url: '/packshots/quatre-pepins-2023-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/quatre-pepins-2023-face.jpg', label: 'Étiquette' },
   ],
   'turgowy-2023': [
-    {
-      url: '/photo-bouteilles-raw/turgowy-2023-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/turgowy-2023-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/turgowy-2023-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/turgowy-2023-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/turgowy-2023-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/turgowy-2023-dos.jpg', label: 'Contre-étiquette' },
   ],
   'turgowy-2020': [
-    {
-      url: '/photo-bouteilles-raw/turgowy-2020-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/turgowy-2020-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/turgowy-2020-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/turgowy-2020-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/turgowy-2020-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/turgowy-2020-dos.jpg', label: 'Contre-étiquette' },
   ],
   'turgowy-2019': [
-    {
-      url: '/photo-bouteilles-raw/turgowy-2019-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/turgowy-2019-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/turgowy-2019-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/turgowy-2019-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/turgowy-2019-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/turgowy-2019-dos.jpg', label: 'Contre-étiquette' },
   ],
   'baie-de-rue-2023': [
-    {
-      url: '/photo-bouteilles-raw/baie-de-rue-2023-duo.jpg',
-      label: 'Deux Bouteilles (Face & Dos)',
-    },
-    { url: '/photo-bouteilles-raw/baie-de-rue-2023-face.jpg', label: 'Bouteille Face' },
-    { url: '/photo-bouteilles-raw/baie-de-rue-2023-dos.jpg', label: 'Bouteille Dos' },
+    { url: '/packshots/baie-de-rue-2023-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/baie-de-rue-2023-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/baie-de-rue-2023-dos.jpg', label: 'Contre-étiquette' },
   ],
 }
 

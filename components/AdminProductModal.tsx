@@ -38,58 +38,50 @@ export type AdminProduct = {
   articleNumber: number
 }
 
-const AVAILABLE_RAW_PHOTOS = [
+const AVAILABLE_PACKSHOTS = [
   {
-    path: '/photo-bouteilles-raw/a-propos-dailes-2021-transparent.png',
-    label: "A propos d'Ailes 2021 (Détouré Transparent)",
-  },
-  {
-    path: '/photo-bouteilles-raw/a-propos-dailes-2021-duo.jpg',
+    path: '/packshots/a-propos-dailes-2021-duo.jpg',
     label: "A propos d'Ailes 2021 (Duo)",
   },
   {
-    path: '/photo-bouteilles-raw/a-propos-dailes-2021-face.jpg',
+    path: '/packshots/a-propos-dailes-2021-face.jpg',
     label: "A propos d'Ailes 2021 (Face)",
   },
   {
-    path: '/photo-bouteilles-raw/a-propos-dailes-2021-dos.jpg',
+    path: '/packshots/a-propos-dailes-2021-dos.jpg',
     label: "A propos d'Ailes 2021 (Dos)",
   },
-  { path: '/photo-bouteilles-raw/trois-pepins-2023-duo.jpg', label: '3 Pépins 2023 (Duo)' },
-  { path: '/photo-bouteilles-raw/trois-pepins-2023-face.jpg', label: '3 Pépins 2023 (Face)' },
-  { path: '/photo-bouteilles-raw/trois-pepins-2023-dos.jpg', label: '3 Pépins 2023 (Dos)' },
-  { path: '/photo-bouteilles-raw/trois-pepins-2010-duo.jpg', label: '3 Pépins 2010 (Duo)' },
-  { path: '/photo-bouteilles-raw/quatre-pepins-2022-duo.jpg', label: '4 Pépins 2022 (Duo)' },
-  { path: '/photo-bouteilles-raw/quatre-pepins-2023-duo.jpg', label: '4 Pépins 2023 (Duo)' },
+  { path: '/packshots/trois-pepins-2023-duo.jpg', label: '3 Pépins 2023 (Duo)' },
+  { path: '/packshots/trois-pepins-2023-face.jpg', label: '3 Pépins 2023 (Face)' },
+  { path: '/packshots/trois-pepins-2023-dos.jpg', label: '3 Pépins 2023 (Dos)' },
+  { path: '/packshots/trois-pepins-2010-duo.jpg', label: '3 Pépins 2010 (Duo)' },
+  { path: '/packshots/quatre-pepins-2022-duo.jpg', label: '4 Pépins 2022 (Duo)' },
+  { path: '/packshots/quatre-pepins-2023-duo.jpg', label: '4 Pépins 2023 (Duo)' },
   {
-    path: '/photo-bouteilles-raw/poire-la-premoudiere-2022-duo.jpg',
+    path: '/packshots/poire-la-premoudiere-2022-face.jpg',
     label: 'Poiré La Prémoudière 2022 (Duo)',
   },
   {
-    path: '/photo-bouteilles-raw/poire-la-premoudiere-2022-face.jpg',
-    label: 'Poiré La Prémoudière 2022 (Face)',
-  },
-  {
-    path: '/photo-bouteilles-raw/la-fribourgeoise-2021-duo.jpg',
+    path: '/packshots/la-fribourgeoise-2021-duo.jpg',
     label: 'La Fribourgeoise 2021 (Duo)',
   },
   {
-    path: '/photo-bouteilles-raw/la-fribourgeoise-2021-face.jpg',
+    path: '/packshots/la-fribourgeoise-2021-face.jpg',
     label: 'La Fribourgeoise 2021 (Face)',
   },
-  { path: '/photo-bouteilles-raw/cidre-de-fer-2020-duo.jpg', label: 'Cidre de Fer 2020 (Duo)' },
-  { path: '/photo-bouteilles-raw/cidre-de-fer-2020-face.jpg', label: 'Cidre de Fer 2020 (Face)' },
-  { path: '/photo-bouteilles-raw/belle-brutale-2017-duo.jpg', label: 'Belle Brutale 2017 (Duo)' },
-  { path: '/photo-bouteilles-raw/premiers-emois-2021-duo.jpg', label: 'Premiers Émois 2021 (Duo)' },
-  { path: '/photo-bouteilles-raw/brute-de-rue-2021-duo.jpg', label: 'Brute de Rue 2021 (Duo)' },
-  { path: '/photo-bouteilles-raw/baie-de-rue-2023-duo.jpg', label: 'Baie de Rue 2023 (Duo)' },
-  { path: '/photo-bouteilles-raw/turgowy-2019-duo.jpg', label: 'Turgowy 2019 (Duo)' },
-  { path: '/photo-bouteilles-raw/turgowy-2020-duo.jpg', label: 'Turgowy 2020 (Duo)' },
-  { path: '/photo-bouteilles-raw/turgowy-2023-duo.jpg', label: 'Turgowy 2023 (Duo)' },
-  { path: '/photo-bouteilles-raw/lande-foy-2022-duo.jpg', label: 'Lande Foy 2022 (Duo)' },
-  { path: '/photo-bouteilles-raw/cidre-glace-2012-face.jpg', label: 'Cidre Glacé 2012 (Face)' },
+  { path: '/packshots/cidre-de-fer-2020-duo.jpg', label: 'Cidre de Fer 2020 (Duo)' },
+  { path: '/packshots/cidre-de-fer-2020-face.jpg', label: 'Cidre de Fer 2020 (Face)' },
+  { path: '/packshots/belle-brutale-2017-duo.jpg', label: 'Belle Brutale 2017 (Duo)' },
+  { path: '/packshots/premiers-emois-2021-duo.jpg', label: 'Premiers Émois 2021 (Duo)' },
+  { path: '/packshots/brute-de-rue-2021-duo.jpg', label: 'Brute de Rue 2021 (Duo)' },
+  { path: '/packshots/baie-de-rue-2023-duo.jpg', label: 'Baie de Rue 2023 (Duo)' },
+  { path: '/packshots/turgowy-2019-duo.jpg', label: 'Turgowy 2019 (Duo)' },
+  { path: '/packshots/turgowy-2020-duo.jpg', label: 'Turgowy 2020 (Duo)' },
+  { path: '/packshots/turgowy-2023-duo.jpg', label: 'Turgowy 2023 (Duo)' },
+  { path: '/packshots/lande-foy-2022-duo.jpg', label: 'Lande Foy 2022 (Duo)' },
+  { path: '/packshots/cidre-glace-2012-face.jpg', label: 'Cidre Glacé 2012 (Face)' },
   {
-    path: '/photo-bouteilles-raw/botsi-de-glace-2017-face.jpg',
+    path: '/packshots/botsi-de-glace-2017-face.jpg',
     label: 'Botsi de Glace 2017 (Face)',
   },
 ]
@@ -152,7 +144,7 @@ export default function AdminProductModal({
 
   const handleImageUrlChange = (val: string) => {
     let cleaned = val.trim()
-    if (cleaned.startsWith('photo-bouteilles-raw/')) {
+    if (cleaned.startsWith('packshots/')) {
       cleaned = '/' + cleaned
     }
     update('imageUrl', cleaned)
@@ -382,7 +374,7 @@ export default function AdminProductModal({
                     }}
                   >
                     <option value="">📁 Choisir dans le catalogue local...</option>
-                    {AVAILABLE_RAW_PHOTOS.map((photo) => (
+                    {AVAILABLE_PACKSHOTS.map((photo) => (
                       <option key={photo.path} value={photo.path}>
                         {photo.label}
                       </option>
