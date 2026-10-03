@@ -44,7 +44,7 @@ export default function ConfirmationModal({
         </div>
 
         {/* Détails de la commande */}
-        <div className="w-full bg-secondary/50 rounded-2xl p-4 border border-border/60 flex flex-col gap-2">
+        <div className="w-full bg-muted/60 rounded-2xl p-4 border border-border/60 flex flex-col gap-2">
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground text-xs uppercase tracking-wider font-mono">
               Référence

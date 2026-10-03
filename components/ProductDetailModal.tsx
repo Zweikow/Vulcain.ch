@@ -256,7 +256,7 @@ export default function ProductDetailModal({
           </div>
 
           {/* Prix & Promotion */}
-          <div className="mb-6 p-4 rounded-xl bg-secondary/40 border border-border/60 flex flex-col gap-1.5">
+          <div className="mb-6 p-4 rounded-xl bg-muted/60 border border-border/60 flex flex-col gap-1.5">
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-3xl text-foreground font-mono tabular">
                 {formatCHF(

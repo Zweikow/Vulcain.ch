@@ -174,7 +174,7 @@ export default function BoutiqueClient({
             </div>
 
             {/* Pill Tabs de sélection */}
-            <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl bg-secondary/60 border border-border/50">
+            <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl bg-muted/60 border border-border/50">
               {categories.map((cat) => {
                 const label = cat === 'all' ? 'Toutes les cuvées' : cat
                 const isSelected = selectedCategory === cat

@@ -113,7 +113,7 @@ export default function Cart({
       <CardContent className="pt-4 flex flex-col gap-4">
         {/* Jauge de livraison offerte (Franco de port Suisse) */}
         {hasItems && (
-          <div className="rounded-xl p-3 bg-secondary/50 border border-border/60 flex flex-col gap-2">
+          <div className="rounded-xl p-3 bg-muted/60 border border-border/60 flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 font-medium text-foreground">
                 <Truck className="w-3.5 h-3.5 text-primary shrink-0" />
