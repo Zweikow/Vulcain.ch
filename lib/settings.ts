@@ -31,3 +31,15 @@ export async function getPublicSettings(): Promise<PublicSettings> {
     return DEFAULT_PUBLIC_SETTINGS
   }
 }
+
+/**
+ * Boutique fermée pour maintenance. Si la base est injoignable, on considère la
+ * boutique ouverte : le formulaire échouera de lui-même, sans bloquer la vitrine.
+ */
+export async function isMaintenanceMode(): Promise<boolean> {
+  try {
+    return (await getSettings()).maintenanceMode
+  } catch {
+    return false
+  }
+}

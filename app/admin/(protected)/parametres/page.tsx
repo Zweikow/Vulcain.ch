@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/guards'
 import { PasswordChange } from '@/components/admin/PasswordChange'
 import { NumberField } from '@/components/admin/NumberField'
 import { TestEmailCard } from '@/components/admin/TestEmailCard'
+import { MaintenanceToggle } from '@/components/admin/MaintenanceToggle'
 import { saveSettings } from './actions'
 
 const EXAMPLE_PRICE_CENTS = 2400
@@ -235,6 +236,17 @@ export default async function ParametresPage() {
           <PasswordChange username={account.username} />
         </div>
       )}
+
+      {/* Zone dangereuse : réglages qui agissent aussitôt sur la boutique publique */}
+      <section className="card mt-8 p-6 border-2 border-[#C62828]/40 dark:border-[#EF5350]/40">
+        <h2 className="font-semibold text-[16px] text-text-error dark:text-text-error-dark">
+          Zone dangereuse
+        </h2>
+        <p className="mt-1 mb-4 text-xs text-text-secondary dark:text-text-secondary-dark">
+          Ces réglages s&apos;appliquent immédiatement à la boutique en ligne.
+        </p>
+        <MaintenanceToggle initialEnabled={s.maintenanceMode} />
+      </section>
     </div>
   )
 }

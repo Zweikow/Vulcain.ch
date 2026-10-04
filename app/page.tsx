@@ -1,14 +1,22 @@
 import { prisma } from '@/lib/prisma'
-import { getPublicSettings } from '@/lib/settings'
+import { getPublicSettings, getSettings } from '@/lib/settings'
 import { Product } from '@/types'
 import { getCuveeGallery } from '@/lib/cuvees-gallery'
 import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
+import MaintenancePage from '@/components/MaintenancePage'
+import { SITE_CONFIG } from '@/lib/site'
 
 // Catalogue lu en base à chaque requête — un produit désactivé disparaît aussitôt.
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
+  // Boutique fermée depuis l'admin : avis de maintenance à la place du catalogue
+  const shopSettings = await getSettings().catch(() => null)
+  if (shopSettings?.maintenanceMode) {
+    return <MaintenancePage contactEmail={shopSettings.contactEmail || SITE_CONFIG.contact.email} />
+  }
+
   const [dbCategories, dbProducts, dbPromotions, settings] = await Promise.all([
     prisma.category.findMany({
       orderBy: { position: 'asc' },
