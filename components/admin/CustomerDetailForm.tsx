@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, Zap } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateCustomerAction, deleteCustomerAction } from '@/app/admin/(protected)/clients/actions'
@@ -171,7 +172,7 @@ export function CustomerDetailForm({
           {isPro && firstOrder && firstOrder.clientType === 'PRIVE' && (
             <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
               <span className="text-purple-600 dark:text-purple-400 font-bold text-sm leading-none mt-0.5">
-                ⚡
+                <Zap className="h-4 w-4" />
               </span>
               <div>
                 <p className="font-semibold text-purple-950 dark:text-purple-100">
@@ -188,8 +189,8 @@ export function CustomerDetailForm({
 
           {firstOrder && firstOrder.clientType === 'PRO' && (
             <p className="text-[11px] text-purple-700 dark:text-purple-400 pl-7">
-              ✓ La première commande ({firstOrder.numero}) bénéficie déjà des conditions
-              professionnelles.
+              <Check className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> La première
+              commande ({firstOrder.numero}) bénéficie déjà des conditions professionnelles.
             </p>
           )}
 

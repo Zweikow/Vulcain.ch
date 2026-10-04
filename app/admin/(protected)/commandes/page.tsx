@@ -174,7 +174,7 @@ export default async function CommandesPage({
                 href={value === 'TOUTES' ? '/admin/commandes' : `/admin/commandes?statut=${value}`}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : alert
                       ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100'
                       : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'

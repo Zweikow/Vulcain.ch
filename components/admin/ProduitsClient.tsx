@@ -184,8 +184,8 @@ export function ProduitsClient({
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center text-muted-foreground p-1 text-center">
-                        <Camera className="w-5 h-5 text-primary opacity-70 mb-0.5" />
-                        <span className="text-[8px] font-semibold text-primary leading-tight">
+                        <Camera className="w-5 h-5 text-primary-text opacity-70 mb-0.5" />
+                        <span className="text-[8px] font-semibold text-primary-text leading-tight">
                           + Photo
                         </span>
                       </div>
@@ -253,7 +253,7 @@ export function ProduitsClient({
                         e.stopPropagation()
                         setModal(p)
                       }}
-                      className="shrink-0 px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-primary/25 shadow-2xs min-h-[44px] active:scale-95"
+                      className="shrink-0 px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary-text dark:bg-primary/20 dark:hover:bg-primary/30 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-primary/25 shadow-2xs min-h-[44px] active:scale-95"
                     >
                       <Pencil className="w-3.5 h-3.5 shrink-0" />
                       <span>Modifier</span>

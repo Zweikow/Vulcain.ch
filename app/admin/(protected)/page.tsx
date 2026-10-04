@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowRight, ArrowUp } from 'lucide-react'
 import Link from 'next/link'
 import { formatCHF } from '@/lib/money'
 import { getDashboard, PERIODES, type DashboardData, type Periode } from '@/lib/dashboard'
@@ -182,10 +183,10 @@ export default async function DashboardPage({
               href="/admin/preparation"
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-card px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-primary/10 transition-colors dark:border-border-dark dark:bg-bg-card-dark dark:text-text-primary-dark"
             >
-              <PreparationIcon className="w-3.5 h-3.5 text-primary" />
+              <PreparationIcon className="w-3.5 h-3.5 text-primary-text" />
               <span>Préparation cave</span>
               {data.openOrders > 0 && (
-                <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.2 text-[11px] font-semibold text-primary">
+                <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.2 text-[11px] font-semibold text-primary-text">
                   {data.openOrders}
                 </span>
               )}
@@ -194,7 +195,7 @@ export default async function DashboardPage({
               href="/admin/factures"
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-bg-card px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-primary/10 transition-colors dark:border-border-dark dark:bg-bg-card-dark dark:text-text-primary-dark"
             >
-              <FacturesIcon className="w-3.5 h-3.5 text-primary" />
+              <FacturesIcon className="w-3.5 h-3.5 text-primary-text" />
               <span>Factures & Règlements</span>
               {data.overdueInvoiceCount > 0 && (
                 <span className="ml-0.5 rounded-full bg-[#FDF2F2] px-1.5 py-0.2 text-[11px] font-semibold text-[#C62828] dark:bg-[#2a1717] dark:text-[#EF5350]">
@@ -224,9 +225,9 @@ export default async function DashboardPage({
           </div>
           <a
             href={`/api/admin/export-achats?periode=${periode}`}
-            className="text-xs font-medium text-text-secondary hover:text-primary transition-colors flex items-center gap-1 bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark px-2 py-1 rounded-md shadow-sm"
+            className="text-xs font-medium text-text-secondary hover:text-primary-text transition-colors flex items-center gap-1 bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark px-2 py-1 rounded-md shadow-sm"
           >
-            <span aria-hidden>↓</span> Décompte d&apos;achat CSV
+            <ArrowDown className="h-3 w-3" aria-hidden /> Décompte d&apos;achat CSV
           </a>
         </div>
       </div>
@@ -252,7 +253,7 @@ export default async function DashboardPage({
                   <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
                     {kpi.label}
                   </span>
-                  <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary/10 dark:bg-primary/15 text-primary shrink-0">
+                  <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary/10 dark:bg-primary/15 text-primary-text shrink-0">
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
@@ -270,7 +271,14 @@ export default async function DashboardPage({
                             : 'text-text-tertiary dark:text-text-tertiary-dark'
                       }`}
                     >
-                      {kpi.trend > 0 ? '↑' : kpi.trend < 0 ? '↓' : '—'} {Math.abs(kpi.trend)}%
+                      {kpi.trend > 0 ? (
+                        <ArrowUp className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                      ) : kpi.trend < 0 ? (
+                        <ArrowDown className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                      ) : (
+                        '—'
+                      )}{' '}
+                      {Math.abs(kpi.trend)}%
                     </span>
                   )}
                   {kpi.badge}
@@ -350,7 +358,8 @@ export default async function DashboardPage({
                   href="/admin/factures"
                   className="text-xs font-medium text-[#C62828] dark:text-[#EF5350] hover:underline"
                 >
-                  Gérer les factures en retard →
+                  Gérer les factures en retard{' '}
+                  <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                 </Link>
               </div>
             </div>
@@ -457,7 +466,7 @@ export default async function DashboardPage({
               <thead>
                 <tr className="border-b border-border bg-bg-page text-left text-[11px] uppercase tracking-[.08em] text-text-secondary dark:border-border-dark dark:bg-bg-page-dark dark:text-text-secondary-dark">
                   <th className="px-4 py-3 font-semibold">Cuvée</th>
-                  <th className="px-4 py-3 font-semibold">Catégorie</th>
+                  <th className="hidden sm:table-cell px-4 py-3 font-semibold">Catégorie</th>
                   <th className="px-4 py-3 text-right font-semibold">Ventes</th>
                   <th className="px-4 py-3 text-right font-semibold">Revenus</th>
                   <th className="px-4 py-3 text-right font-semibold">Tendance</th>
@@ -472,7 +481,7 @@ export default async function DashboardPage({
                     <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
                       {s.productName}
                     </td>
-                    <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
+                    <td className="hidden sm:table-cell px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
                       {s.categoryName}
                     </td>
                     <td className="px-4 py-3 text-right text-text-primary dark:text-text-primary-dark">
@@ -496,7 +505,14 @@ export default async function DashboardPage({
                                 : 'text-text-tertiary dark:text-text-tertiary-dark'
                           }
                         >
-                          {s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '—'} {Math.abs(s.trend)}%
+                          {s.trend > 0 ? (
+                            <ArrowUp className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                          ) : s.trend < 0 ? (
+                            <ArrowDown className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                          ) : (
+                            '—'
+                          )}{' '}
+                          {Math.abs(s.trend)}%
                         </span>
                       )}
                     </td>

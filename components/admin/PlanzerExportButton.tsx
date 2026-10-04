@@ -71,7 +71,7 @@ export function PlanzerExportButton({
         className="btn-secondary text-sm print:hidden inline-flex items-center gap-1.5"
         title="Exporter cette commande au format CSV officiel Planzer Colis"
       >
-        <TruckIcon className="w-4 h-4 text-primary dark:text-primary-dark" />
+        <TruckIcon className="w-4 h-4 text-primary-text dark:text-primary-dark" />
         <span>{isExporting ? 'Export…' : 'Export Planzer (.csv)'}</span>
       </button>
       {error && <span className="text-[11px] text-rose-600 dark:text-rose-400 mt-1">{error}</span>}

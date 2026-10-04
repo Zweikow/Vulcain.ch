@@ -115,7 +115,7 @@ export function AdminSidebar({ user }: { user: any }) {
   return (
     <>
       {/* Barre supérieure mobile */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white print:hidden">
+      <div className="md:hidden sticky top-0 z-30 flex items-center justify-between p-4 bg-bg-sidebar dark:bg-bg-sidebar-dark text-white print:hidden">
         <div className="flex items-center gap-2.5">
           <Image
             src="/images/logo-drinkcider.svg"

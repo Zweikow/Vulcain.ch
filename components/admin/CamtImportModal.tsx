@@ -166,7 +166,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
         {/* En-tête */}
         <div className="p-5 border-b border-border dark:border-border-dark flex items-start justify-between gap-4 bg-bg-page/60 dark:bg-bg-page-dark/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary dark:bg-secondary/20 dark:text-secondary flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary-text dark:bg-secondary/20 dark:text-primary-text flex items-center justify-center shrink-0">
               <CoinsIcon className="w-5 h-5" />
             </div>
             <div>
@@ -258,7 +258,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
                   className="hidden"
                 />
 
-                <div className="w-16 h-16 rounded-2xl bg-secondary/20 dark:bg-secondary/30 text-primary dark:text-secondary flex items-center justify-center mb-3">
+                <div className="w-16 h-16 rounded-2xl bg-secondary/20 dark:bg-secondary/30 text-primary-text dark:text-primary-text flex items-center justify-center mb-3">
                   <FileTextIcon className="w-8 h-8" />
                 </div>
 
@@ -281,7 +281,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
               {/* Bouton démo et aide */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-xs">
                 <div className="flex items-center gap-2 text-text-secondary dark:text-text-secondary-dark">
-                  <InfoIcon className="w-4 h-4 text-primary dark:text-secondary shrink-0" />
+                  <InfoIcon className="w-4 h-4 text-primary-text dark:text-primary-text shrink-0" />
                   <span>
                     Vous n&apos;avez pas de fichier réel sous la main ? Testez le mécanisme
                     immédiatement.
@@ -291,7 +291,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
                   type="button"
                   onClick={handleLoadDemo}
                   disabled={isPending}
-                  className="btn-secondary text-xs py-1.5 px-3.5 font-semibold text-primary dark:text-secondary hover:bg-slate-200 dark:hover:bg-slate-800 shrink-0"
+                  className="btn-secondary text-xs py-1.5 px-3.5 font-semibold text-primary-text dark:text-primary-text hover:bg-slate-200 dark:hover:bg-slate-800 shrink-0"
                 >
                   {isPending ? 'Chargement...' : 'Tester avec le fichier démo'}
                 </button>
@@ -377,7 +377,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
                                 setSelectedTxIds([])
                               }
                             }}
-                            className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+                            className="rounded border-border text-primary-text focus:ring-primary h-3.5 w-3.5 cursor-pointer"
                           />
                         </th>
                         <th className="py-2.5 px-3">Statut</th>
@@ -407,7 +407,7 @@ export function CamtImportModal({ isOpen, onClose }: CamtImportModalProps) {
                                 disabled={!canSelect}
                                 checked={isSelected}
                                 onChange={() => toggleSelectTx(item.transaction.id)}
-                                className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer disabled:opacity-30"
+                                className="rounded border-border text-primary-text focus:ring-primary h-3.5 w-3.5 cursor-pointer disabled:opacity-30"
                               />
                             </td>
 

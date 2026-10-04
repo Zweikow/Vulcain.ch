@@ -303,7 +303,7 @@ export default function AdminProductModal({
             <div className="p-3 sm:p-3.5 rounded-xl border border-border dark:border-border-dark bg-bg-page/40 dark:bg-bg-page-dark/40 flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-text-primary dark:text-text-primary-dark flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-primary" />
+                  <Camera className="w-3.5 h-3.5 text-primary-text" />
                   <span>Photo de la bouteille</span>
                 </label>
                 {form.imageUrl && (
@@ -331,7 +331,7 @@ export default function AdminProductModal({
                       className="w-full h-full object-contain p-1"
                     />
                   ) : isUploading ? (
-                    <div className="flex flex-col items-center justify-center text-primary animate-pulse">
+                    <div className="flex flex-col items-center justify-center text-primary-text animate-pulse">
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mb-1" />
                       <span className="text-[9px] font-medium">Envoi...</span>
                     </div>
@@ -373,7 +373,7 @@ export default function AdminProductModal({
                       if (e.target.value) handleImageUrlChange(e.target.value)
                     }}
                   >
-                    <option value="">📁 Choisir dans le catalogue local...</option>
+                    <option value="">Choisir dans le catalogue local...</option>
                     {AVAILABLE_PACKSHOTS.map((photo) => (
                       <option key={photo.path} value={photo.path}>
                         {photo.label}
@@ -417,7 +417,7 @@ export default function AdminProductModal({
                   <button
                     type="button"
                     onClick={() => setShowNewProducer(!showNewProducer)}
-                    className="text-[11px] font-semibold text-primary hover:underline"
+                    className="text-[11px] font-semibold text-primary-text hover:underline"
                   >
                     {showNewProducer ? 'Annuler' : '+ Nouveau'}
                   </button>
@@ -469,7 +469,7 @@ export default function AdminProductModal({
                     onClick={() => update('bottleSize', '75cl')}
                     className={`rounded-lg border text-xs font-semibold transition-colors flex items-center justify-center min-h-[40px] ${
                       form.bottleSize === '75cl'
-                        ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                        ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                         : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                     }`}
                   >
@@ -480,7 +480,7 @@ export default function AdminProductModal({
                     onClick={() => update('bottleSize', '27.5cl')}
                     className={`rounded-lg border text-xs font-semibold transition-colors flex items-center justify-center min-h-[40px] ${
                       form.bottleSize === '27.5cl'
-                        ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                        ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                         : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                     }`}
                   >
@@ -499,7 +499,7 @@ export default function AdminProductModal({
                     onClick={() => update('origin', 'CH')}
                     className={`inline-flex items-center justify-center gap-1.5 rounded-lg border text-xs font-semibold transition-colors min-h-[40px] ${
                       form.origin === 'CH'
-                        ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                        ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                         : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                     }`}
                   >
@@ -511,7 +511,7 @@ export default function AdminProductModal({
                     onClick={() => update('origin', 'FR')}
                     className={`inline-flex items-center justify-center gap-1.5 rounded-lg border text-xs font-semibold transition-colors min-h-[40px] ${
                       form.origin === 'FR'
-                        ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                        ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                         : 'border-border text-text-secondary hover:bg-bg-page dark:border-border-dark dark:text-text-secondary-dark dark:hover:bg-bg-page-dark'
                     }`}
                   >
@@ -639,7 +639,7 @@ export default function AdminProductModal({
                     onClick={() => update('bottlesPerUnit', preset.val)}
                     className={`px-2.5 py-1 text-xs rounded-md border font-medium transition-colors ${
                       form.bottlesPerUnit === preset.val
-                        ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20 font-semibold'
+                        ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20 font-semibold'
                         : 'border-border dark:border-border-dark text-text-secondary dark:text-text-secondary-dark hover:bg-bg-card dark:hover:bg-bg-card-dark'
                     }`}
                   >

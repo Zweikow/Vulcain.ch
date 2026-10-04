@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -46,7 +47,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
     <div className="max-w-3xl">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark mb-6">
-        <Link href="/admin/commandes" className="hover:text-primary">
+        <Link href="/admin/commandes" className="hover:text-primary-text">
           Commandes
         </Link>
         <span>/</span>
@@ -54,7 +55,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary dark:text-text-primary-dark font-mono">
             {order.numero}
@@ -79,7 +80,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!order.isPickup && (
             <PlanzerExportButton
               orderId={order.id}
@@ -96,7 +97,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
       {/* Statut & Assignation — masqués sur une commande annulée, qui ne progresse plus */}
       {order.status !== 'ANNULEE' && (
-        <div className="card p-5 mb-4 grid grid-cols-2 gap-4">
+        <div className="card p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatusSelect orderId={order.id} currentStatus={order.status} />
           <AssignSelect orderId={order.id} currentAssigneeId={order.assignedToId} users={users} />
         </div>
@@ -126,9 +127,10 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           {order.customerId && (
             <Link
               href={`/admin/clients/${order.customerId}`}
-              className="text-xs text-primary hover:underline font-medium"
+              className="text-xs text-primary-text hover:underline font-medium"
             >
-              Voir la fiche client →
+              Voir la fiche client{' '}
+              <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
             </Link>
           )}
         </div>
@@ -147,7 +149,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             {order.customerId ? (
               <Link
                 href={`/admin/clients/${order.customerId}`}
-                className="hover:text-primary hover:underline font-medium"
+                className="hover:text-primary-text hover:underline font-medium"
               >
                 {order.clientName}
               </Link>
@@ -168,7 +170,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           </dd>
 
           <dt className="text-text-secondary dark:text-text-secondary-dark">Email</dt>
-          <dd className="text-text-primary dark:text-text-primary-dark">{order.clientEmail}</dd>
+          <dd className="text-text-primary dark:text-text-primary-dark break-all">
+            {order.clientEmail}
+          </dd>
 
           {order.clientPhone && (
             <>

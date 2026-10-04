@@ -35,7 +35,7 @@ export function TestEmailCard({ defaultEmail }: TestEmailCardProps) {
   return (
     <section className="card p-6 mt-4">
       <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-        <MailIcon className="w-5 h-5 text-primary" /> Test de la messagerie (Amazon SES)
+        <MailIcon className="w-5 h-5 text-primary-text" /> Test de la messagerie (Amazon SES)
       </h2>
       <p className="mt-1 text-xs text-text-tertiary dark:text-text-tertiary-dark">
         Permet d&apos;envoyer un email d&apos;essai immédiat pour valider la configuration SES et

@@ -189,7 +189,7 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
                 onClick={() => update('type', PromoType.BUY_X_GET_Y_FREE)}
                 className={`p-2 rounded-md border text-xs font-semibold text-center transition-colors ${
                   form.type === PromoType.BUY_X_GET_Y_FREE
-                    ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                    ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                     : 'border-border dark:border-border-dark text-text-secondary hover:bg-bg-page dark:hover:bg-bg-page-dark'
                 }`}
               >
@@ -200,7 +200,7 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
                 onClick={() => update('type', PromoType.PERCENTAGE)}
                 className={`p-2 rounded-md border text-xs font-semibold text-center transition-colors ${
                   form.type === PromoType.PERCENTAGE
-                    ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                    ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                     : 'border-border dark:border-border-dark text-text-secondary hover:bg-bg-page dark:hover:bg-bg-page-dark'
                 }`}
               >
@@ -211,7 +211,7 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
                 onClick={() => update('type', PromoType.FIXED_DISCOUNT)}
                 className={`p-2 rounded-md border text-xs font-semibold text-center transition-colors ${
                   form.type === PromoType.FIXED_DISCOUNT
-                    ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20'
+                    ? 'border-primary bg-primary/10 text-primary-text dark:bg-primary/20'
                     : 'border-border dark:border-border-dark text-text-secondary hover:bg-bg-page dark:hover:bg-bg-page-dark'
                 }`}
               >
@@ -384,7 +384,7 @@ export default function AdminPromoModal({ promotion, products, onClose }: AdminP
                 type="checkbox"
                 checked={form.active}
                 onChange={(e) => update('active', e.target.checked)}
-                className="w-4 h-4 rounded text-primary focus:ring-primary border-border"
+                className="w-4 h-4 rounded text-primary-text focus:ring-primary border-border"
               />
               <span className="text-xs font-semibold text-text-primary dark:text-text-primary-dark">
                 Offre active dans la boutique

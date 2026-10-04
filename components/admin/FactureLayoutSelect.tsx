@@ -33,7 +33,7 @@ export function FactureLayoutSelect({ forcedLayout, itemCount }: FactureLayoutSe
         <span className="text-xs font-semibold uppercase tracking-wider text-text-secondary dark:text-text-secondary-dark">
           Mise en page d&apos;impression
         </span>
-        <span className="inline-flex items-center rounded px-2 py-0.5 text-[11px] font-bold bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light">
+        <span className="inline-flex items-center rounded px-2 py-0.5 text-[11px] font-bold bg-primary/10 text-primary-text dark:bg-primary/20 dark:text-primary-light">
           {effectivePages} page{effectivePages > 1 ? 's' : ''}
         </span>
       </div>
@@ -44,7 +44,7 @@ export function FactureLayoutSelect({ forcedLayout, itemCount }: FactureLayoutSe
           onClick={() => handleSelect('auto')}
           className={`py-1 px-2 rounded font-medium transition-colors ${
             forcedLayout === 'auto'
-              ? 'bg-primary text-white shadow-sm'
+              ? 'bg-primary text-primary-foreground shadow-sm'
               : 'text-text-secondary hover:text-text-primary dark:text-text-secondary-dark'
           }`}
         >
@@ -55,7 +55,7 @@ export function FactureLayoutSelect({ forcedLayout, itemCount }: FactureLayoutSe
           onClick={() => handleSelect('single')}
           className={`py-1 px-2 rounded font-medium transition-colors ${
             forcedLayout === 'single'
-              ? 'bg-primary text-white shadow-sm'
+              ? 'bg-primary text-primary-foreground shadow-sm'
               : 'text-text-secondary hover:text-text-primary dark:text-text-secondary-dark'
           }`}
         >
@@ -66,7 +66,7 @@ export function FactureLayoutSelect({ forcedLayout, itemCount }: FactureLayoutSe
           onClick={() => handleSelect('multipage')}
           className={`py-1 px-2 rounded font-medium transition-colors ${
             forcedLayout === 'multipage'
-              ? 'bg-primary text-white shadow-sm'
+              ? 'bg-primary text-primary-foreground shadow-sm'
               : 'text-text-secondary hover:text-text-primary dark:text-text-secondary-dark'
           }`}
         >

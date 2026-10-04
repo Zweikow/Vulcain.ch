@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -80,7 +81,7 @@ export default async function FacturePage({
             href={`/admin/commandes/${order.id}`}
             className="text-sm text-text-secondary hover:underline dark:text-text-secondary-dark"
           >
-            ← Détail
+            <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Détail
           </Link>
           <PrintButton />
         </div>

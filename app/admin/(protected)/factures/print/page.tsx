@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -38,7 +39,8 @@ export default async function FacturesBatchPrintPage({
           exporter.
         </p>
         <Link href="/admin/factures" className="btn-primary py-2 px-4 text-sm mt-2">
-          ← Retour à la liste des factures
+          <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Retour à la liste
+          des factures
         </Link>
       </div>
     )
@@ -71,7 +73,8 @@ export default async function FacturesBatchPrintPage({
       <div className="p-12 max-w-xl mx-auto text-center flex flex-col items-center gap-4">
         <h1 className="text-xl font-bold">Factures introuvables</h1>
         <Link href="/admin/factures" className="btn-secondary text-sm">
-          ← Retour aux factures
+          <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Retour aux
+          factures
         </Link>
       </div>
     )
