@@ -137,7 +137,7 @@ export default function ProductDetailModal({
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center p-4 gap-2 text-muted-foreground">
                     <span className="font-serif italic text-sm">{product.name}</span>
-                    <span className="text-[11px] text-muted-foreground/70">
+                    <span className="text-[11px] text-muted-foreground">
                       {product.origin || 'Cuvée artisanale'}
                     </span>
                   </div>
@@ -203,7 +203,7 @@ export default function ProductDetailModal({
             </>
           ) : (
             <div className="w-full h-full min-h-[280px] flex items-center justify-center font-serif italic text-sm text-muted-foreground">
-              Cuvée artisanale Vulcain
+              Cuvée artisanale
             </div>
           )}
         </div>
@@ -246,7 +246,8 @@ export default function ProductDetailModal({
           {/* Producteur et conditionnement */}
           <div className="text-sm text-muted-foreground mb-6 flex flex-col gap-1">
             <span className="font-semibold text-foreground">
-              {product.producerName || 'Jacques Perritaz'} · {product.category}
+              {product.producerName ? `${product.producerName} · ` : ''}
+              {product.category}
             </span>
             {isCarton && (
               <span className="text-xs">
@@ -288,7 +289,7 @@ export default function ProductDetailModal({
 
             {promo && (
               <div className="mt-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground flex items-center gap-2">
-                <Gift className="w-4 h-4 text-primary shrink-0" />
+                <Gift className="w-4 h-4 text-primary-text shrink-0" />
                 <div>
                   <span className="font-bold">{promo.name}</span>
                   {promo.description && (

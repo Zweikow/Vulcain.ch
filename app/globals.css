@@ -19,6 +19,7 @@
     --primary: 134 76% 72%; /* #80ED99 - Vert frais emblématique */
     --primary-foreground: 202 52% 17%; /* #153243 - Texte foncé sur vert */
     --primary-hover: 136 60% 61%; /* #5ED97F */
+    --primary-text: 138 60% 26%; /* #1B6B33 - vert lisible pour du texte sur fond clair */
 
     --secondary: 205 42% 27%; /* #284B63 - Yale Blue */
     --secondary-foreground: 0 0% 100%;
@@ -53,6 +54,7 @@
     --primary: 134 76% 72%; /* #80ED99 */
     --primary-foreground: 202 52% 17%; /* #153243 */
     --primary-hover: 136 60% 61%;
+    --primary-text: 134 76% 72%; /* le vert clair reste lisible sur fond sombre */
 
     --secondary: 205 42% 27%;
     --secondary-foreground: 206 48% 90%;
@@ -67,7 +69,7 @@
     --destructive-foreground: 0 0% 100%;
 
     --border: 212 41% 20%; /* #1E3248 */
-    --input: 212 41% 20%;
+    --input: 212 22% 45%; /* #5A718C - contour des champs lisible (3:1 sur les cartes) */
     --ring: 136 60% 61%;
   }
 
@@ -243,4 +245,18 @@
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
+}
+
+/* Filet de sécurité du mode sombre : une couleur de texte prévue pour le fond
+   clair, posée sans variante dark:, deviendrait illisible sur fond sombre.
+   :where() garde la spécificité d'une classe simple, donc toute variante
+   dark: explicite d'un composant reste prioritaire. */
+.dark :where(.text-text-primary) {
+  color: #d6e8f5;
+}
+.dark :where(.text-text-secondary) {
+  color: #7aafc7;
+}
+.dark :where(.text-text-tertiary) {
+  color: #7f9db0;
 }

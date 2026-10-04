@@ -14,11 +14,7 @@ export const metadata: Metadata = {
   },
   description: SITE_CONFIG.description,
   keywords: SITE_CONFIG.keywords,
-  authors: [
-    { name: SITE_CONFIG.producer },
-    { name: SITE_CONFIG.distributor },
-    { name: SITE_CONFIG.legalName },
-  ],
+  authors: [{ name: SITE_CONFIG.distributor }, { name: SITE_CONFIG.legalName }],
   creator: SITE_CONFIG.name,
   publisher: SITE_CONFIG.legalName,
   formatDetection: {
@@ -83,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           id="theme-init-inline"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('theme');var p=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';var t=s||p;var r=document.documentElement;var m=document.getElementById('meta-color-scheme');var tc=document.getElementById('meta-theme-color');if(t==='dark'){r.classList.add('dark');r.style.colorScheme='dark';if(m)m.content='dark';if(tc)tc.content='#0D1B2A';}else{r.classList.remove('dark');r.style.colorScheme='light';if(m)m.content='light';if(tc)tc.content='#F7F6F0';}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('theme')==='dark'?'dark':'light';var r=document.documentElement;var m=document.getElementById('meta-color-scheme');var tc=document.getElementById('meta-theme-color');if(t==='dark'){r.classList.add('dark');r.style.colorScheme='dark';if(m)m.content='dark';if(tc)tc.content='#0D1B2A';}else{r.classList.remove('dark');r.style.colorScheme='light';if(m)m.content='light';if(tc)tc.content='#F7F6F0';}}catch(e){}})()`,
           }}
         />
       </head>

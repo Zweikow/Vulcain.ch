@@ -176,7 +176,7 @@ export default function ProductCard({
             </div>
 
             {origBottlePriceCents && (
-              <div className="text-[11px] text-muted-foreground/80 line-through tabular">
+              <div className="text-[11px] text-muted-foreground line-through tabular">
                 {formatCHF(origBottlePriceCents)}
               </div>
             )}

@@ -8,6 +8,7 @@ import { useTheme } from '@/components/ThemeProvider'
 import { Sun, Moon, Menu, X, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { OriginBadge } from '@/components/OriginBadge'
 
 export default function Header() {
   const { theme, toggle } = useTheme()
@@ -40,7 +41,7 @@ export default function Header() {
               <div className="w-9 h-9 rounded-full overflow-hidden border border-border/80 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                 <Image
                   src="/images/logo-drinkcider.svg"
-                  alt="Cidrerie du Vulcain"
+                  alt="Drinkcider"
                   width={36}
                   height={36}
                   className="w-full h-full object-cover"
@@ -48,20 +49,21 @@ export default function Header() {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-display font-bold text-lg text-foreground tracking-tight leading-none group-hover:text-primary transition-colors">
-                  Cidrerie du Vulcain
+                <span className="font-display font-bold text-lg text-foreground tracking-tight leading-none group-hover:text-primary-text transition-colors">
+                  Drinkcider
                 </span>
                 <span className="text-[10px] text-muted-foreground tracking-widest uppercase font-mono mt-0.5">
-                  Jacques Perritaz · Suisse
+                  Cidres artisanaux · Suisse
                 </span>
               </div>
             </Link>
 
             <Badge
               variant="outline"
-              className="hidden sm:inline-flex text-[10px] py-0 px-2 text-muted-foreground border-border/70"
+              className="hidden sm:inline-flex gap-1.5 text-[10px] py-0 px-2 text-muted-foreground border-border/70"
             >
-              🇨🇭 Terroir Fribourgeois
+              <OriginBadge origin="CH" className="w-3 h-3" />
+              Boutique suisse
             </Badge>
           </div>
 
@@ -89,7 +91,7 @@ export default function Header() {
                             href={child.href}
                             className={`block px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                               isChildActive
-                                ? 'bg-primary/10 text-primary font-semibold'
+                                ? 'bg-primary/10 text-primary-text font-semibold'
                                 : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                             }`}
                           >
@@ -109,7 +111,7 @@ export default function Header() {
                   href={link.href}
                   className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-primary/10 text-primary font-semibold'
+                      ? 'bg-primary/10 text-primary-text font-semibold'
                       : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
                   }`}
                 >
@@ -131,7 +133,7 @@ export default function Header() {
               {isDark ? (
                 <Sun className="w-4 h-4 text-amber-400 transition-transform rotate-0 hover:rotate-90 duration-300" />
               ) : (
-                <Moon className="w-4 h-4 text-primary transition-transform hover:-rotate-12 duration-300" />
+                <Moon className="w-4 h-4 text-primary-text transition-transform hover:-rotate-12 duration-300" />
               )}
             </Button>
 

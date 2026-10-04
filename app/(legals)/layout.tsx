@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
@@ -12,10 +13,11 @@ export default function LegalsLayout({ children }: { children: React.ReactNode }
             href="/"
             className="text-text-secondary hover:text-text-primary dark:text-text-secondary-dark dark:hover:text-text-primary-dark transition-colors inline-flex items-center gap-2 text-sm font-medium"
           >
-            ← Retour à la boutique
+            <ArrowLeft className="h-4 w-4" />
+            Retour à la boutique
           </Link>
         </div>
-        <div className="card p-8 md:p-12 prose dark:prose-invert prose-headings:font-display prose-headings:font-semibold prose-a:text-primary max-w-none">
+        <div className="card p-8 md:p-12 prose dark:prose-invert prose-headings:font-display prose-headings:font-semibold prose-a:text-primary-text max-w-none">
           {children}
         </div>
       </main>

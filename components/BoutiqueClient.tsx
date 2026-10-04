@@ -15,7 +15,7 @@ import { PublicSettings } from '@/lib/settings'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Wine, Sparkles, ArrowDown } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Sparkles, Wine } from 'lucide-react'
 
 interface BoutiqueClientProps {
   products: Product[]
@@ -113,25 +113,25 @@ export default function BoutiqueClient({
                 className="flex items-center gap-1.5 py-1 px-3 bg-primary text-text-on-primary font-semibold"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Cuvées &amp; Millésimes 100% Terroir Suisse</span>
+                <span>Cidres &amp; poirés artisanaux</span>
               </Badge>
               <Badge variant="outline" className="text-xs">
-                Jacques Perritaz · Le Mouret (FR)
+                Livraison partout en Suisse
               </Badge>
             </div>
 
             <h1 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl text-foreground leading-[1.1] tracking-tight">
-              Cidres &amp; poirés d&apos;auteurs suisses.
+              Les cidres d&apos;artisans, livrés chez vous.
             </h1>
 
-            <p className="mt-4 font-display italic text-xl sm:text-2xl text-primary font-medium">
-              L&apos;expression pure et vivante du fruit sauvage.
+            <p className="mt-4 font-display italic text-xl sm:text-2xl text-primary-text font-medium">
+              Une sélection de cidres et poirés pur jus.
             </p>
 
             <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl">
-              Fruits issus d&apos;arbres haute-tige séculaires du terroir fribourgeois. Fermentation
-              naturelle intégrale en levures indigènes, sans concentré ni levurage artificiel.{' '}
-              {products.length} références d&apos;exception disponibles à la cave.
+              Drinkcider réunit des cidres et des poirés de producteurs indépendants, choisis pour
+              leur goût et leur savoir-faire. {products.length} références à découvrir, préparées
+              avec soin et expédiées partout en Suisse.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -166,10 +166,10 @@ export default function BoutiqueClient({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
             <div>
               <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground">
-                La Cave du Vulcain
+                Le catalogue
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Bouteilles et cartons expédiés directement depuis notre domaine
+                Bouteilles et cartons expédiés partout en Suisse
               </p>
             </div>
 
@@ -198,8 +198,8 @@ export default function BoutiqueClient({
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         isSelected
-                          ? 'bg-primary/10 text-primary font-bold'
-                          : 'text-muted-foreground/70'
+                          ? 'bg-primary/10 text-primary-text font-bold'
+                          : 'text-muted-foreground'
                       }`}
                     >
                       {count}
@@ -288,30 +288,28 @@ export default function BoutiqueClient({
               <div className="flex items-center gap-3">
                 <Image
                   src="/images/logo-drinkcider.svg"
-                  alt="Cidrerie du Vulcain"
+                  alt="Drinkcider"
                   width={36}
                   height={36}
                   className="w-9 h-9 rounded-full object-cover border border-border/80 shadow-xs"
                 />
-                <span className="font-display font-bold text-base text-foreground">
-                  Cidrerie du Vulcain
-                </span>
+                <span className="font-display font-bold text-base text-foreground">Drinkcider</span>
               </div>
               <p className="text-muted-foreground leading-relaxed max-w-md">
-                Production et distribution artisanale de cidres, poirés et cormés d&apos;auteurs par
-                Jacques Perritaz au Mouret (Canton de Fribourg, Suisse). Fruits sauvages non traités
-                issus de vergers traditionnels à haute-tige.
+                Drinkcider est une boutique en ligne de cidres et de poirés artisanaux, sélectionnés
+                auprès de producteurs indépendants et livrés partout en Suisse.
               </p>
-              <div className="flex flex-wrap items-center gap-2 text-muted-foreground/80 mt-1">
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground mt-1">
                 <span>
                   Partenaire actif :{' '}
                   <a
                     href="https://www.terroir-fribourg.ch"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-foreground hover:text-primary transition-colors underline font-medium"
+                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
                   >
-                    Terroir Fribourg ↗
+                    Terroir Fribourg{' '}
+                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                   </a>
                 </span>
                 <span>·</span>
@@ -321,9 +319,10 @@ export default function BoutiqueClient({
                     href="https://www.instagram.com/drinkcider.ch/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-foreground hover:text-primary transition-colors underline font-medium"
+                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
                   >
-                    @drinkcider.ch ↗
+                    @drinkcider.ch{' '}
+                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                   </a>
                 </span>
               </div>
@@ -332,17 +331,17 @@ export default function BoutiqueClient({
             {/* Col 3 : Navigation */}
             <div>
               <p className="font-semibold text-xs uppercase tracking-wider text-foreground mb-3">
-                La Cave
+                La boutique
               </p>
               <ul className="space-y-2">
                 <li>
                   <Link href="/#catalogue" className="hover:text-foreground transition-colors">
-                    Catalogue des millésimes
+                    Catalogue
                   </Link>
                 </li>
                 <li>
                   <Link href="/histoire" className="hover:text-foreground transition-colors">
-                    Notre histoire &amp; méthode
+                    Notre histoire
                   </Link>
                 </li>
                 <li>
@@ -381,10 +380,8 @@ export default function BoutiqueClient({
             </div>
           </div>
 
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground/70 text-[11px]">
-            <span>
-              &copy; {new Date().getFullYear()} Cidrerie du Vulcain · Tous droits réservés.
-            </span>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground text-[11px]">
+            <span>&copy; {new Date().getFullYear()} Drinkcider · Tous droits réservés.</span>
             <span>
               Expédition réservée aux personnes majeures en Suisse · Facture avec QR-code suisse
             </span>

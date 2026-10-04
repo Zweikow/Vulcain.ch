@@ -22,10 +22,10 @@ export const SITE_CONFIG = {
   name: 'Drinkcider',
   legalName: 'Drinkcider',
   distributorDescription:
-    'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux suisses (Jacques Perritaz).',
+    'Raison individuelle Drinkcider, boutique en ligne de cidres et poirés artisanaux de producteurs indépendants.',
   title: 'Drinkcider | Cidres artisanaux et poirés pur jus en Suisse',
   description:
-    'Boutique officielle Drinkcider : découvrez et commandez en ligne les cidres et poirés artisanaux suisses de Jacques Perritaz. 100% pur jus et levures indigènes. Livraison en Suisse.',
+    'Drinkcider, boutique en ligne de cidres et poirés artisanaux : une sélection de producteurs indépendants, pur jus, livrée partout en Suisse.',
   keywords: [
     // Français
     'Drinkcider',
@@ -70,7 +70,6 @@ export const SITE_CONFIG = {
     'cider delivery Switzerland',
     'Drinkcider Switzerland',
   ],
-  producer: 'Jacques Perritaz',
   distributor: 'Bertrand Baeriswyl',
   address: {
     street: 'Chemin des Moilles 16',

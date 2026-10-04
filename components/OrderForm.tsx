@@ -141,7 +141,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     <Card className="border border-border/80 bg-card shadow-sm">
       <CardHeader className="pb-4 border-b border-border/50">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary-text">
             <User className="w-4 h-4" />
           </div>
           <div>
@@ -161,7 +161,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Prénom <span className="text-primary">*</span>
+                Prénom <span className="text-primary-text">*</span>
               </label>
               <Input
                 className={errors.firstName ? 'border-destructive' : ''}
@@ -176,7 +176,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-foreground">
-                Nom <span className="text-primary">*</span>
+                Nom <span className="text-primary-text">*</span>
               </label>
               <Input
                 className={errors.lastName ? 'border-destructive' : ''}
@@ -195,7 +195,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
             <label className="text-xs font-semibold text-foreground flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
               <span>
-                Adresse de livraison <span className="text-primary">*</span>
+                Adresse de livraison <span className="text-primary-text">*</span>
               </span>
             </label>
             <Input
@@ -211,7 +211,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5 sm:col-span-1">
               <label className="text-xs font-semibold text-foreground">
-                NPA <span className="text-primary">*</span>
+                NPA <span className="text-primary-text">*</span>
               </label>
               <Input
                 className={errors.npa ? 'border-destructive' : ''}
@@ -224,7 +224,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
 
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground">
-                Localité (Suisse) <span className="text-primary">*</span>
+                Localité (Suisse) <span className="text-primary-text">*</span>
               </label>
               <Input
                 className={errors.lieu ? 'border-destructive' : ''}
@@ -242,7 +242,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
               <label className="text-xs font-semibold text-foreground flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                 <span>
-                  Date de livraison souhaitée <span className="text-primary">*</span>
+                  Date de livraison souhaitée <span className="text-primary-text">*</span>
                 </span>
               </label>
               <Input
@@ -260,7 +260,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
               <label className="text-xs font-semibold text-foreground flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5 text-muted-foreground" />
                 <span>
-                  Adresse e-mail (pour la facture) <span className="text-primary">*</span>
+                  Adresse e-mail (pour la facture) <span className="text-primary-text">*</span>
                 </span>
               </label>
               <Input
@@ -299,15 +299,15 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
                   checked={form.acceptsMarketing}
                   onChange={(e) => update('acceptsMarketing', e.target.checked)}
                 />
-                <div className="w-4 h-4 rounded-md border border-input bg-card peer-checked:bg-primary peer-checked:border-primary flex items-center justify-center transition-colors">
+                <div className="w-5 h-5 rounded-[5px] border-2 border-muted-foreground/60 bg-card peer-checked:bg-primary peer-checked:border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card flex items-center justify-center transition-colors">
                   {form.acceptsMarketing && (
-                    <Check className="w-3 h-3 text-primary-foreground stroke-[3]" />
+                    <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[3]" />
                   )}
                 </div>
               </div>
               <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
                 Je souhaite recevoir occasionnellement les annonces des nouveaux millésimes et
-                cuvées spéciales de Jacques Perritaz.
+                cuvées spéciales de Drinkcider.
               </span>
             </label>
 
@@ -324,15 +324,17 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
                   }}
                 />
                 <div
-                  className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                  className={`w-5 h-5 rounded-[5px] border-2 flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card ${
                     ageConfirmed
                       ? 'bg-primary border-primary'
                       : errors.ageConfirmed
                         ? 'border-destructive bg-card'
-                        : 'border-input bg-card'
+                        : 'border-muted-foreground/60 bg-card'
                   }`}
                 >
-                  {ageConfirmed && <Check className="w-3 h-3 text-primary-foreground stroke-[3]" />}
+                  {ageConfirmed && (
+                    <Check className="w-3.5 h-3.5 text-primary-foreground stroke-[3]" />
+                  )}
                 </div>
               </div>
               <span className="text-xs font-medium text-foreground leading-relaxed">
@@ -365,13 +367,13 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
             disabled={sending || items.length === 0}
             variant="default"
             size="lg"
-            className="w-full mt-2 font-semibold shadow-sm"
+            className="w-full mt-2 h-auto min-h-11 py-3 px-4 whitespace-normal text-center font-semibold shadow-sm"
           >
             {sending ? (
               'Transmission sécurisée en cours…'
             ) : (
               <span className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-4 h-4 shrink-0" />
                 <span>Confirmer et commander sur facture</span>
               </span>
             )}

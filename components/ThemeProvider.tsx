@@ -52,6 +52,8 @@ function applyThemeToDOM(theme: Theme) {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light')
 
+  // Clair par défaut, quel que soit le réglage du téléphone : le sombre ne
+  // s'applique que si le visiteur l'a choisi lui-même (bouton, mémorisé).
   useEffect(() => {
     let initial: Theme = 'light'
     try {
@@ -61,35 +63,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('theme', legacy === 'true' ? 'dark' : 'light')
         localStorage.removeItem('darkMode')
       }
-      const stored = localStorage.getItem('theme') as Theme | null
-      const preferred = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      initial = stored ?? preferred
-    } catch {
-      try {
-        initial = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      } catch {
-        initial = 'light'
-      }
-    }
+      if (localStorage.getItem('theme') === 'dark') initial = 'dark'
+    } catch {}
 
     setThemeState(initial)
     applyThemeToDOM(initial)
-
-    // Écouteur pour adapter au changement système si l'utilisateur n'a pas forcé de choix manuel
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (e: MediaQueryListEvent) => {
-      try {
-        const hasManualChoice = localStorage.getItem('theme') !== null
-        if (!hasManualChoice) {
-          const sysTheme: Theme = e.matches ? 'dark' : 'light'
-          setThemeState(sysTheme)
-          applyThemeToDOM(sysTheme)
-        }
-      } catch {}
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
   const setTheme = (next: Theme) => {

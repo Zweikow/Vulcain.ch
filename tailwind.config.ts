@@ -25,6 +25,7 @@ const config: Config = {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
           hover: 'hsl(var(--primary-hover, var(--primary)))',
+          text: 'hsl(var(--primary-text))',
           light: '#80ED9925',
           'light-dark': '#80ED9920',
         },
@@ -79,15 +80,15 @@ const config: Config = {
           'primary-dark': '#D6E8F5',
           secondary: '#4A6278',
           'secondary-dark': '#7AAFC7',
-          tertiary: '#7A95A5',
-          'tertiary-dark': '#4D7A96',
+          tertiary: '#56717F', // 4.8:1 sur le fond de page (était #7A95A5, 2.9:1)
+          'tertiary-dark': '#7F9DB0', // 5.4:1 sur les cartes sombres (était #4D7A96, 3.4:1)
           'on-primary': '#153243',
           'on-header': '#FFFFFF',
-          success: '#28a745',
+          success: '#207A38', // 4.8:1 sur fond vert pâle (était #28a745, 2.8:1)
           'success-dark': '#80ED99',
           error: '#C62828',
           'error-dark': '#EF5350',
-          warning: '#E65100',
+          warning: '#BF4300', // 4.9:1 sur fond ambré (était #E65100, 3.6:1)
           'warning-dark': '#FF9800',
         },
       },

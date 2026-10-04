@@ -92,14 +92,14 @@ export default function Cart({
       <CardHeader className="pb-3 border-b border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary-text">
               <ShoppingBag className="w-4 h-4" />
             </div>
             <div>
               <CardTitle className="text-base font-semibold text-foreground">
                 Votre commande
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Expédition directe depuis la cave</p>
+              <p className="text-xs text-muted-foreground">Expédition partout en Suisse</p>
             </div>
           </div>
           {hasItems && (
@@ -116,10 +116,10 @@ export default function Cart({
           <div className="rounded-xl p-3 bg-muted/60 border border-border/60 flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 font-medium text-foreground">
-                <Truck className="w-3.5 h-3.5 text-primary shrink-0" />
+                <Truck className="w-3.5 h-3.5 text-primary-text shrink-0" />
                 <span>Livraison en Suisse</span>
               </div>
-              <span className="font-semibold text-primary tabular">
+              <span className="font-semibold text-primary-text tabular">
                 {isFreeShipping ? 'Offerte !' : `Encore ${formatCHF(missingForFranco)}`}
               </span>
             </div>
@@ -252,7 +252,7 @@ export default function Cart({
             <div className="flex justify-between text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <span>Frais de port</span>
-                <span className="text-[10px] text-muted-foreground/80">(Planzer Vin)</span>
+                <span className="text-[10px] text-muted-foreground">(Planzer Vin)</span>
               </span>
               <span className="tabular font-medium">
                 {shippingCents === 0 ? (
@@ -274,7 +274,7 @@ export default function Cart({
                   TVA suisse incluse
                 </span>
               </div>
-              <span className="text-lg font-bold text-primary font-mono tabular">
+              <span className="text-lg font-bold text-primary-text font-mono tabular">
                 {formatCHF(totalCents)}
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function Cart({
           </Button>
 
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-            <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+            <ShieldCheck className="w-3.5 h-3.5 text-primary-text shrink-0" />
             <span>Facture QR-bill suisse &amp; emballage anti-casse</span>
           </div>
         </CardFooter>

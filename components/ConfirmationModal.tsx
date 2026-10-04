@@ -38,8 +38,8 @@ export default function ConfirmationModal({
             Merci pour votre commande !
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Votre commande a bien été transmise à la cave. Vous recevrez un courriel récapitulatif
-            avec la facture et le QR-code de paiement suisse.
+            Votre commande a bien été transmise à Drinkcider. Vous recevrez un courriel
+            récapitulatif avec la facture et le QR-code de paiement suisse.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function ConfirmationModal({
             <span className="text-muted-foreground text-xs uppercase tracking-wider font-mono">
               Référence
             </span>
-            <span className="font-mono font-bold text-primary">{orderId}</span>
+            <span className="font-mono font-bold text-primary-text">{orderId}</span>
           </div>
           <div className="flex justify-between items-center text-sm border-t border-border/40 pt-2">
             <span className="text-muted-foreground text-xs">Montant total</span>
@@ -60,7 +60,7 @@ export default function ConfirmationModal({
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-primary-text shrink-0" />
           <span>Expédition soignée par Planzer Vins &amp; Spiritueux</span>
         </div>
 

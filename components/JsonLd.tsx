@@ -10,8 +10,8 @@ export default function JsonLd({ products }: JsonLdProps) {
 
   const organizationSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Winery',
-    '@id': `${siteUrl}/#winery`,
+    '@type': 'Store',
+    '@id': `${siteUrl}/#store`,
     name: SITE_CONFIG.name,
     alternateName: [SITE_CONFIG.legalName, 'Drinkcider.ch'],
     description: SITE_CONFIG.description,
@@ -23,7 +23,7 @@ export default function JsonLd({ products }: JsonLdProps) {
     paymentAccepted: 'QR-Facture, Virement bancaire',
     founder: {
       '@type': 'Person',
-      name: SITE_CONFIG.producer,
+      name: SITE_CONFIG.distributor,
     },
     parentOrganization: {
       '@type': 'Organization',
