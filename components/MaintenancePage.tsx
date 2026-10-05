@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import Link from 'next/link'
 import { Wrench } from 'lucide-react'
 
 /** Vitrine affichée à la place du catalogue quand l'admin ferme la boutique. */
