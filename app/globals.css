@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Palette Drinkcider - Fresh Light Green & Deep Space Slate */
+    --background: 48 30% 96%; /* #F7F6F0 - Pierre claire naturelle */
+    --foreground: 202 52% 17%; /* #153243 - Deep Space Blue */
+
+    --card: 0 0% 100%; /* #FFFFFF - Fond de carte blanc pur */
+    --card-foreground: 202 52% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 202 52% 17%;
+
+    --primary: 134 76% 72%; /* #80ED99 - Vert frais emblématique */
+    --primary-foreground: 202 52% 17%; /* #153243 - Texte foncé sur vert */
+    --primary-hover: 136 60% 61%; /* #5ED97F */
+    --primary-text: 138 60% 26%; /* #1B6B33 - vert lisible pour du texte sur fond clair */
+
+    --secondary: 205 42% 27%; /* #284B63 - Yale Blue */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 213 25% 95%; /* #EEF1F5 */
+    --muted-foreground: 198 21% 39%; /* #4F6D7A */
+
+    --accent: 213 25% 95%;
+    --accent-foreground: 202 52% 17%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 213 25% 91%; /* #E2E8EF - Bordure fine propre */
+    --input: 213 25% 91%;
+    --ring: 136 60% 61%; /* #5ED97F */
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Mode Nocturne - Ardoise Profonde & Vert Frais */
+    --background: 212 53% 11%; /* #0D1B2A - Deep Midnight Navy */
+    --foreground: 206 48% 90%; /* #D6E8F5 */
+
+    --card: 210 43% 15%; /* #152535 */
+    --card-foreground: 206 48% 90%;
+
+    --popover: 210 43% 15%;
+    --popover-foreground: 206 48% 90%;
+
+    --primary: 134 76% 72%; /* #80ED99 */
+    --primary-foreground: 202 52% 17%; /* #153243 */
+    --primary-hover: 136 60% 61%;
+    --primary-text: 134 76% 72%; /* le vert clair reste lisible sur fond sombre */
+
+    --secondary: 205 42% 27%;
+    --secondary-foreground: 206 48% 90%;
+
+    --muted: 214 49% 17%; /* #162840 */
+    --muted-foreground: 200 19% 63%; /* #8FA6B2 */
+
+    --accent: 214 49% 17%;
+    --accent-foreground: 206 48% 90%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 212 41% 20%; /* #1E3248 */
+    --input: 212 22% 45%; /* #5A718C - contour des champs lisible (3:1 sur les cartes) */
+    --ring: 136 60% 61%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Classes composants historiques préservées */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-secondary {
+    @apply border border-border text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .btn-danger {
+    @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
+  }
+  .input-field {
+    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+  }
+  .card {
+    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Dégradés d'ambiance organiques et discrets */
+  .bg-radial-subtle {
+    background: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.08), transparent 70%);
+  }
+
+  .bg-glass {
+    background-color: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* --- Facture A4 et Swiss QR Bill (Conformité Suisse stricte) ------------- */
+.facture-page {
+  width: 210mm;
+  min-height: 297mm;
+  display: flex;
+  flex-direction: column;
+  background: #fff !important;
+  color: #153243 !important;
+  position: relative;
+  box-sizing: border-box;
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.facture-page,
+.facture-page *,
+.swiss-qr-bill-container,
+.swiss-qr-bill-container * {
+  forced-color-adjust: none !important;
+}
+
+.facture-body,
+.facture-body-p2 {
+  padding: 11mm 16mm 2mm 16mm;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.facture-qr {
+  width: 210mm;
+  height: 105mm;
+  margin-top: auto;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.facture-shell {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8ef;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(21, 50, 67, 0.06);
+  background-color: #fff !important;
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .facture-shell {
+    max-width: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .facture-page {
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    position: relative !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .facture-page-multipage {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  .facture-page-2 {
+    break-before: page !important;
+    page-break-before: always !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .facture-body {
+    padding: 8mm 14mm 2mm 14mm !important;
+  }
+
+  .facture-body-p2 {
+    padding: 10mm 14mm 2mm 14mm !important;
+  }
+
+  .facture-qr {
+    width: 210mm !important;
+    height: 105mm !important;
+    margin-top: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .swiss-qr-bill-container {
+    width: 210mm !important;
+    height: 105mm !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+/* Filet de sécurité du mode sombre : une couleur de texte prévue pour le fond
+   clair, posée sans variante dark:, deviendrait illisible sur fond sombre.
+   :where() garde la spécificité d'une classe simple, donc toute variante
+   dark: explicite d'un composant reste prioritaire. */
+.dark :where(.text-text-primary) {
+  color: #d6e8f5;
+}
+.dark :where(.text-text-secondary) {
+  color: #7aafc7;
+}
+.dark :where(.text-text-tertiary) {
+  color: #7f9db0;
+}

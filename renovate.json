@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabled": true,
+  "description": "Configuration Renovate sécurisée et maîtrisée pour Drinkcider",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "baseBranchPatterns": ["develop"],
+  "timezone": "Europe/Zurich",
+  "schedule": ["before 7am on monday"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "rebaseWhen": "auto",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 7am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Mises à jour majeures : JAMAIS de MR automatique, approbation manuelle requise dans le Dependency Dashboard",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Couplage strict React, React-DOM et leurs types (toujours mis à jour ensemble)",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "React core & types"
+    },
+    {
+      "description": "Couplage strict Prisma CLI et Client",
+      "matchPackageNames": ["prisma", "@prisma/client"],
+      "groupName": "Prisma ORM"
+    },
+    {
+      "description": "Regrouper tous les modules AWS SDK dans une seule Merge Request",
+      "groupName": "AWS SDK monorepo",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@aws-sdk//"]
+    },
+    {
+      "description": "Regrouper les outils de linting et de formatage en dev",
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "Linters & dev tooling",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^eslint/", "/^prettier/", "/husky/", "/lint-staged/"]
+    },
+    {
+      "description": "Regrouper les définitions de types TypeScript (hors React)",
+      "groupName": "TypeScript definitions",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@types//", "!@types/react", "!@types/react-dom"]
+    },
+    {
+      "description": "Alertes de vulnérabilité de sécurité : priorité immédiate sans attendre le lundi",
+      "matchDatasources": ["npm"],
+      "vulnerabilityAlerts": {
+        "enabled": true,
+        "schedule": ["at any time"]
+      }
+    }
+  ]
+}
