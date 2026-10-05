@@ -1,3 +1,4 @@
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
@@ -116,6 +117,38 @@ export default async function ClientsPage({
     },
   ]
 
+  // Chiffres et statut de facturation de chaque client, partagés par le
+  // tableau (ordinateur) et les cartes (mobile)
+  const rows = customers.map((c) => {
+    const validOrders = c.orders.filter((o) => o.status !== 'ANNULEE')
+    const totalSpent = validOrders.reduce((sum, o) => sum + o.totalCents, 0)
+    const hasUnpaid = validOrders.some((o) => !o.paidAt)
+    const hasOverdue = validOrders.some((o) => {
+      if (o.paidAt) return false
+      const st = getInvoicePaymentStatus(o, settings.paymentTermsDays)
+      return st.isOverdue
+    })
+    const billing = hasOverdue ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+        Retard
+      </span>
+    ) : hasUnpaid ? (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+        En attente
+      </span>
+    ) : c.orders.length > 0 ? (
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+        <CheckIcon className="w-3.5 h-3.5" />
+        <span>À jour</span>
+      </span>
+    ) : (
+      <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">—</span>
+    )
+    return { c, totalSpent, billing }
+  })
+
   return (
     <div>
       {/* Header */}
@@ -204,7 +237,7 @@ export default async function ClientsPage({
                 href={value === 'TOUS' ? '/admin/clients' : `/admin/clients?type=${value}`}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-primary-foreground'
                     : alert
                       ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100'
                       : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
@@ -241,8 +274,63 @@ export default async function ClientsPage({
         </Suspense>
       </div>
 
+      {/* Mobile : une carte par client */}
+      <div className="md:hidden flex flex-col gap-3">
+        {rows.length === 0 ? (
+          <div className="card p-6 text-center text-sm text-text-tertiary dark:text-text-tertiary-dark">
+            Aucun client ne correspond à cette recherche.
+          </div>
+        ) : (
+          rows.map(({ c, totalSpent, billing }) => (
+            <Link
+              key={c.id}
+              href={`/admin/clients/${c.id}`}
+              className="card p-4 flex flex-col gap-1.5"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-medium text-text-primary dark:text-text-primary-dark">
+                  {c.lastName.toUpperCase()} {c.firstName}
+                </span>
+                <span className="font-mono text-xs font-semibold text-primary-text shrink-0">
+                  {c.customerNumber ? `N° ${c.customerNumber}` : '—'}
+                </span>
+              </div>
+              <span className="text-xs text-text-secondary dark:text-text-secondary-dark break-all">
+                {c.email}
+                {c.phone && ` · ${c.phone}`}
+              </span>
+              <span className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                {c.npa} {c.city || 'Suisse'}
+              </span>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                {c.isPro ? (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60">
+                    <span>PRO</span>
+                    <span>
+                      (
+                      {c.proRatePercent !== null && c.proRatePercent !== undefined
+                        ? `${c.proRatePercent}%`
+                        : `${settings.proRatePercent}%`}
+                      )
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                    Particulier
+                  </span>
+                )}
+                {billing}
+                <span className="ml-auto text-xs text-text-secondary dark:text-text-secondary-dark tabular-nums">
+                  {c.orders.length} cmd{showMoney && ` · ${formatCHF(totalSpent)}`}
+                </span>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
       {/* Table des clients */}
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto hidden md:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark">
@@ -285,16 +373,7 @@ export default async function ClientsPage({
                 </td>
               </tr>
             ) : (
-              customers.map((c) => {
-                const validOrders = c.orders.filter((o) => o.status !== 'ANNULEE')
-                const totalSpent = validOrders.reduce((sum, o) => sum + o.totalCents, 0)
-                const hasUnpaid = validOrders.some((o) => !o.paidAt)
-                const hasOverdue = validOrders.some((o) => {
-                  if (o.paidAt) return false
-                  const st = getInvoicePaymentStatus(o, settings.paymentTermsDays)
-                  return st.isOverdue
-                })
-
+              rows.map(({ c, totalSpent, billing }) => {
                 return (
                   <tr
                     key={c.id}
@@ -303,7 +382,7 @@ export default async function ClientsPage({
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/clients/${c.id}`}
-                        className="font-mono text-xs font-semibold text-primary hover:underline"
+                        className="font-mono text-xs font-semibold text-primary-text hover:underline"
                       >
                         {c.customerNumber ? `N° ${c.customerNumber}` : '—'}
                       </Link>
@@ -357,35 +436,15 @@ export default async function ClientsPage({
                       </td>
                     )}
 
-                    <td className="px-4 py-3">
-                      {hasOverdue ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-                          Retard
-                        </span>
-                      ) : hasUnpaid ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                          En attente
-                        </span>
-                      ) : c.orders.length > 0 ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                          <CheckIcon className="w-3.5 h-3.5" />
-                          <span>À jour</span>
-                        </span>
-                      ) : (
-                        <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
-                          —
-                        </span>
-                      )}
-                    </td>
+                    <td className="px-4 py-3">{billing}</td>
 
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/admin/clients/${c.id}`}
-                        className="text-xs font-medium text-primary hover:underline"
+                        className="text-xs font-medium text-primary-text hover:underline"
                       >
-                        Consulter →
+                        Consulter{' '}
+                        <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                       </Link>
                     </td>
                   </tr>
@@ -408,11 +467,11 @@ export default async function ClientsPage({
               }).toString()}`}
               className="px-3 py-1.5 text-sm rounded border border-border dark:border-border-dark hover:bg-bg-page dark:hover:bg-bg-page-dark transition-colors"
             >
-              ← Précédent
+              <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Précédent
             </Link>
           ) : (
             <span className="px-3 py-1.5 text-sm rounded border border-border dark:border-border-dark opacity-50 cursor-not-allowed">
-              ← Précédent
+              <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Précédent
             </span>
           )}
 
@@ -429,11 +488,11 @@ export default async function ClientsPage({
               }).toString()}`}
               className="px-3 py-1.5 text-sm rounded border border-border dark:border-border-dark hover:bg-bg-page dark:hover:bg-bg-page-dark transition-colors"
             >
-              Suivant →
+              Suivant <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
             </Link>
           ) : (
             <span className="px-3 py-1.5 text-sm rounded border border-border dark:border-border-dark opacity-50 cursor-not-allowed">
-              Suivant →
+              Suivant <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
             </span>
           )}
         </div>

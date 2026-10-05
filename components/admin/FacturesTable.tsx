@@ -11,7 +11,14 @@ import {
   sendPaymentReminderAction,
 } from '@/app/admin/(protected)/commandes/paiements/actions'
 import { sendInvoiceEmailAction } from '@/app/admin/(protected)/commandes/[id]/actions'
-import { FileTextIcon, SearchIcon, EyeIcon, MailIcon } from '@/components/admin/AdminIcons'
+import {
+  FileTextIcon,
+  SearchIcon,
+  EyeIcon,
+  MailIcon,
+  CoinsIcon,
+} from '@/components/admin/AdminIcons'
+import { CamtImportModal } from '@/components/admin/CamtImportModal'
 
 export interface FactureItem {
   id: string
@@ -106,6 +113,9 @@ export function FacturesTable({
   const [payModalOrder, setPayModalOrder] = useState<FactureItem | null>(null)
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS[0])
   const [paidDateStr, setPaidDateStr] = useState(() => new Date().toISOString().split('T')[0])
+
+  // Modale de rapprochement bancaire CAMT
+  const [isCamtModalOpen, setIsCamtModalOpen] = useState(false)
 
   // Modale de relance
   const [reminderModalOrder, setReminderModalOrder] = useState<FactureItem | null>(null)
@@ -313,7 +323,7 @@ export function FacturesTable({
 
       {/* 2. Barre d'action groupée (si sélection active) */}
       {selectedIds.length > 0 && (
-        <div className="sticky top-4 z-20 bg-primary text-white dark:bg-bg-card-dark dark:text-text-primary-dark dark:border dark:border-secondary p-3.5 rounded-xl shadow-lg flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
+        <div className="sticky top-4 z-20 bg-secondary-header text-white dark:bg-bg-card-dark dark:text-text-primary-dark dark:border dark:border-secondary p-3.5 rounded-xl shadow-lg flex flex-wrap items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-3">
             <span className="w-7 h-7 rounded-full bg-secondary/30 flex items-center justify-center font-bold text-sm">
               {selectedIds.length}
@@ -337,7 +347,7 @@ export function FacturesTable({
               href={`/admin/factures/print?ids=${selectedIds.join(',')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary text-xs sm:text-sm py-1.5 px-3.5 flex items-center gap-1.5 font-semibold bg-white text-primary hover:bg-slate-100 dark:bg-secondary dark:text-primary dark:hover:brightness-110 rounded-lg shadow-sm"
+              className="btn-secondary text-xs sm:text-sm py-1.5 px-3.5 flex items-center gap-1.5 font-semibold bg-white text-primary-text hover:bg-slate-100 dark:bg-secondary dark:text-primary dark:hover:brightness-110 rounded-lg shadow-sm"
             >
               <FileTextIcon className="w-4 h-4" />
               <span>Exporter la sélection en un seul PDF</span>
@@ -354,7 +364,7 @@ export function FacturesTable({
             onClick={() => handleTabChange('TOUS')}
             className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
               currentFilter === 'TOUS'
-                ? 'bg-primary text-white dark:bg-secondary dark:text-primary'
+                ? 'bg-primary text-primary-foreground dark:bg-secondary dark:text-primary'
                 : 'text-text-secondary dark:text-text-secondary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark'
             }`}
           >
@@ -429,22 +439,34 @@ export function FacturesTable({
           </button>
         </div>
 
-        {/* Champ de recherche */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-80">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              name="q"
-              defaultValue={searchQuery}
-              placeholder="N° commande, facture, client..."
-              className="input text-sm w-full pl-9 pr-3 py-1.5"
-            />
-            <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-          </div>
-          <button type="submit" className="btn-secondary text-sm py-1.5 px-3 shrink-0">
-            Filtrer
+        {/* Actions & Moteur de recherche */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full sm:w-72">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="N° commande, facture, client..."
+                className="input text-sm w-full pl-9 pr-3 py-1.5"
+              />
+              <SearchIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+            </div>
+            <button type="submit" className="btn-secondary text-sm py-1.5 px-3 shrink-0">
+              Filtrer
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={() => setIsCamtModalOpen(true)}
+            className="btn-primary text-xs sm:text-sm py-1.5 px-3.5 flex items-center justify-center gap-2 font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg shadow-sm shrink-0 transition-colors"
+            title="Importer un fichier CAMT.054 (avis de crédit) ou CAMT.053 (relevé) ISO 20022"
+          >
+            <CoinsIcon className="w-4 h-4" />
+            <span>Rapprochement CAMT</span>
           </button>
-        </form>
+        </div>
       </div>
 
       {/* 4. Table des Factures */}
@@ -467,7 +489,7 @@ export function FacturesTable({
                       type="checkbox"
                       checked={allSelected}
                       onChange={toggleSelectAll}
-                      className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                      className="rounded border-border text-primary-text focus:ring-primary h-4 w-4 cursor-pointer"
                       title={allSelected ? 'Tout désélectionner' : 'Tout sélectionner sur la page'}
                     />
                   </th>
@@ -505,7 +527,7 @@ export function FacturesTable({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelectRow(order.id)}
-                          className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                          className="rounded border-border text-primary-text focus:ring-primary h-4 w-4 cursor-pointer"
                         />
                       </td>
 
@@ -515,7 +537,7 @@ export function FacturesTable({
                           {order.invoiceNumber ? (
                             <Link
                               href={`/admin/commandes/${order.id}/facture`}
-                              className="font-mono font-bold text-primary dark:text-secondary hover:underline text-sm"
+                              className="font-mono font-bold text-primary-text dark:text-primary-text hover:underline text-sm"
                             >
                               {order.invoiceNumber}
                             </Link>
@@ -789,6 +811,9 @@ export function FacturesTable({
           </div>
         </div>
       )}
+
+      {/* 7. Modale de rapprochement bancaire CAMT */}
+      <CamtImportModal isOpen={isCamtModalOpen} onClose={() => setIsCamtModalOpen(false)} />
     </div>
   )
 }

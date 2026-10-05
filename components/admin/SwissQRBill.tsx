@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { SwissQRBill as SwissQRBillGenerator } from 'swissqrbill/svg'
+import { getBillReference } from '@/lib/reference'
 
 export interface SwissQRBillProps {
   order: {
@@ -50,6 +51,17 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
         ? `Facture ${order.invoiceNumber} / Commande ${order.numero}`
         : `Commande ${order.numero}`
 
+      let reference: string | undefined = undefined
+      try {
+        const refTarget = order.invoiceNumber || order.numero
+        if (refTarget) {
+          const res = getBillReference(cleanIban, refTarget)
+          reference = res.reference
+        }
+      } catch {
+        // Fallback sans référence structurée si la cible est indisponible
+      }
+
       const bill = new SwissQRBillGenerator(
         {
           currency: 'CHF',
@@ -71,6 +83,7 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
                 country: 'CH',
               }
             : undefined,
+          reference,
           message: message.slice(0, 140),
         },
         {

@@ -9,7 +9,7 @@ export interface PlanzerSenderConfig {
   department: string // ex: "3" (Service Paket - 3)
   firstName: string // "Bertrand"
   lastName: string // "Baeriswyl"
-  company: string // "" ou "Cidrerie du Vulcain Sàrl"
+  company: string // "" ou "Drinkcider"
   country: string // "CH"
   city: string // "Les Paccots"
   npa: string // "1619"
@@ -17,7 +17,7 @@ export interface PlanzerSenderConfig {
   houseNumber: string // "16"
   instructions: string // "Prendre les colis sur l'établi sous le couvert"
   mobilePhone: string // "0768306215"
-  email: string // "commandes@cidrerie-vulcain.ch"
+  email: string // "commandes@drinkcider.ch"
   lang: string // "fr"
 }
 
@@ -26,7 +26,7 @@ export const DEFAULT_PLANZER_SENDER: PlanzerSenderConfig = {
   department: '3',
   firstName: 'Bertrand',
   lastName: 'Baeriswyl',
-  company: 'Cidrerie du Vulcain Sàrl',
+  company: 'Drinkcider',
   country: 'CH',
   city: 'Les Paccots',
   npa: '1619',

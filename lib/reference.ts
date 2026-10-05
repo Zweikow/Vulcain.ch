@@ -1,5 +1,7 @@
+import { calculateQRReferenceChecksum, isQRIBAN } from 'swissqrbill/utils'
+
 /**
- * Référence créancier ISO 11649 — la « référence RF ».
+ * Référence créancier ISO 11649 — la « référence RF » (SCOR).
  *
  * C'est le standard international pour référencer une facture dans un virement.
  * Elle fonctionne avec un IBAN classique (type SCOR de la QR-facture suisse),
@@ -26,7 +28,7 @@ function toNumeric(value: string): string {
 }
 
 /**
- * Construit la référence RF à partir d'un identifiant métier.
+ * Construit la référence RF (SCOR) à partir d'un identifiant métier.
  * Les caractères non alphanumériques sont retirés : FAC-2026-0001 → FAC20260001.
  */
 export function creditorReference(raw: string): string {
@@ -48,4 +50,41 @@ export function isValidCreditorReference(reference: string): boolean {
 /** Découpe en groupes de 4 pour l'impression : RF18 FAC2 0260 001 */
 export function formatCreditorReference(reference: string): string {
   return reference.replace(/(.{4})/g, '$1 ').trim()
+}
+
+/**
+ * Construit une référence structurée suisse QRR (27 chiffres numériques, norme SIX).
+ * Utilisé lorsqu'un QR-IBAN est configuré.
+ */
+export function qrReference(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) {
+    throw new Error(`Impossible de générer une référence QRR à partir de « ${raw} »`)
+  }
+  // Base sur 26 chiffres, complétée à gauche par des zéros
+  const base = digits.slice(-26).padStart(26, '0')
+  const checksum = calculateQRReferenceChecksum(base)
+  return `${base}${checksum}`
+}
+
+/**
+ * Détermine et génère la référence appropriée selon le type d'IBAN configuré :
+ * - QR-IBAN -> référence QRR (27 chiffres)
+ * - IBAN classique -> référence SCOR (ISO 11649 RF...)
+ */
+export function getBillReference(
+  iban: string,
+  rawInvoiceOrOrder: string
+): { reference: string; type: 'QRR' | 'SCOR' } {
+  const cleanIban = iban.replace(/\s+/g, '').toUpperCase()
+  if (isQRIBAN(cleanIban)) {
+    return {
+      reference: qrReference(rawInvoiceOrOrder),
+      type: 'QRR',
+    }
+  }
+  return {
+    reference: creditorReference(rawInvoiceOrOrder),
+    type: 'SCOR',
+  }
 }

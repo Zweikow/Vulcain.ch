@@ -46,6 +46,25 @@ export default $config({
     const site = new sst.aws.Nextjs('CidrerieSite', {
       domain: domain,
       link: [photosBucket], // Lie le bucket au site pour générer l'accès sécurisé
+      assets: {
+        fileOptions: [
+          {
+            files: [
+              '**/*.png',
+              '**/*.jpg',
+              '**/*.jpeg',
+              '**/*.webp',
+              '**/*.avif',
+              '**/*.svg',
+              '**/*.ico',
+              '**/*.gif',
+              '**/*.woff',
+              '**/*.woff2',
+            ],
+            cacheControl: 'public,max-age=31536000,immutable',
+          },
+        ],
+      },
       permissions: [
         {
           actions: ['ses:SendEmail', 'ses:SendRawEmail'],
@@ -59,6 +78,9 @@ export default $config({
         SES_REGION: process.env.SES_REGION || 'eu-central-2',
         ADMIN_BASE_URL: process.env.ADMIN_BASE_URL || '',
         TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || '',
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
+        UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
+        UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
         AUTH_TRUST_HOST: 'true',
         AUTH_URL: domain ? `https://${domain.name}` : '',
         NEXT_PUBLIC_COMMIT_SHA:

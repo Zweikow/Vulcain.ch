@@ -1,15 +1,18 @@
-import { AlertCircleIcon } from '@/components/Icons'
+import { Truck } from 'lucide-react'
+import { OriginBadge } from '@/components/OriginBadge'
 
 export default function DeliveryWarning() {
   return (
-    <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 px-4 py-2">
-      <p className="text-xs text-center text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5">
-        <AlertCircleIcon className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+    <div className="bg-primary/10 border-b border-primary/20 px-4 py-2">
+      <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-xs font-medium text-foreground">
+        <Truck className="w-3.5 h-3.5 text-primary-text shrink-0" />
         <span>
-          Livraison uniquement en Suisse — Les commandes sont préparées les lundis &amp; jeudis.
-          Délai: 2–5 jours ouvrables.
+          <span className="font-semibold text-primary-text">
+            <OriginBadge origin="CH" className="w-3 h-3" /> Expédition exclusive en Suisse
+          </span>{' '}
+          — Préparation soignée les lundis et jeudis. Délai : 2 à 4 jours ouvrés.
         </span>
-      </p>
+      </div>
     </div>
   )
 }

@@ -428,7 +428,7 @@ export function CreateOrderForm({
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
             <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-primary" /> Coordonnées du client
+              <UserIcon className="w-5 h-5 text-primary-text" /> Coordonnées du client
             </h2>
             <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
               Renseignez les coordonnées ou chargez un client existant
@@ -441,7 +441,7 @@ export function CreateOrderForm({
               onClick={() => setCustomerMode('NEW')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 customerMode === 'NEW'
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-bg-page dark:bg-bg-page-dark text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -452,7 +452,7 @@ export function CreateOrderForm({
               onClick={() => setCustomerMode('EXISTING')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 customerMode === 'EXISTING'
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-bg-page dark:bg-bg-page-dark text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -604,7 +604,7 @@ export function CreateOrderForm({
       {/* 2. SÉLECTION DES ARTICLES */}
       <section className="card p-6">
         <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-1 flex items-center gap-2">
-          <BottleIcon className="w-5 h-5 text-primary" /> Articles de la commande
+          <BottleIcon className="w-5 h-5 text-primary-text" /> Articles de la commande
         </h2>
         <p className="text-xs text-text-secondary dark:text-text-secondary-dark mb-4">
           Ajoutez les bouteilles et spécifiez les quantités
@@ -712,7 +712,7 @@ export function CreateOrderForm({
                         ) : (
                           isPro &&
                           line.listPriceCents > line.unitPriceCents && (
-                            <div className="text-[11px] text-primary">
+                            <div className="text-[11px] text-primary-text">
                               Tarif Pro ({settings.proRatePercent}% remise)
                             </div>
                           )
@@ -810,7 +810,7 @@ export function CreateOrderForm({
                   type="checkbox"
                   checked={allowNegativeStock}
                   onChange={(e) => setAllowNegativeStock(e.target.checked)}
-                  className="rounded text-primary focus:ring-primary"
+                  className="rounded text-primary-text focus:ring-primary"
                 />
                 Autoriser la vente en stock négatif / précommande
               </label>
@@ -822,7 +822,7 @@ export function CreateOrderForm({
       {/* 3. EXPÉDITION & OPTIONS */}
       <section className="card p-6">
         <h2 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mb-4 flex items-center gap-2">
-          <TruckIcon className="w-5 h-5 text-primary" /> Livraison & Finalisation
+          <TruckIcon className="w-5 h-5 text-primary-text" /> Livraison & Finalisation
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -840,7 +840,7 @@ export function CreateOrderForm({
                 name="shipping"
                 checked={shippingOption === 'STANDARD'}
                 onChange={() => setShippingOption('STANDARD')}
-                className="text-primary"
+                className="text-primary-text"
               />
             </div>
             <span className="text-xs text-text-secondary">
@@ -862,7 +862,7 @@ export function CreateOrderForm({
                 name="shipping"
                 checked={shippingOption === 'RETRAIT'}
                 onChange={() => setShippingOption('RETRAIT')}
-                className="text-primary"
+                className="text-primary-text"
               />
             </div>
             <span className="text-xs text-text-secondary">Frais offerts (0.00 CHF)</span>
@@ -882,7 +882,7 @@ export function CreateOrderForm({
                 name="shipping"
                 checked={shippingOption === 'CUSTOM'}
                 onChange={() => setShippingOption('CUSTOM')}
-                className="text-primary"
+                className="text-primary-text"
               />
             </div>
             {shippingOption === 'CUSTOM' ? (
@@ -950,10 +950,10 @@ export function CreateOrderForm({
               type="checkbox"
               checked={notifyCustomer}
               onChange={(e) => setNotifyCustomer(e.target.checked)}
-              className="rounded text-primary focus:ring-primary"
+              className="rounded text-primary-text focus:ring-primary"
             />
             <span className="text-sm text-text-secondary dark:text-text-secondary-dark flex items-center gap-2">
-              <MailIcon className="w-4 h-4 text-primary" /> Envoyer un email de confirmation de
+              <MailIcon className="w-4 h-4 text-primary-text" /> Envoyer un email de confirmation de
               commande au client
             </span>
           </label>
@@ -969,7 +969,7 @@ export function CreateOrderForm({
               <span className="font-mono">{formatCHF(subtotalCents)}</span>
             </div>
             {discountCents > 0 && (
-              <div className="flex justify-between sm:justify-start sm:gap-6 text-primary">
+              <div className="flex justify-between sm:justify-start sm:gap-6 text-primary-text">
                 <span>Remise professionnelle :</span>
                 <span className="font-mono">-{formatCHF(discountCents)}</span>
               </div>
@@ -988,7 +988,7 @@ export function CreateOrderForm({
           <div className="flex flex-col items-end gap-3">
             <div className="text-right">
               <span className="text-xs text-text-secondary">Total de la commande</span>
-              <div className="text-2xl font-bold font-mono text-primary">
+              <div className="text-2xl font-bold font-mono text-primary-text">
                 {formatCHF(totalCents)}
               </div>
             </div>

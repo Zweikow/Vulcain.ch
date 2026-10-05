@@ -1,5 +1,6 @@
 'use client'
 
+import { Zap } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ClientType } from '@prisma/client'
@@ -75,7 +76,7 @@ export function OrderProToggle({
                 }
                 className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-800 transition-colors disabled:opacity-50 cursor-pointer"
               >
-                <span>⚡</span>
+                <Zap className="h-3.5 w-3.5" />
                 <span>
                   {isPending
                     ? 'Recalcul…'

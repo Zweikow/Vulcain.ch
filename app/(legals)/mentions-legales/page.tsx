@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Mentions Légales',
-  description: 'Mentions légales de la Cidrerie du Vulcain et Drinkcider.',
+  description: 'Mentions légales de Drinkcider.',
 }
 
 export default function MentionsLegalesPage() {
@@ -32,8 +32,7 @@ export default function MentionsLegalesPage() {
         <br />
         <strong>TVA / IDE :</strong> Non assujetti
         <br />
-        <strong>Email :</strong>{' '}
-        <a href="mailto:commandes@cidrerie-vulcain.ch">commandes@cidrerie-vulcain.ch</a>
+        <strong>Email :</strong> <a href="mailto:info@drinkcider.ch">info@drinkcider.ch</a>
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -64,9 +63,9 @@ export default function MentionsLegalesPage() {
       </h2>
       <p>
         L&apos;ensemble du contenu de ce site (textes, images, logos, éléments graphiques) est la
-        propriété exclusive de la Cidrerie du Vulcain, sauf mention contraire expresse. Toute
-        reproduction, copie, modification, distribution ou utilisation à des fins commerciales sans
-        l&apos;accord écrit préalable de la Cidrerie du Vulcain est strictement interdite.
+        propriété exclusive de Drinkcider, sauf mention contraire expresse. Toute reproduction,
+        copie, modification, distribution ou utilisation à des fins commerciales sans l&apos;accord
+        écrit préalable de Drinkcider est strictement interdite.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -76,11 +75,11 @@ export default function MentionsLegalesPage() {
         <span>Exclusion de responsabilité</span>
       </h2>
       <p>
-        La Cidrerie du Vulcain s&apos;efforce de maintenir à jour et exactes les informations
-        publiées sur ce site internet. Toutefois, elle ne peut garantir l&apos;exhaustivité,
-        l&apos;exactitude ou l&apos;actualité des données fournies. La Cidrerie du Vulcain décline
-        toute responsabilité pour d&apos;éventuels dommages directs ou indirects pouvant résulter de
-        l&apos;accès à son site web ou de l&apos;utilisation de son contenu.
+        Drinkcider s&apos;efforce de maintenir à jour et exactes les informations publiées sur ce
+        site internet. Toutefois, elle ne peut garantir l&apos;exhaustivité, l&apos;exactitude ou
+        l&apos;actualité des données fournies. Drinkcider décline toute responsabilité pour
+        d&apos;éventuels dommages directs ou indirects pouvant résulter de l&apos;accès à son site
+        web ou de l&apos;utilisation de son contenu.
       </p>
       <p>
         Notre site peut contenir des liens vers des sites tiers. Nous n&apos;avons aucune influence
@@ -89,9 +88,9 @@ export default function MentionsLegalesPage() {
       </p>
       <p>
         <strong>Consommation d&apos;alcool :</strong> L&apos;abus d&apos;alcool est dangereux pour
-        la santé. La Cidrerie du Vulcain encourage une consommation responsable et modérée de ses
-        produits. Elle décline toute responsabilité quant aux conséquences directes ou indirectes
-        liées à une consommation excessive ou inappropriée des boissons vendues sur ce site.
+        la santé. Drinkcider encourage une consommation responsable et modérée de ses produits. Elle
+        décline toute responsabilité quant aux conséquences directes ou indirectes liées à une
+        consommation excessive ou inappropriée des boissons vendues sur ce site.
       </p>
     </>
   )

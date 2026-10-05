@@ -1,5 +1,5 @@
 /**
- * Configuration centrale SEO et domaines pour Cidrerie du Vulcain / Drinkcider
+ * Configuration centrale SEO et domaines pour Drinkcider
  */
 
 export function getSiteUrl(): string {
@@ -19,16 +19,17 @@ export function getSiteUrl(): string {
 }
 
 export const SITE_CONFIG = {
-  name: 'Cidrerie du Vulcain',
+  name: 'Drinkcider',
   legalName: 'Drinkcider',
   distributorDescription:
-    'Raison individuelle Drinkcider, distribution officielle des cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz).',
-  title: 'Drinkcider avec passion',
+    'Raison individuelle Drinkcider, boutique en ligne de cidres et poirés artisanaux de producteurs indépendants.',
+  title: 'Drinkcider | Cidres artisanaux et poirés pur jus en Suisse',
   description:
-    'Cidres et poirés artisanaux de la Cidrerie du Vulcain (Jacques Perritaz). Pur jus de fruits sauvages suisses et fermentation 100% levures indigènes.',
+    'Drinkcider, boutique en ligne de cidres et poirés artisanaux : une sélection de producteurs indépendants, pur jus, livrée partout en Suisse.',
   keywords: [
     // Français
-    'Cidrerie du Vulcain',
+    'Drinkcider',
+    'Drinkcider.ch',
     'Jacques Perritaz',
     'Jacques Perritaz cidres',
     "cidre d'auteur",
@@ -69,7 +70,6 @@ export const SITE_CONFIG = {
     'cider delivery Switzerland',
     'Drinkcider Switzerland',
   ],
-  producer: 'Jacques Perritaz',
   distributor: 'Bertrand Baeriswyl',
   address: {
     street: 'Chemin des Moilles 16',

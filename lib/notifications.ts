@@ -103,7 +103,7 @@ async function recordLog(
   }
 }
 
-/** Confirmation au client et notification à la cidrerie (commandes@cidrerie-vulcain.ch). */
+/** Confirmation au client et notification à la cidrerie (info@drinkcider.ch). */
 export async function notifyOrderPlaced(orderId: string): Promise<void> {
   try {
     const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])

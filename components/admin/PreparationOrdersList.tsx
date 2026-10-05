@@ -1,5 +1,6 @@
 'use client'
 
+import { House, Loader2, Package, X } from 'lucide-react'
 import { useState, useMemo, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -197,7 +198,7 @@ export function PreparationOrdersList({
       <div className="card p-4 bg-gradient-to-r from-bg-card to-primary/5 dark:from-bg-card-dark dark:to-primary/10 border border-primary/20 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary dark:text-primary-dark">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary-text dark:text-primary-dark">
               <TruckIcon className="w-5 h-5" />
             </div>
             <div>
@@ -240,13 +241,14 @@ export function PreparationOrdersList({
         {selectedIds.length > 0 && (
           <div className="mt-4 pt-3 border-t border-border/80 dark:border-border-dark/80 flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-4 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-primary text-white font-medium">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill bg-primary text-primary-foreground font-medium">
                 <strong>{selectedIds.length}</strong> commande{selectedIds.length > 1 ? 's' : ''}{' '}
                 sélectionnée{selectedIds.length > 1 ? 's' : ''}
               </span>
 
               <span className="text-text-secondary dark:text-text-secondary-dark font-medium">
-                📦 {selectionStats.packagesCount} colis estimés · ~{selectionStats.totalWeightKg} kg
+                <Package className="inline-block h-[1em] w-[1em] align-[-0.125em]" />{' '}
+                {selectionStats.packagesCount} colis estimés · ~{selectionStats.totalWeightKg} kg
               </span>
 
               <div className="flex items-center gap-2">
@@ -270,7 +272,7 @@ export function PreparationOrdersList({
                   type="checkbox"
                   checked={markAsPreparing}
                   onChange={(e) => setMarkAsPreparing(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary"
+                  className="h-3.5 w-3.5 rounded border-border text-primary-text focus:ring-primary"
                 />
                 <span>Passer automatiquement en préparation</span>
               </label>
@@ -284,7 +286,8 @@ export function PreparationOrdersList({
             >
               {isExporting ? (
                 <>
-                  <span className="animate-spin">⏳</span> Génération du CSV...
+                  <Loader2 className="inline-block h-[1em] w-[1em] align-[-0.125em] animate-spin" />{' '}
+                  Génération du CSV...
                 </>
               ) : (
                 <>
@@ -310,8 +313,9 @@ export function PreparationOrdersList({
               type="button"
               onClick={() => setFeedback(null)}
               className="text-text-tertiary hover:text-text-primary ml-2 font-bold"
+              aria-label="Fermer"
             >
-              ✕
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -352,7 +356,7 @@ export function PreparationOrdersList({
                     title="Commande à retirer à la cave (non éligible Planzer)"
                     className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300"
                   >
-                    🏠 Retrait cave
+                    <House className="mr-1 h-3 w-3" /> Retrait cave
                   </span>
                 ) : (
                   <input
@@ -361,7 +365,7 @@ export function PreparationOrdersList({
                     aria-label={`Sélectionner la commande ${order.numero} pour l'export Planzer`}
                     checked={isSelected}
                     onChange={() => toggleOrder(order.id)}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    className="h-4 w-4 rounded border-border text-primary-text focus:ring-primary cursor-pointer"
                   />
                 )}
 
@@ -381,7 +385,8 @@ export function PreparationOrdersList({
 
                 {!order.isPickup && (
                   <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
-                    📦 {orderPkgs.length} colis (~{totalWeight} kg)
+                    <Package className="inline-block h-[1em] w-[1em] align-[-0.125em]" />{' '}
+                    {orderPkgs.length} colis (~{totalWeight} kg)
                   </span>
                 )}
               </div>
@@ -437,7 +442,7 @@ export function PreparationOrdersList({
                     type="button"
                     onClick={() => handleExport(order.id)}
                     disabled={isExporting}
-                    className="btn-secondary text-xs flex items-center gap-1 text-text-secondary dark:text-text-secondary-dark hover:text-primary"
+                    className="btn-secondary text-xs flex items-center gap-1 text-text-secondary dark:text-text-secondary-dark hover:text-primary-text"
                     title="Télécharger immédiatement le fichier CSV Planzer pour cette seule commande"
                   >
                     <TruckIcon className="w-3.5 h-3.5" />

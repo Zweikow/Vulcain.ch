@@ -1,6 +1,6 @@
-# Cidrerie du Vulcain — Site de commande en ligne
+# Drinkcider — Boutique en ligne
 
-Site de commande en ligne pour la [Cidrerie du Vulcain](https://cidrerie-vulcain.ch) (Aubonne, Suisse).  
+Site de commande en ligne pour [Drinkcider](https://drinkcider.ch) (Les Paccots, Suisse).  
 Développé par **Hugo Baeriswyl** (Zweikow).
 
 ---
@@ -162,4 +162,4 @@ develop  →  (MR)  →  sandbox  →  (MR)  →  main
 
 ## Licence
 
-Développé pour la Cidrerie du Vulcain. Tous droits réservés.
+Développé pour Drinkcider. Tous droits réservés.

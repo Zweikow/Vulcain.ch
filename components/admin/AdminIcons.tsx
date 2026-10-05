@@ -87,7 +87,7 @@ export function ClientsIcon({ className = 'w-4 h-4' }: IconProps) {
 }
 
 /**
- * Produits : Pomme artisanale élégante (Cidrerie du Vulcain)
+ * Produits : Pomme artisanale élégante (Drinkcider)
  */
 export function ProduitsIcon({ className = 'w-4 h-4' }: IconProps) {
   return (

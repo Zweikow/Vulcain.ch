@@ -1,58 +1,56 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "enabled": false,
-  "description": "Configuration Renovate (en pause)",
+  "enabled": true,
+  "description": "Configuration Renovate sécurisée et maîtrisée pour Drinkcider",
   "extends": ["config:recommended", ":dependencyDashboard"],
-  "baseBranches": ["develop"],
+  "baseBranchPatterns": ["develop"],
   "timezone": "Europe/Zurich",
   "schedule": ["before 7am on monday"],
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "semanticCommitScope": "deps",
   "labels": ["dependencies"],
-  "prConcurrentLimit": 5,
+  "prConcurrentLimit": 3,
   "prHourlyLimit": 2,
+  "rebaseWhen": "auto",
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 7am on the first day of the month"]
   },
   "packageRules": [
     {
-      "description": "Regrouper tous les modules AWS SDK dans une seule Merge Request",
-      "matchPackagePatterns": ["^@aws-sdk/"],
-      "groupName": "AWS SDK monorepo",
-      "matchUpdateTypes": ["minor", "patch"]
+      "description": "Mises à jour majeures : JAMAIS de MR automatique, approbation manuelle requise dans le Dependency Dashboard",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     },
     {
-      "description": "Garder React, React-DOM et leurs types parfaitement synchronisés",
+      "description": "Couplage strict React, React-DOM et leurs types (toujours mis à jour ensemble)",
       "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
       "groupName": "React core & types"
     },
     {
-      "description": "Regrouper Prisma et son client",
+      "description": "Couplage strict Prisma CLI et Client",
       "matchPackageNames": ["prisma", "@prisma/client"],
       "groupName": "Prisma ORM"
     },
     {
-      "description": "Regrouper les outils de linting et de formatage en dev",
-      "matchPackagePatterns": ["^eslint", "^prettier"],
-      "matchDepTypes": ["devDependencies"],
-      "groupName": "Linters & formatters (ESLint / Prettier)",
-      "matchUpdateTypes": ["minor", "patch"]
+      "description": "Regrouper tous les modules AWS SDK dans une seule Merge Request",
+      "groupName": "AWS SDK monorepo",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@aws-sdk//"]
     },
     {
-      "description": "Mises à jour majeures : jamais groupées, sauf pour les couples inséparables (React, Prisma)",
-      "matchUpdateTypes": ["major"],
-      "excludePackageNames": [
-        "react",
-        "react-dom",
-        "@types/react",
-        "@types/react-dom",
-        "prisma",
-        "@prisma/client"
-      ],
-      "groupName": null,
-      "schedule": ["before 7am on monday"]
+      "description": "Regrouper les outils de linting et de formatage en dev",
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "Linters & dev tooling",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^eslint/", "/^prettier/", "/husky/", "/lint-staged/"]
+    },
+    {
+      "description": "Regrouper les définitions de types TypeScript (hors React)",
+      "groupName": "TypeScript definitions",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["/^@types//", "!@types/react", "!@types/react-dom"]
     },
     {
       "description": "Alertes de vulnérabilité de sécurité : priorité immédiate sans attendre le lundi",

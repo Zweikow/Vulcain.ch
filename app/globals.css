@@ -1,71 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-}
-
-:root.dark {
-  color-scheme: dark;
-}
-
-html:not(.dark),
-html:not(.dark) body {
-  color-scheme: light !important;
-  background-color: #f7f6f0;
-  forced-color-adjust: none;
-}
-
-html.dark,
-html.dark body {
-  color-scheme: dark !important;
-  background-color: #0d1b2a;
-}
-
 @layer base {
-  body {
-    @apply font-body bg-bg-page dark:bg-bg-page-dark text-text-primary dark:text-text-primary-dark;
+  :root {
+    /* Palette Drinkcider - Fresh Light Green & Deep Space Slate */
+    --background: 48 30% 96%; /* #F7F6F0 - Pierre claire naturelle */
+    --foreground: 202 52% 17%; /* #153243 - Deep Space Blue */
+
+    --card: 0 0% 100%; /* #FFFFFF - Fond de carte blanc pur */
+    --card-foreground: 202 52% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 202 52% 17%;
+
+    --primary: 134 76% 72%; /* #80ED99 - Vert frais emblématique */
+    --primary-foreground: 202 52% 17%; /* #153243 - Texte foncé sur vert */
+    --primary-hover: 136 60% 61%; /* #5ED97F */
+    --primary-text: 138 60% 26%; /* #1B6B33 - vert lisible pour du texte sur fond clair */
+
+    --secondary: 205 42% 27%; /* #284B63 - Yale Blue */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 213 25% 95%; /* #EEF1F5 */
+    --muted-foreground: 198 21% 39%; /* #4F6D7A */
+
+    --accent: 213 25% 95%;
+    --accent-foreground: 202 52% 17%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 213 25% 91%; /* #E2E8EF - Bordure fine propre */
+    --input: 213 25% 91%;
+    --ring: 136 60% 61%; /* #5ED97F */
+
+    --radius: 0.75rem;
   }
 
-  /* Focus visible sur tous les éléments interactifs (DESIGN.md §6) */
+  .dark {
+    /* Mode Nocturne - Ardoise Profonde & Vert Frais */
+    --background: 212 53% 11%; /* #0D1B2A - Deep Midnight Navy */
+    --foreground: 206 48% 90%; /* #D6E8F5 */
+
+    --card: 210 43% 15%; /* #152535 */
+    --card-foreground: 206 48% 90%;
+
+    --popover: 210 43% 15%;
+    --popover-foreground: 206 48% 90%;
+
+    --primary: 134 76% 72%; /* #80ED99 */
+    --primary-foreground: 202 52% 17%; /* #153243 */
+    --primary-hover: 136 60% 61%;
+    --primary-text: 134 76% 72%; /* le vert clair reste lisible sur fond sombre */
+
+    --secondary: 205 42% 27%;
+    --secondary-foreground: 206 48% 90%;
+
+    --muted: 214 49% 17%; /* #162840 */
+    --muted-foreground: 200 19% 63%; /* #8FA6B2 */
+
+    --accent: 214 49% 17%;
+    --accent-foreground: 206 48% 90%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 212 41% 20%; /* #1E3248 */
+    --input: 212 22% 45%; /* #5A718C - contour des champs lisible (3:1 sur les cartes) */
+    --ring: 136 60% 61%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
   :focus-visible {
-    outline: 2px solid #5ed97f;
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* Texte sombre sur fond vert — jamais de blanc (DESIGN.md, correctif contraste) */
+  /* Classes composants historiques préservées */
   .btn-primary {
     @apply bg-primary hover:bg-primary-hover text-text-on-primary font-semibold px-4 py-2.5 rounded-md transition-colors;
   }
   .btn-secondary {
-    @apply border border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
+    @apply border border-border text-text-primary dark:text-text-primary-dark bg-bg-card dark:bg-bg-card-dark hover:bg-bg-page dark:hover:bg-bg-page-dark font-semibold px-4 py-2.5 rounded-md transition-colors;
   }
   .btn-danger {
     @apply bg-text-error hover:opacity-90 text-white font-semibold px-4 py-2.5 rounded-md transition-colors;
   }
   .input-field {
-    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border dark:border-border-dark rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
+    @apply w-full bg-bg-input dark:bg-bg-input-dark border border-border rounded-md px-3 py-2 text-sm text-text-primary dark:text-text-primary-dark placeholder:text-text-tertiary dark:placeholder:text-text-tertiary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;
   }
   .card {
-    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border dark:border-border-dark;
+    @apply bg-bg-card dark:bg-bg-card-dark rounded-lg border border-border;
   }
 }
 
 @layer utilities {
-  /* Montants alignés en colonne (DESIGN.md §1) */
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Dégradés d'ambiance organiques et discrets */
+  .bg-radial-subtle {
+    background: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.08), transparent 70%);
+  }
+
+  .bg-glass {
+    background-color: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
-/* --- Facture A4 -----------------------------------------------------------
-   Le document est calibré en millimètres : ce qui est à l'écran est ce qui
-   sort sur papier. C'est le support de travail réel à la cave (DESIGN.md §6). */
+/* --- Facture A4 et Swiss QR Bill (Conformité Suisse stricte) ------------- */
 .facture-page {
   width: 210mm;
   min-height: 297mm;
@@ -88,13 +146,7 @@ html.dark body {
   forced-color-adjust: none !important;
 }
 
-.facture-body {
-  padding: 11mm 16mm 2mm 16mm;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
+.facture-body,
 .facture-body-p2 {
   padding: 11mm 16mm 2mm 16mm;
   display: flex;
@@ -193,4 +245,18 @@ html.dark body {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
+}
+
+/* Filet de sécurité du mode sombre : une couleur de texte prévue pour le fond
+   clair, posée sans variante dark:, deviendrait illisible sur fond sombre.
+   :where() garde la spécificité d'une classe simple, donc toute variante
+   dark: explicite d'un composant reste prioritaire. */
+.dark :where(.text-text-primary) {
+  color: #d6e8f5;
+}
+.dark :where(.text-text-secondary) {
+  color: #7aafc7;
+}
+.dark :where(.text-text-tertiary) {
+  color: #7f9db0;
 }

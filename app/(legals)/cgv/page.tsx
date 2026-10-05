@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Conditions Générales de Vente (CGV)',
-  description: 'Conditions générales de vente de la Cidrerie du Vulcain (Drinkcider).',
+  description: 'Conditions générales de vente de Drinkcider.',
 }
 
 export default function CGVPage() {
@@ -17,9 +17,8 @@ export default function CGVPage() {
       </h2>
       <p>
         Les présentes Conditions Générales de Vente (CGV) s&apos;appliquent à toutes les commandes
-        passées sur le site internet de la Cidrerie du Vulcain (ci-après « le Vendeur »). En
-        validant sa commande, le client accepte expressément et dans leur intégralité les présentes
-        CGV.
+        passées sur le site internet de Drinkcider (ci-après « le Vendeur »). En validant sa
+        commande, le client accepte expressément et dans leur intégralité les présentes CGV.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -32,9 +31,9 @@ export default function CGVPage() {
         Conformément à la législation suisse, la vente de boissons alcoolisées (vin, cidre,
         spiritueux) est strictement interdite aux mineurs de moins de 18 ans. En acceptant les
         présentes conditions lors du processus de commande, le client confirme formellement avoir 18
-        ans révolus. La Cidrerie du Vulcain se réserve le droit de demander, par le biais de son
-        transporteur, une pièce d&apos;identité lors de la remise du colis afin de s&apos;assurer de
-        l&apos;âge de l&apos;acheteur.
+        ans révolus. Drinkcider se réserve le droit de demander, par le biais de son transporteur,
+        une pièce d&apos;identité lors de la remise du colis afin de s&apos;assurer de l&apos;âge de
+        l&apos;acheteur.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -44,10 +43,10 @@ export default function CGVPage() {
         <span>Prix et offres</span>
       </h2>
       <p>
-        Tous nos prix s&apos;entendent en francs suisses (CHF). La Cidrerie du Vulcain n&apos;est
-        pas assujettie à la taxe sur la valeur ajoutée (TVA). Les prix valables sont ceux affichés
-        sur le site au moment de la commande. Sous réserve de modifications de prix, d&apos;erreurs
-        ou de ruptures de stock.
+        Tous nos prix s&apos;entendent en francs suisses (CHF). Drinkcider n&apos;est pas assujettie
+        à la taxe sur la valeur ajoutée (TVA). Les prix valables sont ceux affichés sur le site au
+        moment de la commande. Sous réserve de modifications de prix, d&apos;erreurs ou de ruptures
+        de stock.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -76,8 +75,8 @@ export default function CGVPage() {
       </h2>
       <p>
         Les paiements s&apos;effectuent sur facture à 30 jours, expédiée lors de la préparation de
-        la commande. La marchandise livrée reste la propriété de la Cidrerie du Vulcain
-        jusqu&apos;au paiement intégral du montant facturé.
+        la commande. La marchandise livrée reste la propriété de Drinkcider jusqu&apos;au paiement
+        intégral du montant facturé.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">

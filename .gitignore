@@ -47,3 +47,9 @@ test-db.js
 cf-func.json
 dist.json
 check-users.js
+
+# Local processing & raw assets
+scratch/
+cidrerie-vulcain/
+public/photo-all-bottle-raw/
+public/photo-bouteilles-raw/

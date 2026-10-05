@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUpRight } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -153,7 +154,7 @@ export default function OrderEmailActions({
       <div className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-medium text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-            <TruckIcon className="w-4 h-4 text-primary dark:text-primary-dark" /> Expédition &
+            <TruckIcon className="w-4 h-4 text-primary-text dark:text-primary-dark" /> Expédition &
             Transporteur
           </h2>
           <div className="flex items-center gap-3">
@@ -173,9 +174,9 @@ export default function OrderEmailActions({
                 href={dpdUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-primary dark:text-primary-dark hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-primary-text dark:text-primary-dark hover:underline flex items-center gap-1"
               >
-                Suivre sur DPD ↗
+                Suivre sur DPD <ArrowUpRight className="h-3 w-3" />
               </a>
             )}
             {planzerUrl && (
@@ -183,9 +184,9 @@ export default function OrderEmailActions({
                 href={planzerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-semibold text-primary dark:text-primary-dark hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-primary-text dark:text-primary-dark hover:underline flex items-center gap-1"
               >
-                Suivre sur Planzer ↗
+                Suivre sur Planzer <ArrowUpRight className="h-3 w-3" />
               </a>
             )}
           </div>
@@ -198,7 +199,7 @@ export default function OrderEmailActions({
               id="isPickup"
               checked={isPickup}
               onChange={(e) => setIsPickup(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+              className="h-4 w-4 rounded border-border text-primary-text focus:ring-primary cursor-pointer"
             />
             <label
               htmlFor="isPickup"
@@ -221,7 +222,7 @@ export default function OrderEmailActions({
                       onClick={() => setCarrier('Planzer')}
                       className={`text-[10px] px-1.5 py-0.5 rounded border ${
                         carrier.toUpperCase().includes('PLANZER')
-                          ? 'bg-primary text-white border-primary'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : 'border-border hover:bg-primary/10'
                       }`}
                     >
@@ -232,7 +233,7 @@ export default function OrderEmailActions({
                       onClick={() => setCarrier('DPD')}
                       className={`text-[10px] px-1.5 py-0.5 rounded border ${
                         carrier.toUpperCase().includes('DPD')
-                          ? 'bg-primary text-white border-primary'
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : 'border-border hover:bg-primary/10'
                       }`}
                     >
@@ -279,7 +280,7 @@ export default function OrderEmailActions({
       {/* 2. Bloc Actions Rapides Emails & Historique */}
       <div className="card p-5">
         <h2 className="font-medium text-text-primary dark:text-text-primary-dark mb-3 flex items-center gap-2">
-          <MailIcon className="w-4 h-4 text-primary dark:text-primary-dark" /> Notifications &
+          <MailIcon className="w-4 h-4 text-primary-text dark:text-primary-dark" /> Notifications &
           Emails ({orderNumber} — {clientEmail})
         </h2>
 
@@ -316,7 +317,7 @@ export default function OrderEmailActions({
             type="button"
             onClick={handleSendInvoice}
             disabled={isPending}
-            className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5 border-primary/40 text-primary dark:text-primary-dark font-medium"
+            className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5 border-primary/40 text-primary-text dark:text-primary-dark font-medium"
           >
             <FacturesIcon className="w-3.5 h-3.5" /> Envoyer facture au client
           </button>

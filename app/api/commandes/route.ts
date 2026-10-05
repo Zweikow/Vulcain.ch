@@ -6,13 +6,24 @@ import { notifyOrderPlaced } from '@/lib/notifications'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
-import { getSettings } from '@/lib/settings'
+import { getSettings, isMaintenanceMode } from '@/lib/settings'
 import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
 import { recordCustomerAudit } from '@/lib/audit'
 
 class OrderConflictError extends Error {}
 
 export async function POST(request: NextRequest) {
+  // 0. Boutique en maintenance : aucune commande n'est acceptée
+  if (await isMaintenanceMode()) {
+    return NextResponse.json(
+      {
+        error:
+          'La boutique est en maintenance : les commandes sont suspendues. Merci de réessayer un peu plus tard.',
+      },
+      { status: 503 }
+    )
+  }
+
   // 1. Rate limiting by IP
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? '127.0.0.1'
   const { success: withinLimit } = await getOrderRatelimit().limit(ip)

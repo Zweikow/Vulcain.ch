@@ -24,7 +24,7 @@ const productSchema = z.object({
   isBio: z.boolean().default(false),
   isVegan: z.boolean().default(false),
   alcoholVolume: z.coerce.number().min(0).max(100).nullable().optional(),
-  imageUrl: z.string().url().or(z.literal('')),
+  imageUrl: z.string().url().or(z.string().startsWith('/')).or(z.literal('')).nullable().optional(),
 })
 
 export type ProductInput = z.infer<typeof productSchema>
@@ -129,4 +129,16 @@ export async function archiveProduct(id: string) {
   await prisma.product.update({ where: { id }, data: { archived: true, active: false } })
   revalidate()
   return { ok: true, deleted: false }
+}
+
+export async function updateProductImage(id: string, imageUrl: string | null) {
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
+
+  await prisma.product.update({
+    where: { id },
+    data: { imageUrl: imageUrl ? imageUrl.trim() : null },
+  })
+  revalidate()
+  return { ok: true }
 }

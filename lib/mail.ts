@@ -33,7 +33,9 @@ function getClient(): SESv2Client {
 }
 
 function getMailFrom(): string {
-  return process.env.MAIL_FROM || 'commandes@drinkcider.ch'
+  const raw = process.env.MAIL_FROM || 'commandes@drinkcider.ch'
+  if (raw.includes('<') && raw.includes('>')) return raw
+  return `Drinkcider <${raw}>`
 }
 
 /**

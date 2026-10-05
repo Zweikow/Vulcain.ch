@@ -1,7 +1,6 @@
 export const metadata = {
   title: 'Protection des Données (nLPD)',
-  description:
-    'Politique de protection des données personnelles (nLPD) de la Cidrerie du Vulcain et Drinkcider.',
+  description: 'Politique de protection des données personnelles (nLPD) de Drinkcider.',
 }
 
 export default function ConfidentialitePage() {
@@ -11,10 +10,10 @@ export default function ConfidentialitePage() {
       <p className="text-sm text-text-tertiary">Dernière mise à jour : 14 août 2026</p>
 
       <p>
-        La Cidrerie du Vulcain attache une grande importance à la protection de vos données
-        personnelles. La présente déclaration explique de quelle manière et à quelles fins nous
-        collectons, traitons et utilisons vos données personnelles, conformément à la Loi fédérale
-        sur la protection des données (nLPD) en Suisse.
+        Drinkcider attache une grande importance à la protection de vos données personnelles. La
+        présente déclaration explique de quelle manière et à quelles fins nous collectons, traitons
+        et utilisons vos données personnelles, conformément à la Loi fédérale sur la protection des
+        données (nLPD) en Suisse.
       </p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
@@ -108,8 +107,7 @@ export default function ConfidentialitePage() {
         contacter à l&apos;adresse suivante :
       </p>
       <p>
-        <strong>E-mail :</strong>{' '}
-        <a href="mailto:commandes@cidrerie-vulcain.ch">commandes@cidrerie-vulcain.ch</a>
+        <strong>E-mail :</strong> <a href="mailto:info@drinkcider.ch">info@drinkcider.ch</a>
         <br />
         <strong>Adresse postale :</strong> Bertrand Baeriswyl, Drinkcider, Chemin des Moilles 16,
         1619 Les Paccots

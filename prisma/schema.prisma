@@ -1,9 +1,9 @@
-// Modèle de données Cidrerie du Vulcain — v2 (règles DESIGN.md).
+// Modèle de données Drinkcider — v2 (règles DESIGN.md).
 // Tous les montants sont en centimes entiers (Int) : jamais de flottant ni de
 // Decimal, ni en base ni côté application. Les calculs vivent dans lib/money.ts.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
@@ -19,22 +19,22 @@ enum Role {
 }
 
 model User {
-  id       String @id @default(cuid())
+  id                 String     @id @default(cuid())
   // Identifiant de connexion : un nom d'utilisateur, pas une adresse. Rien
   // n'oblige l'exploitant à taper une adresse complète pour entrer chez lui.
-  username String @unique
-  password String
-  name     String
-  role     Role   @default(PREPARATEUR)
+  username           String     @unique
+  password           String
+  name               String
+  role               Role       @default(PREPARATEUR)
   // Adresse de contact du compte, pour une future réinitialisation de mot de
   // passe. Ne sert pas à se connecter.
-  email          String?    @unique
-  active         Boolean    @default(true)
-  mustChangePassword Boolean @default(false)
-  lastLoginAt    DateTime?
-  createdAt      DateTime   @default(now())
-  auditLogs      AuditLog[]
-  assignedOrders Order[]    @relation("OrderAssignedTo")
+  email              String?    @unique
+  active             Boolean    @default(true)
+  mustChangePassword Boolean    @default(false)
+  lastLoginAt        DateTime?
+  createdAt          DateTime   @default(now())
+  auditLogs          AuditLog[]
+  assignedOrders     Order[]    @relation("OrderAssignedTo")
 }
 
 enum AuditTargetType {
@@ -59,16 +59,16 @@ enum AuditAction {
  * Journal d'activité généralisé : commandes, modifications catalogue...
  */
 model AuditLog {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
+  id          String          @id @default(cuid())
+  createdAt   DateTime        @default(now())
   action      AuditAction
-  targetType  AuditTargetType  @default(COMMANDE)
+  targetType  AuditTargetType @default(COMMANDE)
   targetLabel String // instantané, survit à la suppression (ex: numéro de commande, nom de produit)
   targetId    String? // lien optionnel (identifiant commande ou produit)
   detail      String? // « À traiter → En préparation », motif d'annulation…
   // Nul quand l'auteur est le client lui-même depuis la boutique.
   userId      String?
-  user        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   actorLabel  String // nom lisible figé : le compte peut être supprimé ensuite
 
   @@index([createdAt])
@@ -91,34 +91,34 @@ model Producer {
 }
 
 model Product {
-  id             String          @id @default(cuid())
-  articleNumber  Int             @unique @default(autoincrement())
-  name           String
-  description    String?
-  priceCents     Int // prix public TTC — le prix pro est dérivé du taux Setting, jamais stocké
-  purchasePriceCents Int @default(0) // prix d'achat payé au producteur
-  stock          Int             @default(0)
-  stockSeuil     Int             @default(5)
-  bottlesPerUnit Int             @default(1) // nombre de bouteilles vendues par unité (+1 boutique)
-  compareAtPriceCents Int?       // prix d'origine barré (ex: pour afficher un rabais)
-  active         Boolean         @default(true) // visibilité boutique
-  archived       Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
-  imageUrl       String?
-  year           Int?
-  bottleSize     String          @default("75cl") // "75cl" ou "27.5cl"
-  origin         String          @default("CH") // "CH" (Suisse) ou "FR" (France)
-  isBio          Boolean         @default(false)
-  isVegan        Boolean         @default(false)
-  alcoholVolume  Float?
-  category       Category        @relation(fields: [categoryId], references: [id])
-  categoryId     String
-  producer       Producer?       @relation(fields: [producerId], references: [id])
-  producerId     String?
-  orderItems     OrderItem[]
-  promotions     Promotion[]
-  stockMovements StockMovement[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                  String          @id @default(cuid())
+  articleNumber       Int             @unique @default(autoincrement())
+  name                String
+  description         String?
+  priceCents          Int // prix public TTC — le prix pro est dérivé du taux Setting, jamais stocké
+  purchasePriceCents  Int             @default(0) // prix d'achat payé au producteur
+  stock               Int             @default(0)
+  stockSeuil          Int             @default(5)
+  bottlesPerUnit      Int             @default(1) // nombre de bouteilles vendues par unité (+1 boutique)
+  compareAtPriceCents Int? // prix d'origine barré (ex: pour afficher un rabais)
+  active              Boolean         @default(true) // visibilité boutique
+  archived            Boolean         @default(false) // un produit cité dans une commande ne se supprime pas
+  imageUrl            String?
+  year                Int?
+  bottleSize          String          @default("75cl") // "75cl" ou "27.5cl"
+  origin              String          @default("CH") // "CH" (Suisse) ou "FR" (France)
+  isBio               Boolean         @default(false)
+  isVegan             Boolean         @default(false)
+  alcoholVolume       Float?
+  category            Category        @relation(fields: [categoryId], references: [id])
+  categoryId          String
+  producer            Producer?       @relation(fields: [producerId], references: [id])
+  producerId          String?
+  orderItems          OrderItem[]
+  promotions          Promotion[]
+  stockMovements      StockMovement[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   @@index([categoryId])
   @@index([producerId])
@@ -136,8 +136,8 @@ model Customer {
   npa              String
   city             String
   isPro            Boolean  @default(false)
-  proRatePercent   Int?     // Taux de remise pro personnalisé (ex: 25). Si null, Setting.proRatePercent s'applique
-  notes            String?  // Notes internes de la cave
+  proRatePercent   Int? // Taux de remise pro personnalisé (ex: 25). Si null, Setting.proRatePercent s'applique
+  notes            String? // Notes internes de la cave
   acceptsMarketing Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @default(now()) @updatedAt
@@ -150,18 +150,18 @@ enum ClientType {
 }
 
 model Order {
-  id     String      @id @default(cuid())
-  numero String      @unique // CMD-2026-0023 — série commande, attribuée à la prise de commande
-  status OrderStatus @default(A_TRAITER)
+  id             String      @id @default(cuid())
+  numero         String      @unique // CMD-2026-0023 — série commande, attribuée à la prise de commande
+  status         OrderStatus @default(A_TRAITER)
   // Série facture, distincte et attribuée seulement à l'émission : une commande
   // annulée ne doit pas créer de trou dans la numérotation des factures.
-  invoiceNumber String?   @unique // FAC-2026-0007
-  invoicedAt    DateTime?
+  invoiceNumber  String?     @unique // FAC-2026-0007
+  invoicedAt     DateTime?
   // Suivi des paiements et relances (factures à 30 jours)
   paidAt         DateTime?
-  paymentMethod  String?   // Virement bancaire, Espèces, QR-facture, etc.
-  proRatePercent Int?      // Taux effectif appliqué figé lors de la commande
-  reminderCount  Int       @default(0)
+  paymentMethod  String? // Virement bancaire, Espèces, QR-facture, etc.
+  proRatePercent Int? // Taux effectif appliqué figé lors de la commande
+  reminderCount  Int         @default(0)
   lastReminderAt DateTime?
 
   clientType     ClientType      @default(PRIVE) // figé au moment de la commande
@@ -203,7 +203,7 @@ model OrderEmailLog {
   id        String   @id @default(cuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  type      String   // "CONFIRMATION", "ADMIN_NOTIFICATION", "FACTURE", "EXPEDITION", "ANNULATION"
+  type      String // "CONFIRMATION", "ADMIN_NOTIFICATION", "FACTURE", "EXPEDITION", "ANNULATION"
   recipient String
   subject   String
   sentAt    DateTime @default(now())
@@ -214,17 +214,17 @@ model OrderEmailLog {
 }
 
 model OrderItem {
-  id             String  @id @default(cuid())
-  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId        String
-  product        Product @relation(fields: [productId], references: [id])
-  productId      String
-  productName    String  @default("") // instantané : la facture ne change pas si le produit change
-  listPriceCents Int // prix public au moment de la commande
-  purchasePriceCents Int @default(0) // prix d'achat figé au moment de la commande
-  unitPriceCents Int // prix appliqué (public ou pro)
-  quantity       Int
-  bottlesPerUnit Int     @default(1) // fige le nombre de bouteilles par unité vendue
+  id                 String  @id @default(cuid())
+  order              Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId            String
+  product            Product @relation(fields: [productId], references: [id])
+  productId          String
+  productName        String  @default("") // instantané : la facture ne change pas si le produit change
+  listPriceCents     Int // prix public au moment de la commande
+  purchasePriceCents Int     @default(0) // prix d'achat figé au moment de la commande
+  unitPriceCents     Int // prix appliqué (public ou pro)
+  quantity           Int
+  bottlesPerUnit     Int     @default(1) // fige le nombre de bouteilles par unité vendue
 
   @@index([orderId])
   @@index([productId])
@@ -261,30 +261,33 @@ model StockMovement {
 // Réglages globaux — une seule ligne (id = 1). Port, franco et taux pro sont
 // TOUJOURS lus ici, jamais codés en dur (bug historique : 10 CHF dans Cart.tsx).
 model Setting {
-  id              Int    @id @default(1)
-  proRatePercent  Int    @default(20) // remise pro en % entier, appliquée à tout le catalogue
-  shippingCents   Int    @default(1000) // port standard
-  francoCents     Int    @default(12000) // seuil de livraison offerte (bandeau actuel : 120 CHF)
-  prepDays        Int    @default(3) // jours de préparation annoncés
-  companyName     String @default("Cidrerie du Vulcain")
-  companyAddress  String @default("Ch. des Moilles 16")
-  contactEmail    String @default("info@drinkcider.ch")
-  contactPhone    String @default("")
+  id               Int     @id @default(1)
+  proRatePercent   Int     @default(20) // remise pro en % entier, appliquée à tout le catalogue
+  shippingCents    Int     @default(1000) // port standard
+  francoCents      Int     @default(12000) // seuil de livraison offerte (bandeau actuel : 120 CHF)
+  prepDays         Int     @default(3) // jours de préparation annoncés
+  companyName      String  @default("Drinkcider")
+  companyAddress   String  @default("Ch. des Moilles 16")
+  contactEmail     String  @default("info@drinkcider.ch")
+  contactPhone     String  @default("")
   // La cidrerie n'est pas assujettie à la TVA (chiffre d'affaires sous le seuil
   // de 100 000 CHF) : aucun document ne doit en faire mention. Le taux reste
   // renseigné pour le jour où le seuil sera franchi ; c'est cet indicateur qui
   // commande son application, jamais le taux seul.
-  vatSubject      Boolean @default(false)
-  vatNumber       String @default("") // ex. CHE-123.456.789 TVA, une fois assujettie
-  vatRatePermille Int    @default(81) // 8.1%, appliqué seulement si vatSubject
-  iban            String @default("CH57 0900 0000 1703 3189 6")
+  vatSubject       Boolean @default(false)
+  vatNumber        String  @default("") // ex. CHE-123.456.789 TVA, une fois assujettie
+  vatRatePermille  Int     @default(81) // 8.1%, appliqué seulement si vatSubject
+  iban             String  @default("CH57 0900 0000 1703 3189 6")
   // En-tête et pied de la facture papier (modèle Facture_Base.docx)
-  contactName      String @default("Bertrand Baeriswyl") // signataire de la facture
-  companyTagline   String @default("Drinkcider")
-  companyZipCity   String @default("1619 Les Paccots")
-  invoicePlace     String @default("Les Paccots") // « Les Paccots, le … »
-  bankName         String @default("PostFinance AG")
-  paymentTermsDays Int    @default(30) // « Facture payable à 30 jours net »
+  contactName      String  @default("Bertrand Baeriswyl") // signataire de la facture
+  companyTagline   String  @default("Drinkcider")
+  companyZipCity   String  @default("1619 Les Paccots")
+  invoicePlace     String  @default("Les Paccots") // « Les Paccots, le … »
+  bankName         String  @default("PostFinance AG")
+  paymentTermsDays Int     @default(30) // « Facture payable à 30 jours net »
+  // Boutique fermée : la page d'accueil affiche un avis de maintenance et
+  // POST /api/commandes refuse toute commande. L'admin reste accessible.
+  maintenanceMode  Boolean @default(false)
 }
 
 // Compteur de numérotation par série et par année — incrément atomique en
@@ -307,8 +310,8 @@ enum PromoType {
 
 model Promotion {
   id              String    @id @default(cuid())
-  name            String    // Ex: "Offre Estivale", "Promotion Découverte"
-  badgeText       String?   // Ex: "-19%", "3+1 OFFERT"
+  name            String // Ex: "Offre Estivale", "Promotion Découverte"
+  badgeText       String? // Ex: "-19%", "3+1 OFFERT"
   description     String?
   type            PromoType @default(BUY_X_GET_Y_FREE)
   buyQuantity     Int?      @default(3)

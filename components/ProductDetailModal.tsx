@@ -1,15 +1,30 @@
-import Image from 'next/image'
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
-import { CloseIcon, LeafIcon, SproutIcon, GiftIcon } from '@/components/Icons'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  X,
+  Leaf,
+  Sprout,
+  Gift,
+  ShoppingBag,
+  Plus,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
+import { getCuveeGallery } from '@/lib/cuvees-gallery'
 
 interface ProductDetailModalProps {
   product: Product
   quantity: number
   onAdd: () => void
   onRemove: () => void
-  onSetQuantity: (quantity: number) => void
+  onSetQuantity?: (quantity: number) => void
   onClose: () => void
 }
 
@@ -18,7 +33,6 @@ export default function ProductDetailModal({
   quantity,
   onAdd,
   onRemove,
-  onSetQuantity: _onSetQuantity,
   onClose,
 }: ProductDetailModalProps) {
   const isOutOfStock = product.stock === 0
@@ -37,222 +51,317 @@ export default function ProductDetailModal({
     effectiveOrigPriceCents = product.compareAtPriceCents
   }
 
+  const isCarton = product.bottlesPerUnit > 1
+
+  const gallery = useMemo(() => {
+    return getCuveeGallery(product.image, product.articleNumber)
+  }, [product.image, product.articleNumber])
+
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  // Réinitialiser à la première photo au changement de produit
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [product.id])
+
+  const nextImage = () => {
+    if (gallery.length <= 1) return
+    setActiveIndex((prev) => (prev + 1) % gallery.length)
+  }
+
+  const prevImage = () => {
+    if (gallery.length <= 1) return
+    setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length)
+  }
+
+  // Navigation clavier
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gallery.length <= 1) return
+      if (e.key === 'ArrowRight') {
+        setActiveIndex((prev) => (prev + 1) % gallery.length)
+      } else if (e.key === 'ArrowLeft') {
+        setActiveIndex((prev) => (prev - 1 + gallery.length) % gallery.length)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gallery.length])
+
+  const currentImg = gallery[activeIndex]
+
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex flex-col items-center justify-center z-50 p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-bg-page dark:bg-bg-page-dark rounded-[24px] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+        className="relative w-full max-w-4xl bg-card border border-border dark:border-border-dark rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* Bouton Fermer */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 transition-colors text-text-primary dark:text-text-primary-dark backdrop-blur-sm"
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-foreground transition-colors"
           aria-label="Fermer"
         >
-          <CloseIcon className="w-4 h-4" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Left side: Image */}
-        <div className="w-full md:w-1/2 bg-[#f8f8f8] dark:bg-[#1a1a1a] flex items-center justify-center p-8 shrink-0 relative min-h-[300px]">
-          {product.image ? (
-            <div className="relative w-full max-w-[300px] aspect-[1/2]">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="object-contain drop-shadow-2xl"
-                sizes="(max-width: 768px) 100vw, 400px"
-                priority
-              />
-            </div>
+        {/* Partie Gauche : Carrousel d'images sans cadre */}
+        <div className="w-full md:w-1/2 bg-card flex flex-col items-center justify-between p-6 sm:p-8 shrink-0 relative min-h-[380px] md:min-h-[500px]">
+          {gallery.length > 0 ? (
+            <>
+              {/* Entête indicateur du slide */}
+              <div className="w-full flex items-center justify-between z-10 mb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                  {currentImg?.label || 'Visuel'}
+                </span>
+                {gallery.length > 1 && (
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {activeIndex + 1} / {gallery.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Image principale avec boutons Précédent / Suivant */}
+              <div className="relative w-full flex-1 max-w-[280px] aspect-[1/2] max-h-[360px] flex items-center justify-center my-auto">
+                {currentImg ? (
+                  <img
+                    key={currentImg.url}
+                    src={currentImg.url}
+                    alt={`${product.name} - ${currentImg.label}`}
+                    className="max-h-[360px] w-auto max-w-full object-contain select-none transition-all duration-200"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center p-4 gap-2 text-muted-foreground">
+                    <span className="font-serif italic text-sm">{product.name}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {product.origin || 'Cuvée artisanale'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Flèches de navigation carrousel */}
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        prevImage()
+                      }}
+                      className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/90 hover:bg-background border border-border/80 text-foreground flex items-center justify-center shadow-md hover:scale-105 transition-all"
+                      aria-label="Image précédente"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        nextImage()
+                      }}
+                      className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/90 hover:bg-background border border-border/80 text-foreground flex items-center justify-center shadow-md hover:scale-105 transition-all"
+                      aria-label="Image suivante"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Miniatures cliquables */}
+              {gallery.length > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-4 flex-wrap z-10">
+                  {gallery.map((img, idx) => (
+                    <button
+                      key={img.url}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveIndex(idx)
+                      }}
+                      className={`relative w-14 h-14 rounded-xl overflow-hidden border transition-all bg-background/50 flex items-center justify-center p-1 ${
+                        idx === activeIndex
+                          ? 'border-primary ring-2 ring-primary/40 scale-105 shadow-sm'
+                          : 'border-border/60 opacity-60 hover:opacity-100 hover:border-border'
+                      }`}
+                      title={img.label}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-contain select-none"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            <div
-              className="w-full h-full min-h-[300px] flex items-center justify-center font-mono text-sm text-text-tertiary dark:text-text-tertiary-dark"
-              style={{
-                backgroundImage:
-                  'repeating-linear-gradient(45deg, rgba(122,149,165,.12) 0 12px, transparent 12px 24px)',
-              }}
-            >
-              photo bouteille
+            <div className="w-full h-full min-h-[280px] flex items-center justify-center font-serif italic text-sm text-muted-foreground">
+              Cuvée artisanale
             </div>
           )}
         </div>
 
-        {/* Right side: Details */}
-        <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col overflow-y-auto">
-          <div className="text-[11px] text-text-tertiary dark:text-text-tertiary-dark font-mono uppercase tracking-wider mb-2">
-            Article-Nr. {product.articleNumber.toString().padStart(5, '0')}
+        {/* Partie Droite : Contenu & Détails */}
+        <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col overflow-y-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider">
+              Réf. {product.articleNumber.toString().padStart(5, '0')}
+            </span>
+            <OriginBadge origin={product.origin} showLabel className="w-4 h-4" />
           </div>
 
-          <h2 className="font-display font-bold text-2xl sm:text-3xl text-text-primary dark:text-text-primary-dark leading-tight uppercase mb-4">
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground leading-tight mb-3">
             {product.name}
           </h2>
 
-          {/* Badges / Tags */}
-          <div className="flex flex-wrap items-center gap-2 mb-6">
+          {/* Badges / Labels */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             {product.year && (
-              <span className="px-3 py-1 bg-border-light dark:bg-border-dark rounded-full text-xs font-semibold text-text-secondary dark:text-text-secondary-dark">
+              <Badge variant="secondary" className="font-mono">
                 {product.year}
-              </span>
+              </Badge>
             )}
             {product.isBio && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <LeafIcon className="w-3.5 h-3.5 text-emerald-600" /> Bio
-              </span>
+              <Badge variant="success" className="flex items-center gap-1">
+                <Leaf className="w-3 h-3 text-emerald-600" />
+                <span>Bio</span>
+              </Badge>
             )}
             {product.isVegan && (
-              <span className="px-3 py-1 bg-[#E8F5E9] dark:bg-[#1B5E20]/30 text-text-success rounded-full text-xs font-semibold flex items-center gap-1.5 border border-[#CDE8D4] dark:border-[#2E7D32]/50">
-                <SproutIcon className="w-3.5 h-3.5 text-emerald-500" /> Vegan
-              </span>
+              <Badge variant="success" className="flex items-center gap-1">
+                <Sprout className="w-3 h-3 text-emerald-600" />
+                <span>Vegan</span>
+              </Badge>
             )}
+            <Badge variant="outline">{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</Badge>
           </div>
 
-          <div className="text-sm text-text-secondary dark:text-text-secondary-dark mb-6 leading-relaxed flex flex-col gap-1">
-            <span className="font-semibold text-text-primary dark:text-text-primary-dark">
-              {product.producerName || 'Jacques Perritaz'}
+          {/* Producteur et conditionnement */}
+          <div className="text-sm text-muted-foreground mb-6 flex flex-col gap-1">
+            <span className="font-semibold text-foreground">
+              {product.producerName ? `${product.producerName} · ` : ''}
+              {product.category}
             </span>
-            <div className="flex items-center gap-2">
-              <OriginBadge origin={product.origin} showLabel className="w-4 h-4" />
-              <span>·</span>
-              <span>{product.bottleSize === '27.5cl' ? '27.5 cl' : '75 cl'}</span>
-              {product.bottlesPerUnit > 1 && (
-                <>
-                  <span>·</span>
-                  <span className="font-semibold text-text-primary dark:text-text-primary-dark">
-                    Carton de {product.bottlesPerUnit} bouteilles
-                  </span>
-                </>
-              )}
-            </div>
-            <span>{product.category}</span>
+            {isCarton && (
+              <span className="text-xs">
+                Conditionnement : Carton renforcé de {product.bottlesPerUnit} bouteilles
+              </span>
+            )}
           </div>
 
           {/* Prix & Promotion */}
-          <div className="mb-6 flex flex-col gap-1">
+          <div className="mb-6 p-4 rounded-xl bg-muted/60 border border-border/60 flex flex-col gap-1.5">
             <div className="flex items-baseline gap-2">
-              <span className="font-bold text-3xl text-primary tabular">
+              <span className="font-bold text-3xl text-foreground font-mono tabular">
                 {formatCHF(
-                  product.bottlesPerUnit > 1
+                  isCarton
                     ? Math.round(effectivePriceCents / product.bottlesPerUnit)
                     : effectivePriceCents
                 )}
               </span>
-              <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
-                / bouteille
-              </span>
+              <span className="text-sm text-muted-foreground">/ bouteille</span>
             </div>
 
             {effectiveOrigPriceCents && (
-              <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark tabular">
+              <div className="text-xs text-muted-foreground tabular line-through">
                 au lieu de{' '}
-                <span className="line-through">
-                  {formatCHF(
-                    product.bottlesPerUnit > 1
-                      ? Math.round(effectiveOrigPriceCents / product.bottlesPerUnit)
-                      : effectiveOrigPriceCents
-                  )}
-                </span>{' '}
-                {product.bottlesPerUnit > 1 && (
-                  <span>(soit {formatCHF(effectiveOrigPriceCents)} le carton)</span>
+                {formatCHF(
+                  isCarton
+                    ? Math.round(effectiveOrigPriceCents / product.bottlesPerUnit)
+                    : effectiveOrigPriceCents
                 )}
               </div>
             )}
 
-            {product.bottlesPerUnit > 1 && (
-              <div className="text-sm font-semibold text-text-primary dark:text-text-primary-dark mt-1 tabular">
+            {isCarton && (
+              <div className="text-xs font-semibold text-foreground pt-1 border-t border-border/50 tabular">
                 Total : {formatCHF(effectivePriceCents)} / carton de {product.bottlesPerUnit}{' '}
                 bouteilles
               </div>
             )}
 
-            {product.activePromotion && (
-              <div className="mt-2 p-2.5 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 text-xs text-text-primary dark:text-text-primary-dark flex items-center gap-2">
-                <GiftIcon className="w-4 h-4 text-primary shrink-0" />
+            {promo && (
+              <div className="mt-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-foreground flex items-center gap-2">
+                <Gift className="w-4 h-4 text-primary-text shrink-0" />
                 <div>
-                  <span className="font-bold">{product.activePromotion.name}</span>
-                  {product.activePromotion.description && (
-                    <p className="text-[11px] text-text-secondary dark:text-text-secondary-dark">
-                      {product.activePromotion.description}
-                    </p>
+                  <span className="font-bold">{promo.name}</span>
+                  {promo.description && (
+                    <p className="text-[11px] text-muted-foreground">{promo.description}</p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Add to cart / Quantity */}
-          <div className="mt-auto pt-6 border-t border-border dark:border-border-dark">
+          {/* Bouton Ajouter au panier */}
+          <div className="mt-auto pt-4 border-t border-border/60">
             {isOutOfStock ? (
-              <div className="w-full py-3 rounded-[12px] bg-gray-100 dark:bg-gray-800 text-center text-text-tertiary dark:text-text-tertiary-dark font-medium">
-                Épuisé
-              </div>
+              <Badge variant="subtle" className="w-full py-3 justify-center text-sm font-medium">
+                Cuvée épuisée
+              </Badge>
             ) : (
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border dark:border-border-dark rounded-[12px] overflow-hidden bg-bg-page dark:bg-bg-page-dark h-11 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-border rounded-xl bg-card overflow-hidden h-11 shrink-0">
                     <button
+                      type="button"
                       onClick={onRemove}
                       disabled={quantity === 0}
-                      className="w-11 h-full flex items-center justify-center text-text-primary dark:text-text-primary-dark hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-30 transition-colors text-lg font-medium"
+                      className="w-10 h-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-colors"
                     >
-                      −
+                      <Minus className="w-4 h-4" />
                     </button>
-                    <span className="px-3 text-sm font-semibold text-text-primary dark:text-text-primary-dark tabular select-none min-w-[70px] text-center">
-                      {quantity} {product.bottlesPerUnit > 1 ? 'carton(s)' : 'bouteille(s)'}
+                    <span className="px-3 text-sm font-bold text-foreground font-mono tabular min-w-[60px] text-center select-none">
+                      {quantity} {isCarton ? 'Cart.' : 'Btl.'}
                     </span>
                     <button
+                      type="button"
                       onClick={onAdd}
                       disabled={quantity >= product.stock}
-                      className="w-11 h-full flex items-center justify-center text-text-primary dark:text-text-primary-dark hover:bg-border-light dark:hover:bg-border-dark disabled:opacity-30 transition-colors text-lg font-medium"
+                      className="w-10 h-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-colors"
                     >
-                      +
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <button
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="lg"
                     onClick={() => {
                       if (quantity === 0) onAdd()
                       onClose()
                     }}
-                    className="flex-1 btn-primary h-11 text-sm flex justify-center items-center gap-2 rounded-[12px]"
+                    className="flex-1 h-11 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                      <path d="M3 6h18" />
-                      <path d="M16 10a4 4 0 0 1-8 0" />
-                    </svg>
-                    Ajouter au panier
-                  </button>
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Ajouter à la commande</span>
+                  </Button>
                 </div>
 
                 {quantity > 0 && quantity >= product.stock && (
                   <span className="text-xs text-text-warning font-medium text-center">
-                    Stock maximum atteint pour ce produit.
+                    Stock maximal disponible atteint pour cette cuvée.
                   </span>
                 )}
               </div>
             )}
           </div>
 
+          {/* Description œnologique */}
           {product.description && (
-            <div className="mt-8">
-              <h3 className="text-sm font-semibold text-text-primary dark:text-text-primary-dark mb-2">
-                Description
+            <div className="mt-6 pt-4 border-t border-border/40">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Notes de dégustation &amp; terroir
               </h3>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark whitespace-pre-wrap leading-relaxed">
+              <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
                 {product.description}
               </p>
             </div>

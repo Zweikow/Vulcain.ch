@@ -50,7 +50,7 @@ export default async function NouvelleCommandePage() {
     <div className="max-w-4xl mx-auto">
       {/* Fil d'Ariane */}
       <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark mb-6">
-        <Link href="/admin/commandes" className="hover:text-primary transition-colors">
+        <Link href="/admin/commandes" className="hover:text-primary-text transition-colors">
           Commandes
         </Link>
         <span>/</span>

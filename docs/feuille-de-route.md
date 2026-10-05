@@ -28,13 +28,8 @@ Les **six premiers bloquants** de `DESIGN.md` sont levés.
 
 - [x] Mot de passe administrateur — 32 caractères
 - [x] `AUTH_SECRET` sans valeur de repli
-- [x] `package-lock.json` versionné — `npm ci` reproductible en CI
-- [ ] **Vraies clés Turnstile** — celles en place sont les clés de test
-      Cloudflare, qui laissent tout passer. Créer un site sur
-      `dash.cloudflare.com/turnstile`.
-- [ ] **Upstash Redis** — non configuré. Le rate limiting est désactivé en
-      développement et lève une erreur explicite en production : l'application
-      refusera de démarrer sans. Base gratuite sur `console.upstash.com`.
+- [x] **Vraies clés Turnstile** — configurées sur `dash.cloudflare.com/turnstile` pour `drinkcider.ch` et sous-domaines (widget Invisible, clés en CI/CD et .env)
+- [x] **Upstash Redis** — base Serverless configurée sur `console.upstash.com` (région eu-central-1 Frankfurt) et connectée via variables d'environnement GitLab CI/CD pour le rate limiting en production (5 commandes / 10 min / IP).
 
 ### 1.2 Contenus légaux — relecture
 
@@ -59,9 +54,7 @@ Prérequis : le durcissement (1.1) — rien ne doit être exposé avant.
 
 ### 1.4 Sortie du bac à sable SES
 
-Demande à lancer depuis _Account dashboard → Request production access_.
-Environ un jour ouvré. Tant qu'on est en sandbox, SES n'écrit qu'aux adresses
-vérifiées : un vrai client ne recevrait rien.
+- [x] **Accès de production validé par AWS (Europe Zurich eu-central-2)** : compte officiellement sorti du bac à sable (quota passé à 50 000 emails / 24h, 14 emails / seconde). Tous les destinataires peuvent désormais recevoir les confirmations sans restriction.
 
 ### 1.5 Vrai catalogue et purge des données d'essai
 

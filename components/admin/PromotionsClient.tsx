@@ -62,7 +62,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
             <h1 className="text-xl sm:text-2xl font-bold text-text-primary dark:text-text-primary-dark">
               Offres & Promotions
             </h1>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary dark:bg-primary/20">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary-text dark:bg-primary/20">
               {activeCount} active{activeCount > 1 ? 's' : ''}
             </span>
           </div>
@@ -96,7 +96,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
       </div>
 
       {/* Tableau des promotions */}
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark text-xs font-semibold text-text-secondary dark:text-text-secondary-dark">

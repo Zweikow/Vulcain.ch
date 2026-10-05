@@ -104,7 +104,20 @@ const nextConfig = {
         headers: securityHeaders,
       },
       {
-        source: '/:all*(svg|jpg|jpeg|png|webp|avif|ico|gif|woff|woff2)',
+        source: '/:path*\\.:ext(svg|jpg|jpeg|png|webp|avif|ico|gif|woff|woff2)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Expires',
+            value: expiresHeader,
+          },
+        ],
+      },
+      {
+        source: '/_next/image',
         headers: [
           {
             key: 'Cache-Control',

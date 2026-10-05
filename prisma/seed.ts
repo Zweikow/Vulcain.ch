@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   // Connexion par nom d'utilisateur ; l'adresse ne sert que de contact du compte.
   const username = process.env.SEED_ADMIN_USERNAME ?? 'admin'
-  const email = process.env.SEED_ADMIN_EMAIL ?? 'commandes@cidrerie-vulcain.ch'
+  const email = process.env.SEED_ADMIN_EMAIL ?? 'commandes@drinkcider.ch'
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'changeme123'
   const name = process.env.SEED_ADMIN_NAME ?? 'Administrateur'
 
@@ -39,8 +39,17 @@ async function main() {
   // Réglages typés — une seule ligne, valeurs par défaut du schéma
   await prisma.setting.upsert({
     where: { id: 1 },
-    update: { companyTagline: 'Drinkcider' },
-    create: { id: 1, companyTagline: 'Drinkcider' },
+    update: {
+      companyName: 'Drinkcider',
+      companyTagline: 'Drinkcider',
+      contactEmail: 'info@drinkcider.ch',
+    },
+    create: {
+      id: 1,
+      companyName: 'Drinkcider',
+      companyTagline: 'Drinkcider',
+      contactEmail: 'info@drinkcider.ch',
+    },
   })
   console.log('✓ Paramètres initialisés (port, franco, taux pro, TVA, facturation)')
 

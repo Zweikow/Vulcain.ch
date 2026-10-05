@@ -1,3 +1,4 @@
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -67,7 +68,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     <div className="max-w-6xl mx-auto">
       {/* Fil d'Ariane */}
       <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark mb-6">
-        <Link href="/admin/clients" className="hover:text-primary transition-colors">
+        <Link href="/admin/clients" className="hover:text-primary-text transition-colors">
           Clients
         </Link>
         <span>/</span>
@@ -238,7 +239,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                         <div>
                           <Link
                             href={`/admin/commandes/${order.id}`}
-                            className="font-mono text-sm font-semibold text-primary hover:underline"
+                            className="font-mono text-sm font-semibold text-primary-text hover:underline"
                           >
                             {order.numero}
                           </Link>
@@ -284,13 +285,15 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                             href={`/admin/commandes/${order.id}/facture`}
                             className="text-text-secondary hover:text-text-primary transition-colors"
                           >
-                            Facture A4 ↗
+                            Facture A4{' '}
+                            <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                           </Link>
                           <Link
                             href={`/admin/commandes/${order.id}`}
-                            className="text-primary hover:underline"
+                            className="text-primary-text hover:underline"
                           >
-                            Détails →
+                            Détails{' '}
+                            <ArrowRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
                           </Link>
                         </div>
                       </div>

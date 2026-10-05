@@ -48,7 +48,7 @@ export function StatusSelect({ orderId, currentStatus }: StatusSelectProps) {
             disabled={isPending || s === status}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               s === status
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-bg-card dark:bg-bg-card-dark text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-primary/10'
             }`}
           >

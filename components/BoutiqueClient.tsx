@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import Header from '@/components/Header'
 import DeliveryWarning from '@/components/DeliveryWarning'
 import ProductCard from '@/components/ProductCard'
@@ -9,9 +10,12 @@ import Cart from '@/components/Cart'
 import OrderForm from '@/components/OrderForm'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import ProductDetailModal from '@/components/ProductDetailModal'
-import { ProduitsIcon, BottleIcon } from '@/components/Icons'
 import { CartItem, CustomerInfo, Product } from '@/types'
 import { PublicSettings } from '@/lib/settings'
+import { Spotlight } from '@/components/ui/spotlight'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ArrowDown, ArrowUpRight, Sparkles, Wine } from 'lucide-react'
 
 interface BoutiqueClientProps {
   products: Product[]
@@ -26,6 +30,7 @@ export default function BoutiqueClient({
 }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [confirmation, setConfirmation] = useState<{
     orderId: string
     totalCents: number
@@ -71,209 +76,201 @@ export default function BoutiqueClient({
     })
   }
 
-  const handleOrder = (customer: CustomerInfo, orderId: string, totalCents: number) => {
+  const handleOrder = (_customer: CustomerInfo, orderId: string, totalCents: number) => {
     setConfirmation({ orderId, totalCents })
     setCart([])
   }
 
-  // Catégories ordonnées selon la position définie dans l'admin (Category.position)
-  const categories =
+  // Catégories ordonnées
+  const rawCategories =
     propCategories && propCategories.length > 0
       ? Array.from(new Set([...propCategories, ...products.map((p) => p.category)]))
       : Array.from(new Set(products.map((p) => p.category)))
 
+  const categories = ['all', ...rawCategories]
+
+  const filteredProducts =
+    selectedCategory === 'all' ? products : products.filter((p) => p.category === selectedCategory)
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       <DeliveryWarning />
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Bandeau d'accueil (DESIGN.md §4) */}
-        <section className="card p-8 mb-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[.08em] text-text-tertiary dark:text-text-tertiary-dark">
-            Récolte 2026
-          </p>
-          <h1 className="mt-2 max-w-2xl font-display font-semibold text-4xl md:text-[46px] leading-tight text-text-primary dark:text-text-primary-dark">
-            L&apos;expression pure du terroir.
-          </h1>
-          <p className="mt-4 max-w-lg text-text-secondary dark:text-text-secondary-dark">
-            Cidres et poirés artisanaux, fermentés lentement sur levures indigènes.{' '}
-            {products.length} références disponibles à la cave.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#catalogue" className="btn-primary">
-              Découvrir la cave
-            </a>
-            <a href="#commande" className="btn-secondary">
-              Passer la commande
-            </a>
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* HERO SECTION AVEC ACETERNITY SPOTLIGHT */}
+        <section className="relative overflow-hidden rounded-3xl border border-border/80 bg-card p-8 sm:p-12 mb-12 shadow-sm">
+          {/* Spotlight Aceternity discret vert doux */}
+          <Spotlight
+            className="-top-40 left-0 md:left-60 md:-top-20"
+            fill="rgba(128, 237, 153, 0.15)"
+          />
+
+          <div className="relative z-10 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <Badge
+                variant="default"
+                className="flex items-center gap-1.5 py-1 px-3 bg-primary text-text-on-primary font-semibold"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Cidres &amp; poirés artisanaux</span>
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                Livraison partout en Suisse
+              </Badge>
+            </div>
+
+            <h1 className="font-display font-bold text-3xl sm:text-5xl md:text-6xl text-foreground leading-[1.1] tracking-tight">
+              Les cidres d&apos;artisans, livrés chez vous.
+            </h1>
+
+            <p className="mt-4 font-display italic text-xl sm:text-2xl text-primary-text font-medium">
+              Une sélection de cidres et poirés pur jus.
+            </p>
+
+            <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl">
+              Drinkcider réunit des cidres et des poirés de producteurs indépendants, choisis pour
+              leur goût et leur savoir-faire. {products.length} références à découvrir, préparées
+              avec soin et expédiées partout en Suisse.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button
+                asChild
+                variant="default"
+                size="lg"
+                className="rounded-xl font-semibold gap-2 shadow-sm"
+              >
+                <a href="#catalogue">
+                  <Wine className="w-4 h-4" />
+                  <span>Explorer les cuvées</span>
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-xl font-semibold gap-2"
+              >
+                <a href="#commande">
+                  <ArrowDown className="w-4 h-4" />
+                  <span>Passer commande</span>
+                </a>
+              </Button>
+            </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-          {/* Left: products + form */}
-          <div id="catalogue" className="flex flex-col gap-8">
-            {categories.map((category) => {
-              const categoryProducts = products.filter((p) => p.category === category)
-              if (categoryProducts.length === 0) return null
+        {/* BARRE DE FILTRES PAR CATÉGORIE SHADCN */}
+        <div id="catalogue" className="mb-8 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+            <div>
+              <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground">
+                Le catalogue
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Bouteilles et cartons expédiés partout en Suisse
+              </p>
+            </div>
 
-              return (
-                <section
-                  key={category}
-                  id={`categorie-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-primary">
-                      {category.toLowerCase().includes('cidre') ? (
-                        <ProduitsIcon className="w-5 h-5" />
-                      ) : (
-                        <BottleIcon className="w-5 h-5" />
-                      )}
+            {/* Pill Tabs de sélection */}
+            <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl bg-muted/60 border border-border/50">
+              {categories.map((cat) => {
+                const label = cat === 'all' ? 'Toutes les cuvées' : cat
+                const isSelected = selectedCategory === cat
+                const count =
+                  cat === 'all'
+                    ? products.length
+                    : products.filter((p) => p.category === cat).length
+
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-card text-foreground shadow-xs border border-border/50'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected
+                          ? 'bg-primary/10 text-primary-text font-bold'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {count}
                     </span>
-                    <h2 className="font-display font-semibold text-[22px] text-text-primary dark:text-text-primary-dark">
-                      {category}
-                    </h2>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {categoryProducts.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        quantity={getQuantity(product.id)}
-                        onAdd={() => addToCart(product.id)}
-                        onRemove={() => removeFromCart(product.id)}
-                        onSetQuantity={(qty) => setProductQuantity(product.id, qty)}
-                        onOpenDetails={() => setSelectedProduct(product)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )
-            })}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
 
-            {/* Order form */}
-            <div id="commande">
+        {/* LAYOUT PRINCIPAL : GRILLE DE PRODUITS + PANIER INTERACTIF */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+          {/* Grille des produits & Formulaire de commande */}
+          <div className="flex flex-col gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  quantity={getQuantity(product.id)}
+                  onAdd={() => addToCart(product.id)}
+                  onRemove={() => removeFromCart(product.id)}
+                  onSetQuantity={(qty) => setProductQuantity(product.id, qty)}
+                  onOpenDetails={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+
+            {/* Formulaire de commande */}
+            <div id="commande" className="pt-8 border-t border-border/60">
               <OrderForm items={cart} settings={settings} onSubmit={handleOrder} />
             </div>
           </div>
 
-          {/* Right: cart (sticky on desktop) */}
-          <div className="hidden lg:block">
-            <div className="sticky top-6">
-              <Cart items={cart} settings={settings} onCheckout={() => {}} />
-            </div>
+          {/* Panier latéral collant sur Desktop (Sticky) */}
+          <div className="hidden lg:block sticky top-24">
+            <Cart
+              items={cart}
+              settings={settings}
+              onCheckout={() => {}}
+              onUpdateQuantity={setProductQuantity}
+              onRemoveItem={removeFromCart}
+            />
           </div>
         </div>
 
-        {/* Mobile cart summary */}
-        <div className="lg:hidden mt-6">
-          <Cart items={cart} settings={settings} onCheckout={() => {}} />
+        {/* Panier résumé sur Mobile (en bas de catalogue) */}
+        <div className="lg:hidden mt-12">
+          <Cart
+            items={cart}
+            settings={settings}
+            onCheckout={() => {}}
+            onUpdateQuantity={setProductQuantity}
+            onRemoveItem={removeFromCart}
+          />
         </div>
-      </div>
+      </main>
 
-      {/* Pied de page sombre avec maillage interne, lien externe et mention légale (DESIGN.md §4) */}
-      <footer className="mt-12 bg-bg-header dark:bg-bg-header-dark px-4 py-12 text-sm text-white/80">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
-            {/* Col 1 & 2 : Présentation & lien externe */}
-            <div className="md:col-span-2">
-              <p className="font-display font-semibold text-lg text-white">Cidrerie du Vulcain</p>
-              <p className="mt-2 text-xs leading-relaxed text-white/70 max-w-md">
-                Production artisanale de cidres et poirés d&apos;exception par Jacques Perritaz à
-                partir de fruits sauvages et variétés anciennes de Suisse. Fermentation 100% levures
-                indigènes, pur jus sans concentré.
-              </p>
-              <p className="mt-3 text-xs text-white/60">
-                Membre et partenaire du patrimoine fruitier et gustatif suisse.{' '}
-                <a
-                  href="https://www.terroir-fribourg.ch"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white hover:underline font-medium inline-flex items-center gap-1"
-                >
-                  <span>Terroir Fribourg</span>
-                  <span aria-hidden="true">↗</span>
-                </a>
-              </p>
-            </div>
+      {/* MODALE DÉTAIL PRODUIT SHADCN */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          quantity={getQuantity(selectedProduct.id)}
+          onAdd={() => addToCart(selectedProduct.id)}
+          onRemove={() => removeFromCart(selectedProduct.id)}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
 
-            {/* Col 3 : La Cave & Navigation interne */}
-            <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-white">La Cave</p>
-              <ul className="mt-3 space-y-2 text-xs">
-                <li>
-                  <Link href="/#catalogue" className="hover:text-white transition-colors">
-                    Catalogue des cuvées
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/histoire" className="hover:text-white transition-colors">
-                    Notre Histoire & Terroir
-                  </Link>
-                </li>
-                {categories.map((cat) => (
-                  <li key={cat}>
-                    <a
-                      href={`#categorie-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
-                      className="hover:text-white transition-colors"
-                    >
-                      {cat}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Col 4 : Informations & Contact */}
-            <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-white">
-                Informations
-              </p>
-              <ul className="mt-3 space-y-2 text-xs">
-                <li>
-                  <Link href="/cgv" className="hover:text-white transition-colors">
-                    Conditions de vente
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/mentions-legales" className="hover:text-white transition-colors">
-                    Mentions légales
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/confidentialite" className="hover:text-white transition-colors">
-                    Protection des données
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="mailto:info@drinkcider.ch"
-                    className="hover:text-white transition-colors"
-                  >
-                    Nous contacter
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-white/60">
-            <div>
-              <p>© 2026 Cidrerie du Vulcain · Distribution par Drinkcider</p>
-              {process.env.NEXT_PUBLIC_COMMIT_SHA && (
-                <p className="mt-0.5 font-mono text-[11px] text-white/40">
-                  version: {process.env.NEXT_PUBLIC_COMMIT_SHA}{' '}
-                  {process.env.NEXT_PUBLIC_STAGE ? `(${process.env.NEXT_PUBLIC_STAGE})` : ''}
-                </p>
-              )}
-            </div>
-            <p className="rounded-md bg-[#FDF2F2] px-3.5 py-1.5 text-xs font-medium text-[#C62828] self-start md:self-center">
-              La vente d&apos;alcool est interdite aux mineurs.
-            </p>
-          </div>
-        </div>
-      </footer>
-
+      {/* MODALE DE CONFIRMATION */}
       {confirmation && (
         <ConfirmationModal
           orderId={confirmation.orderId}
@@ -282,16 +279,110 @@ export default function BoutiqueClient({
         />
       )}
 
-      {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          quantity={getQuantity(selectedProduct.id)}
-          onAdd={() => addToCart(selectedProduct.id)}
-          onRemove={() => removeFromCart(selectedProduct.id)}
-          onSetQuantity={(qty) => setProductQuantity(selectedProduct.id, qty)}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
+      {/* FOOTER NOCTURNE ARTISANAL & ÉDITORIAL */}
+      <footer className="mt-20 border-t border-border bg-card/50 text-muted-foreground text-xs py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-border/50">
+            {/* Col 1 & 2 : Présentation & Terroir Fribourg */}
+            <div className="md:col-span-2 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/images/logo-drinkcider.svg"
+                  alt="Drinkcider"
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 rounded-full object-cover border border-border/80 shadow-xs"
+                />
+                <span className="font-display font-bold text-base text-foreground">Drinkcider</span>
+              </div>
+              <p className="text-muted-foreground leading-relaxed max-w-md">
+                Drinkcider est une boutique en ligne de cidres et de poirés artisanaux, sélectionnés
+                auprès de producteurs indépendants et livrés partout en Suisse.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 text-muted-foreground mt-1">
+                <span>
+                  Partenaire actif :{' '}
+                  <a
+                    href="https://www.terroir-fribourg.ch"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
+                  >
+                    Terroir Fribourg{' '}
+                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                  </a>
+                </span>
+                <span>·</span>
+                <span>
+                  Instagram :{' '}
+                  <a
+                    href="https://www.instagram.com/drinkcider.ch/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
+                  >
+                    @drinkcider.ch{' '}
+                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
+                  </a>
+                </span>
+              </div>
+            </div>
+
+            {/* Col 3 : Navigation */}
+            <div>
+              <p className="font-semibold text-xs uppercase tracking-wider text-foreground mb-3">
+                La boutique
+              </p>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/#catalogue" className="hover:text-foreground transition-colors">
+                    Catalogue
+                  </Link>
+                </li>
+                <li>
+                  <a href="#commande" className="hover:text-foreground transition-colors">
+                    Commander en ligne
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4 : Informations Légales */}
+            <div>
+              <p className="font-semibold text-xs uppercase tracking-wider text-foreground mb-3">
+                Informations &amp; Vente
+              </p>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/cgv" className="hover:text-foreground transition-colors">
+                    Conditions Générales de Vente
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/mentions-legales"
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Mentions légales
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/confidentialite" className="hover:text-foreground transition-colors">
+                    Protection des données
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground text-[11px]">
+            <span>&copy; {new Date().getFullYear()} Drinkcider · Tous droits réservés.</span>
+            <span>
+              Expédition réservée aux personnes majeures en Suisse · Facture avec QR-code suisse
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

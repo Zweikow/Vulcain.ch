@@ -1,12 +1,5 @@
 import type { Config } from 'tailwindcss'
 
-// Palette Cidrerie du Vulcain — Sprint 1
-// #153243 Deep Space Blue  → sidebar, header
-// #284B63 Yale Blue        → éléments secondaires nav
-// #E5C1BD Cotton Rose      → accent chaud, cartes stat
-// #80ED99 Light Green      → couleur principale, succès
-// #977390 Dusty Mauve      → accent secondaire, cartes stat
-
 const config: Config = {
   darkMode: 'class',
   content: [
@@ -17,18 +10,42 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // shadcn/ui semantic tokens (HSL variables)
+        border: {
+          DEFAULT: 'hsl(var(--border))',
+          dark: '#1E3248',
+          light: '#EEF1F5',
+          'light-dark': '#162840',
+        },
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: '#80ED99',
-          hover: '#5ed97f',
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+          hover: 'hsl(var(--primary-hover, var(--primary)))',
+          text: 'hsl(var(--primary-text))',
           light: '#80ED9925',
           'light-dark': '#80ED9920',
         },
         secondary: {
-          DEFAULT: '#284B63',
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
           hover: '#1e3a4f',
           light: '#284B6315',
         },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
         accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
           rose: '#E5C1BD',
           'rose-dark': '#B8837E',
           mauve: '#977390',
@@ -36,6 +53,16 @@ const config: Config = {
           navy: '#153243',
           blue: '#284B63',
         },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+
+        // Legacy brand palette compatibility
         bg: {
           page: '#F7F6F0',
           'page-dark': '#0D1B2A',
@@ -48,26 +75,20 @@ const config: Config = {
           input: '#FFFFFF',
           'input-dark': '#1C2E40',
         },
-        border: {
-          DEFAULT: '#E2E8EF',
-          dark: '#1E3248',
-          light: '#EEF1F5',
-          'light-dark': '#162840',
-        },
         text: {
           primary: '#153243',
           'primary-dark': '#D6E8F5',
           secondary: '#4A6278',
           'secondary-dark': '#7AAFC7',
-          tertiary: '#7A95A5',
-          'tertiary-dark': '#4D7A96',
+          tertiary: '#56717F', // 4.8:1 sur le fond de page (était #7A95A5, 2.9:1)
+          'tertiary-dark': '#7F9DB0', // 5.4:1 sur les cartes sombres (était #4D7A96, 3.4:1)
           'on-primary': '#153243',
           'on-header': '#FFFFFF',
-          success: '#28a745',
+          success: '#207A38', // 4.8:1 sur fond vert pâle (était #28a745, 2.8:1)
           'success-dark': '#80ED99',
           error: '#C62828',
           'error-dark': '#EF5350',
-          warning: '#E65100',
+          warning: '#BF4300', // 4.9:1 sur fond ambré (était #E65100, 3.6:1)
           'warning-dark': '#FF9800',
         },
       },
@@ -76,13 +97,47 @@ const config: Config = {
         display: ['Fraunces', 'serif'],
       },
       borderRadius: {
-        sm: '6px',
-        md: '10px',
-        lg: '16px',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
         pill: '999px',
+      },
+      animation: {
+        spotlight: 'spotlight 2s ease .75s 1 forwards',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        shimmer: 'shimmer 2s linear infinite',
+      },
+      keyframes: {
+        spotlight: {
+          '0%': {
+            opacity: '0',
+            transform: 'translate(-72%, -62%) scale(0.5)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translate(-50%,-40%) scale(1)',
+          },
+        },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+        shimmer: {
+          from: {
+            backgroundPosition: '0 0',
+          },
+          to: {
+            backgroundPosition: '-200% 0',
+          },
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 }
 export default config

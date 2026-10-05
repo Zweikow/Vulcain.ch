@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import {
   createCategory,
@@ -95,7 +96,7 @@ export function CategoriesClient({
         </div>
       )}
 
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border dark:border-border-dark bg-bg-page dark:bg-bg-page-dark text-left">
@@ -139,16 +140,18 @@ export function CategoriesClient({
                             disabled={pending || index === 0}
                             className="px-2 py-1 hover:bg-bg-page-dark/10 dark:hover:bg-bg-page/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-xs"
                             title="Monter"
+                            aria-label="Monter"
                           >
-                            ↑
+                            <ArrowUp className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleMove(c.id, 'down')}
                             disabled={pending || index === categories.length - 1}
                             className="px-2 py-1 hover:bg-bg-page-dark/10 dark:hover:bg-bg-page/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-xs border-l border-border dark:border-border-dark"
                             title="Descendre"
+                            aria-label="Descendre"
                           >
-                            ↓
+                            <ArrowDown className="h-3.5 w-3.5" />
                           </button>
                         </div>
                         {confirmDeleteId === c.id ? (
@@ -186,8 +189,10 @@ export function CategoriesClient({
                                 ? 'opacity-30 cursor-not-allowed hover:no-underline'
                                 : 'disabled:opacity-50'
                             }`}
+                            aria-label="Supprimer"
                           >
-                            Supprimer
+                            <Trash2 className="h-4 w-4 sm:hidden" />
+                            <span className="hidden sm:inline">Supprimer</span>
                           </button>
                         )}
                       </div>
