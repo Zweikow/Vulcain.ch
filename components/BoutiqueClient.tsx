@@ -340,11 +340,6 @@ export default function BoutiqueClient({
                   </Link>
                 </li>
                 <li>
-                  <Link href="/histoire" className="hover:text-foreground transition-colors">
-                    Notre histoire
-                  </Link>
-                </li>
-                <li>
                   <a href="#commande" className="hover:text-foreground transition-colors">
                     Commander en ligne
                   </a>

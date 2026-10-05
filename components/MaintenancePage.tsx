@@ -38,12 +38,6 @@ export default function MaintenancePage({ contactEmail }: { contactEmail: string
             </a>
           </p>
         )}
-        <Link
-          href="/histoire"
-          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
-          Découvrir notre histoire en attendant
-        </Link>
       </div>
     </main>
   )
