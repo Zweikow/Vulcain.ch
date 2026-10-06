@@ -7,10 +7,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     {
-      url: `${siteUrl}`,
+      url: `${siteUrl}/`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 1.0,
+    },
+    {
+      url: `${siteUrl}/producteurs`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.9,
     },
     {
       url: `${siteUrl}/cgv`,

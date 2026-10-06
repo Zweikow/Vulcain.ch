@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getPublicSettings, getSettings } from '@/lib/settings'
 import { Product } from '@/types'
-import { getCuveeGallery } from '@/lib/cuvees-gallery'
+import { getMainImageUrl } from '@/lib/cuvees-gallery'
 import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
 import MaintenancePage from '@/components/MaintenancePage'
@@ -55,7 +55,7 @@ export default async function Home() {
       bottlesPerUnit: p.bottlesPerUnit ?? 1,
       description: p.description ?? '',
       // Sans image choisie dans l'admin, la vignette reprend le packshot principal de la cuvée
-      image: p.imageUrl ?? getCuveeGallery(null, p.articleNumber)[0]?.url,
+      image: getMainImageUrl(p.imageUrl, p.articleNumber) ?? undefined,
       active: p.active,
       isLastUnits,
       isNew: !isLastUnits && p.createdAt.getTime() > newSince,

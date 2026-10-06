@@ -157,3 +157,11 @@ export function getCuveeGallery(imageUrl?: string | null, articleNumber?: number
 
   return images.length > 0 ? images : imageUrl ? [{ url: imageUrl, label: 'Bouteille' }] : []
 }
+
+/**
+ * Visuel principal d'un produit : l'image choisie dans l'admin, sinon le premier
+ * packshot de sa galerie. Même règle pour la vignette boutique et le visuel Instagram.
+ */
+export function getMainImageUrl(imageUrl: string | null, articleNumber: number): string | null {
+  return imageUrl ?? getCuveeGallery(null, articleNumber)[0]?.url ?? null
+}
