@@ -8,7 +8,13 @@ import AdminPromoModal, {
 } from '@/components/admin/AdminPromoModal'
 import { togglePromotionActive, deletePromotion } from '@/app/admin/(protected)/promotions/actions'
 import { formatCHF } from '@/lib/money'
-import { PromoIcon, GiftIcon, CoinsIcon } from '@/components/admin/AdminIcons'
+import {
+  PromoIcon,
+  GiftIcon,
+  CoinsIcon,
+  AlertCircleIcon,
+  CloseIcon,
+} from '@/components/admin/AdminIcons'
 
 export type PromotionRow = AdminPromotion & {
   productName: string
@@ -38,6 +44,9 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
 
   const activeCount = promotions.filter((p) => p.active).length
 
+  const [deleteTarget, setDeleteTarget] = useState<PromotionRow | null>(null)
+  const [archiveAssociatedProduct, setArchiveAssociatedProduct] = useState(false)
+
   const handleToggle = (id: string, currentActive: boolean) => {
     startTransition(async () => {
       await togglePromotionActive(id, !currentActive)
@@ -45,10 +54,12 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
     })
   }
 
-  const handleDelete = (id: string, name: string) => {
-    if (!confirm(`Supprimer définitivement l'offre "${name}" ?`)) return
+  const confirmDeletePromotion = () => {
+    if (!deleteTarget) return
     startTransition(async () => {
-      await deletePromotion(id)
+      await deletePromotion(deleteTarget.id, { archiveProduct: archiveAssociatedProduct })
+      setDeleteTarget(null)
+      setArchiveAssociatedProduct(false)
       router.refresh()
     })
   }
@@ -195,7 +206,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                         </span>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-text-tertiary">—</span>
+                      <span className="text-[11px] text-text-tertiary">-</span>
                     )}
                   </td>
 
@@ -230,7 +241,10 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                         <span className="text-border">·</span>
                         <button
                           type="button"
-                          onClick={() => handleDelete(promo.id, promo.name)}
+                          onClick={() => {
+                            setDeleteTarget(promo)
+                            setArchiveAssociatedProduct(false)
+                          }}
                           className="text-xs font-medium text-text-error hover:underline transition-colors"
                         >
                           Supprimer
@@ -252,6 +266,120 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
           products={products}
           onClose={() => setModal('closed')}
         />
+      )}
+
+      {/* Modale de confirmation de suppression sécurisée */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertCircleIcon className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-text-primary dark:text-text-primary-dark">
+                  Supprimer l&apos;offre « {deleteTarget.name} » ?
+                </h3>
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-1">
+                  Vérifiez les conséquences ci-dessous avant de confirmer la suppression.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteTarget(null)
+                  setArchiveAssociatedProduct(false)
+                }}
+                className="text-text-tertiary hover:text-text-primary"
+              >
+                <CloseIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Récapitulatif du produit lié */}
+            <div className="p-3.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark space-y-1.5 text-xs">
+              <div className="font-semibold text-text-primary dark:text-text-primary-dark">
+                Article concerné : {deleteTarget.productName}
+              </div>
+              <div className="text-text-secondary dark:text-text-secondary-dark flex flex-wrap gap-x-3 gap-y-1">
+                <span>
+                  Catégorie : <strong>{deleteTarget.categoryName || 'Aucune'}</strong>
+                </span>
+                <span>
+                  Prix : <strong>{formatCHF(deleteTarget.productPriceCents)}</strong>
+                </span>
+                <span>
+                  Contenance : <strong>{deleteTarget.productBottleSize}</strong>
+                </span>
+              </div>
+              <div className="text-[11px] text-text-tertiary pt-1 border-t border-border/60 dark:border-border-dark/60">
+                Règle actuelle :{' '}
+                {deleteTarget.type === 'BUY_X_GET_Y_FREE'
+                  ? `${deleteTarget.buyQuantity} achetés = ${deleteTarget.getFreeQuantity} offert`
+                  : deleteTarget.type === 'PERCENTAGE'
+                    ? `-${deleteTarget.discountPercent}%`
+                    : `-${formatCHF(deleteTarget.discountCents ?? 0)}`}
+                {deleteTarget.badgeText ? ` · Ruban : « ${deleteTarget.badgeText} »` : ''}
+              </div>
+            </div>
+
+            {/* Avertissement clair */}
+            <div className="text-xs text-text-secondary dark:text-text-secondary-dark space-y-2">
+              <p>
+                <strong>Conséquences de la suppression :</strong> La réduction et le ruban boutique
+                seront supprimés. Par défaut, l&apos;article{' '}
+                <strong>{deleteTarget.productName}</strong> restera dans le catalogue au tarif
+                normal dans sa catégorie ({deleteTarget.categoryName || 'actuelle'}).
+              </p>
+            </div>
+
+            {/* Option d'archivage du produit lié */}
+            <label className="flex items-start gap-2.5 p-3 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={archiveAssociatedProduct}
+                onChange={(e) => setArchiveAssociatedProduct(e.target.checked)}
+                className="mt-0.5 rounded text-primary focus:ring-primary"
+              />
+              <div className="text-xs">
+                <span className="font-semibold text-text-primary dark:text-text-primary-dark block">
+                  Archiver également le produit « {deleteTarget.productName} »
+                </span>
+                <span className="text-text-secondary dark:text-text-secondary-dark">
+                  Cochez cette case s&apos;il s&apos;agissait d&apos;un pack promotionnel éphémère
+                  ou d&apos;un test que vous souhaitez retirer de la boutique.
+                </span>
+              </div>
+            </label>
+
+            {/* Boutons d'action */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteTarget(null)
+                  setArchiveAssociatedProduct(false)
+                }}
+                disabled={pending}
+                className="btn-secondary text-xs py-2 px-3.5"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePromotion}
+                disabled={pending}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50"
+              >
+                {pending
+                  ? 'Suppression...'
+                  : archiveAssociatedProduct
+                    ? "Supprimer l'offre et archiver le produit"
+                    : "Supprimer l'offre uniquement"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

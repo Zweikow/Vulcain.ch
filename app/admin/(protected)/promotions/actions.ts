@@ -88,11 +88,25 @@ export async function togglePromotionActive(id: string, active: boolean) {
   }
 }
 
-export async function deletePromotion(id: string) {
+export async function deletePromotion(id: string, options?: { archiveProduct?: boolean }) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
   try {
+    const promo = await prisma.promotion.findUnique({
+      where: { id },
+      select: { id: true, productId: true },
+    })
+
+    if (!promo) return { error: 'Promotion introuvable' }
+
+    if (options?.archiveProduct && promo.productId) {
+      await prisma.product.update({
+        where: { id: promo.productId },
+        data: { archived: true, active: false },
+      })
+    }
+
     await prisma.promotion.delete({
       where: { id },
     })

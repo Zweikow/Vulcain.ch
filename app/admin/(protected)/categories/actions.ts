@@ -34,18 +34,30 @@ export async function createCategory(input: { name: string }) {
   }
 }
 
-export async function deleteCategory(id: string) {
+export async function deleteCategory(id: string, targetCategoryId?: string) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
   const count = await prisma.product.count({ where: { categoryId: id } })
-  if (count > 0) return { error: 'Impossible : des produits utilisent cette catégorie.' }
+  if (count > 0) {
+    if (!targetCategoryId) {
+      return { error: 'Impossible : des produits utilisent cette catégorie.' }
+    }
+    await prisma.product.updateMany({
+      where: { categoryId: id },
+      data: { categoryId: targetCategoryId },
+    })
+  }
 
-  await prisma.category.delete({ where: { id } })
-  revalidatePath('/admin/categories')
-  revalidatePath('/admin/produits')
-  revalidatePath('/')
-  return { ok: true }
+  try {
+    await prisma.category.delete({ where: { id } })
+    revalidatePath('/admin/categories')
+    revalidatePath('/admin/produits')
+    revalidatePath('/')
+    return { ok: true }
+  } catch (e: any) {
+    return { error: e.message || 'Erreur inattendue.' }
+  }
 }
 
 export async function moveCategory(id: string, direction: 'up' | 'down') {

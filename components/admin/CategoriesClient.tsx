@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, Trash2, AlertCircle } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import {
   createCategory,
@@ -20,7 +20,12 @@ export function CategoriesClient({
   const [pending, startTransition] = useTransition()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [categoryToDelete, setCategoryToDelete] = useState<{
+    id: string
+    name: string
+    count: number
+  } | null>(null)
+  const [transferTargetId, setTransferTargetId] = useState<string>('')
 
   const handleCreate = () => {
     if (!name.trim()) return
@@ -36,13 +41,14 @@ export function CategoriesClient({
     })
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string, targetCategoryId?: string) => {
     startTransition(async () => {
       setError('')
-      const res = await deleteCategory(id)
+      const res = await deleteCategory(id, targetCategoryId)
       if (res?.error) {
         setError(res.error)
       } else {
+        setCategoryToDelete(null)
         router.refresh()
       }
     })
@@ -154,47 +160,23 @@ export function CategoriesClient({
                             <ArrowDown className="h-3.5 w-3.5" />
                           </button>
                         </div>
-                        {confirmDeleteId === c.id ? (
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="text-text-secondary dark:text-text-secondary-dark">
-                              Sûr ?
-                            </span>
-                            <button
-                              onClick={() => handleDelete(c.id)}
-                              disabled={pending}
-                              className="text-text-error hover:underline font-medium"
-                            >
-                              Oui
-                            </button>
-                            <span className="text-border dark:text-border-dark">|</span>
-                            <button
-                              onClick={() => setConfirmDeleteId(null)}
-                              disabled={pending}
-                              className="text-text-tertiary hover:underline dark:text-text-tertiary-dark"
-                            >
-                              Non
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmDeleteId(c.id)}
-                            disabled={pending || c._count.products > 0}
-                            title={
-                              c._count.products > 0
-                                ? 'Impossible de supprimer : cette catégorie contient des produits.'
-                                : 'Supprimer cette catégorie'
-                            }
-                            className={`text-text-error hover:underline ${
-                              c._count.products > 0
-                                ? 'opacity-30 cursor-not-allowed hover:no-underline'
-                                : 'disabled:opacity-50'
-                            }`}
-                            aria-label="Supprimer"
-                          >
-                            <Trash2 className="h-4 w-4 sm:hidden" />
-                            <span className="hidden sm:inline">Supprimer</span>
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            setCategoryToDelete({
+                              id: c.id,
+                              name: c.name,
+                              count: c._count.products,
+                            })
+                            const other = categories.find((cat) => cat.id !== c.id)
+                            setTransferTargetId(other?.id || '')
+                          }}
+                          disabled={pending}
+                          title="Supprimer cette catégorie"
+                          className="text-xs text-text-error hover:underline transition-colors flex items-center gap-1"
+                        >
+                          <Trash2 className="h-4 w-4 sm:hidden" />
+                          <span className="hidden sm:inline">Supprimer</span>
+                        </button>
                       </div>
                     )}
                   </td>
@@ -204,6 +186,79 @@ export function CategoriesClient({
           </tbody>
         </table>
       </div>
+
+      {/* Modale de suppression sécurisée avec transfert de produits */}
+      {categoryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-text-primary dark:text-text-primary-dark">
+                  Supprimer la catégorie « {categoryToDelete.name} » ?
+                </h3>
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-1">
+                  {categoryToDelete.count > 0
+                    ? `Cette catégorie contient encore ${categoryToDelete.count} article(s). Choisissez où les déplacer avant de supprimer la catégorie.`
+                    : 'Cette catégorie ne contient aucun article. Elle sera définitivement supprimée.'}
+                </p>
+              </div>
+            </div>
+
+            {categoryToDelete.count > 0 && (
+              <div className="p-3.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark space-y-2">
+                <label className="block text-xs font-semibold text-text-primary dark:text-text-primary-dark">
+                  Transférer les {categoryToDelete.count} article(s) vers :
+                </label>
+                <select
+                  value={transferTargetId}
+                  onChange={(e) => setTransferTargetId(e.target.value)}
+                  className="input-field w-full text-xs"
+                >
+                  {categories
+                    .filter((cat) => cat.id !== categoryToDelete.id)
+                    .map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name} ({cat._count.products} article
+                        {cat._count.products > 1 ? 's' : ''})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCategoryToDelete(null)}
+                disabled={pending}
+                className="btn-secondary text-xs py-2 px-3.5"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleDelete(
+                    categoryToDelete.id,
+                    categoryToDelete.count > 0 ? transferTargetId : undefined
+                  )
+                }
+                disabled={pending || (categoryToDelete.count > 0 && !transferTargetId)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50"
+              >
+                {pending
+                  ? 'Suppression...'
+                  : categoryToDelete.count > 0
+                    ? 'Transférer et supprimer'
+                    : 'Confirmer la suppression'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
