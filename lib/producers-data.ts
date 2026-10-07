@@ -32,7 +32,7 @@ export const PRODUCERS_PROFILES: Record<string, ProducerProfile> = {
     slug: 'jacques-perritaz',
     name: 'Jacques Perritaz',
     estateName: 'Cidrerie du Vulcain',
-    tagline: 'Cidriculteur artisan — Fondateur de la Cidrerie du Vulcain',
+    tagline: 'Cidriculteur artisan - Fondateur de la Cidrerie du Vulcain',
     region: 'Le Mouret, Fribourg',
     cantonOrDept: 'Fribourg',
     country: 'CH',

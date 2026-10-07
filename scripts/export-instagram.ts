@@ -54,7 +54,7 @@ function generateCaption(product: {
   category: { name: string }
   producer: { name: string } | null
 }) {
-  const producerName = product.producer?.name ? ` — ${product.producer.name}` : ''
+  const producerName = product.producer?.name ? ` - ${product.producer.name}` : ''
   const millesime = product.year ? ` (Millésime ${product.year})` : ''
   const note = product.description?.trim()
     ? `\n\nNotes de dégustation : ${product.description.trim()}`
@@ -96,7 +96,7 @@ async function main() {
   let errorCount = 0
 
   const captionsEntries: string[] = [
-    '# Légendes Instagram — Drinkcider Catalogue\n',
+    '# Légendes Instagram - Drinkcider Catalogue\n',
     `Généré le ${new Date().toLocaleDateString('fr-CH')} à ${new Date().toLocaleTimeString('fr-CH')}\n`,
     '---\n',
   ]

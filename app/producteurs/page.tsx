@@ -48,7 +48,7 @@ export const metadata: Metadata = {
         url: '/images/histoire/jacques-perritaz.jpg',
         width: 1200,
         height: 800,
-        alt: 'Jacques Perritaz — Cidrerie du Vulcain',
+        alt: 'Jacques Perritaz - Cidrerie du Vulcain',
       },
     ],
   },
@@ -203,7 +203,7 @@ export default async function ProducteursPage() {
                     <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-border shadow-xl bg-card">
                       <Image
                         src={profile.portraitImage}
-                        alt={`${profile.name} — ${profile.estateName}`}
+                        alt={`${profile.name} - ${profile.estateName}`}
                         fill
                         className="object-cover object-top"
                         sizes="(max-width: 1024px) 100vw, 40vw"
