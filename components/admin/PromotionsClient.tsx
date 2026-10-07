@@ -21,16 +21,23 @@ export type PromotionRow = AdminPromotion & {
   productBottleSize: string
   productBottlesPerUnit: number
   productPriceCents: number
+  productCategoryId?: string
   categoryName?: string
 }
 
 interface PromotionsClientProps {
   promotions: PromotionRow[]
   products: PromoProductItem[]
+  categories: { id: string; name: string }[]
   canEdit: boolean
 }
 
-export function PromotionsClient({ promotions, products, canEdit }: PromotionsClientProps) {
+export function PromotionsClient({
+  promotions,
+  products,
+  categories,
+  canEdit,
+}: PromotionsClientProps) {
   const router = useRouter()
   const [modal, setModal] = useState<'closed' | 'new' | PromotionRow>('closed')
   const [pending, startTransition] = useTransition()
@@ -44,8 +51,19 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
 
   const activeCount = promotions.filter((p) => p.active).length
 
+  type ProductDecision = {
+    action: 'CHANGE_CATEGORY' | 'KEEP' | 'ARCHIVE'
+    newCategoryId: string
+  }
+
   const [deleteTarget, setDeleteTarget] = useState<PromotionRow | null>(null)
-  const [archiveAssociatedProduct, setArchiveAssociatedProduct] = useState(false)
+  const [productDecisions, setProductDecisions] = useState<Record<string, ProductDecision>>({})
+
+  const relatedPromos = deleteTarget
+    ? promotions.filter(
+        (p) => p.name.trim().toLowerCase() === deleteTarget.name.trim().toLowerCase()
+      )
+    : []
 
   const handleToggle = (id: string, currentActive: boolean) => {
     startTransition(async () => {
@@ -54,12 +72,44 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
     })
   }
 
+  const openDeleteModal = (promo: PromotionRow) => {
+    const matching = promotions.filter(
+      (p) => p.name.trim().toLowerCase() === promo.name.trim().toLowerCase()
+    )
+    const initial: Record<string, ProductDecision> = {}
+    matching.forEach((p) => {
+      const currentCatExists = categories.some((c) => c.id === p.productCategoryId)
+      const fallbackCat = categories[0]?.id || ''
+      initial[p.productId] = {
+        action: 'CHANGE_CATEGORY',
+        newCategoryId: currentCatExists ? p.productCategoryId || fallbackCat : fallbackCat,
+      }
+    })
+    setProductDecisions(initial)
+    setDeleteTarget(promo)
+  }
+
   const confirmDeletePromotion = () => {
     if (!deleteTarget) return
+    const productActions = relatedPromos.map((p) => {
+      const decision = productDecisions[p.productId] || {
+        action: 'KEEP' as const,
+        newCategoryId: p.productCategoryId,
+      }
+      return {
+        productId: p.productId,
+        action: decision.action,
+        newCategoryId: decision.newCategoryId,
+      }
+    })
+
     startTransition(async () => {
-      await deletePromotion(deleteTarget.id, { archiveProduct: archiveAssociatedProduct })
+      await deletePromotion(deleteTarget.id, {
+        deleteAllWithSameName: relatedPromos.length > 1,
+        productActions,
+      })
       setDeleteTarget(null)
-      setArchiveAssociatedProduct(false)
+      setProductDecisions({})
       router.refresh()
     })
   }
@@ -241,10 +291,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                         <span className="text-border">·</span>
                         <button
                           type="button"
-                          onClick={() => {
-                            setDeleteTarget(promo)
-                            setArchiveAssociatedProduct(false)
-                          }}
+                          onClick={() => openDeleteModal(promo)}
                           className="text-xs font-medium text-text-error hover:underline transition-colors"
                         >
                           Supprimer
@@ -268,10 +315,10 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
         />
       )}
 
-      {/* Modale de confirmation de suppression sécurisée */}
+      {/* Modale de confirmation de suppression avec choix de catégorie par produit */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-xl w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                 <AlertCircleIcon className="w-5 h-5" />
@@ -281,85 +328,126 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                   Supprimer l&apos;offre « {deleteTarget.name} » ?
                 </h3>
                 <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-1">
-                  Vérifiez les conséquences ci-dessous avant de confirmer la suppression.
+                  {relatedPromos.length > 1
+                    ? `Cette offre s'applique à ${relatedPromos.length} articles différents. Choisissez la catégorie ou l'action pour chacun :`
+                    : "Choisissez ci-dessous la catégorie de destination ou l'archivage de l'article :"}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setDeleteTarget(null)
-                  setArchiveAssociatedProduct(false)
-                }}
+                onClick={() => setDeleteTarget(null)}
                 className="text-text-tertiary hover:text-text-primary"
               >
                 <CloseIcon className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Récapitulatif du produit lié */}
-            <div className="p-3.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark space-y-1.5 text-xs">
-              <div className="font-semibold text-text-primary dark:text-text-primary-dark">
-                Article concerné : {deleteTarget.productName}
-              </div>
-              <div className="text-text-secondary dark:text-text-secondary-dark flex flex-wrap gap-x-3 gap-y-1">
-                <span>
-                  Catégorie : <strong>{deleteTarget.categoryName || 'Aucune'}</strong>
-                </span>
-                <span>
-                  Prix : <strong>{formatCHF(deleteTarget.productPriceCents)}</strong>
-                </span>
-                <span>
-                  Contenance : <strong>{deleteTarget.productBottleSize}</strong>
-                </span>
-              </div>
-              <div className="text-[11px] text-text-tertiary pt-1 border-t border-border/60 dark:border-border-dark/60">
-                Règle actuelle :{' '}
-                {deleteTarget.type === 'BUY_X_GET_Y_FREE'
-                  ? `${deleteTarget.buyQuantity} achetés = ${deleteTarget.getFreeQuantity} offert`
-                  : deleteTarget.type === 'PERCENTAGE'
-                    ? `-${deleteTarget.discountPercent}%`
-                    : `-${formatCHF(deleteTarget.discountCents ?? 0)}`}
-                {deleteTarget.badgeText ? ` · Ruban : « ${deleteTarget.badgeText} »` : ''}
-              </div>
+            {/* Liste des articles concernés avec sélection de catégorie par article */}
+            <div className="space-y-3">
+              {relatedPromos.map((p) => {
+                const decision = productDecisions[p.productId] || {
+                  action: 'CHANGE_CATEGORY' as const,
+                  newCategoryId: p.productCategoryId || categories[0]?.id || '',
+                }
+
+                return (
+                  <div
+                    key={p.productId}
+                    className="p-3.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-xs text-text-primary dark:text-text-primary-dark">
+                          {p.productName}
+                        </div>
+                        <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark mt-0.5">
+                          Catégorie actuelle :{' '}
+                          <span className="font-semibold">
+                            {p.categoryName || 'Non catégorisé'}
+                          </span>{' '}
+                          · {formatCHF(p.productPriceCents)} ({p.productBottleSize})
+                        </div>
+                      </div>
+                      {p.badgeText && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary-text shrink-0">
+                          {p.badgeText}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Choix d'action pour cet article */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border/60 dark:border-border-dark/60">
+                      <div>
+                        <label className="block text-[11px] font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                          Sort de l&apos;article :
+                        </label>
+                        <select
+                          value={decision.action}
+                          onChange={(e) => {
+                            const act = e.target.value as 'CHANGE_CATEGORY' | 'KEEP' | 'ARCHIVE'
+                            setProductDecisions((prev) => ({
+                              ...prev,
+                              [p.productId]: {
+                                action: act,
+                                newCategoryId:
+                                  prev[p.productId]?.newCategoryId || categories[0]?.id || '',
+                              },
+                            }))
+                          }}
+                          className="input-field w-full text-xs"
+                        >
+                          <option value="CHANGE_CATEGORY">Changer de catégorie</option>
+                          <option value="KEEP">Conserver la catégorie actuelle</option>
+                          <option value="ARCHIVE">Archiver l&apos;article (retirer du site)</option>
+                        </select>
+                      </div>
+
+                      {decision.action === 'CHANGE_CATEGORY' && (
+                        <div>
+                          <label className="block text-[11px] font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                            Nouvelle catégorie :
+                          </label>
+                          <select
+                            value={decision.newCategoryId}
+                            onChange={(e) => {
+                              const catId = e.target.value
+                              setProductDecisions((prev) => ({
+                                ...prev,
+                                [p.productId]: {
+                                  ...prev[p.productId],
+                                  action: 'CHANGE_CATEGORY',
+                                  newCategoryId: catId,
+                                },
+                              }))
+                            }}
+                            className="input-field w-full text-xs"
+                          >
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
-            {/* Avertissement clair */}
-            <div className="text-xs text-text-secondary dark:text-text-secondary-dark space-y-2">
-              <p>
-                <strong>Conséquences de la suppression :</strong> La réduction et le ruban boutique
-                seront supprimés. Par défaut, l&apos;article{' '}
-                <strong>{deleteTarget.productName}</strong> restera dans le catalogue au tarif
-                normal dans sa catégorie ({deleteTarget.categoryName || 'actuelle'}).
-              </p>
+            {/* Avertissement récapitulatif */}
+            <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark bg-bg-page/50 dark:bg-bg-page-dark/50 p-2.5 rounded border border-border/50">
+              💡 <strong>D&apos;une pierre deux coups :</strong> La promotion et son ruban seront
+              définitivement supprimés, et chaque article sera immédiatement mis à jour avec la
+              catégorie ou l&apos;archivage choisi ci-dessus.
             </div>
-
-            {/* Option d'archivage du produit lié */}
-            <label className="flex items-start gap-2.5 p-3 rounded-lg border border-primary/20 bg-primary/5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={archiveAssociatedProduct}
-                onChange={(e) => setArchiveAssociatedProduct(e.target.checked)}
-                className="mt-0.5 rounded text-primary focus:ring-primary"
-              />
-              <div className="text-xs">
-                <span className="font-semibold text-text-primary dark:text-text-primary-dark block">
-                  Archiver également le produit « {deleteTarget.productName} »
-                </span>
-                <span className="text-text-secondary dark:text-text-secondary-dark">
-                  Cochez cette case s&apos;il s&apos;agissait d&apos;un pack promotionnel éphémère
-                  ou d&apos;un test que vous souhaitez retirer de la boutique.
-                </span>
-              </div>
-            </label>
 
             {/* Boutons d'action */}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  setDeleteTarget(null)
-                  setArchiveAssociatedProduct(false)
-                }}
+                onClick={() => setDeleteTarget(null)}
                 disabled={pending}
                 className="btn-secondary text-xs py-2 px-3.5"
               >
@@ -371,11 +459,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                 disabled={pending}
                 className="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50"
               >
-                {pending
-                  ? 'Suppression...'
-                  : archiveAssociatedProduct
-                    ? "Supprimer l'offre et archiver le produit"
-                    : "Supprimer l'offre uniquement"}
+                {pending ? 'Suppression...' : 'Confirmer et appliquer les catégories'}
               </button>
             </div>
           </div>
