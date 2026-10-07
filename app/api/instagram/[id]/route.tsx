@@ -1,4 +1,5 @@
 import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
 import path from 'path'
 import { timingSafeEqual } from 'crypto'
 import { ImageResponse } from 'next/og'
@@ -6,12 +7,13 @@ import { PNG } from 'pngjs'
 import jpeg from 'jpeg-js'
 import { prisma } from '@/lib/prisma'
 import { ARTICLE_SLUG_MAP, getMainImageUrl } from '@/lib/cuvees-gallery'
+import { currentUser } from '@/lib/guards'
 
 /**
- * Visuel Instagram 1080×1350 (4:5) d'une référence du catalogue, en JPEG.
+ * Visuel Instagram 1080x1350 (4:5) d'une référence du catalogue, en JPEG.
  *
  * GET /api/instagram/<numéro d'article ou cuid>
- * En-tête obligatoire : x-render-secret: <INSTAGRAM_RENDER_SECRET>
+ * Authentification : session admin active dans le navigateur OU x-render-secret
  *
  * Runtime Node (pas edge) : polices lues sur disque, JPEG encodé en JavaScript
  * pur (pngjs + jpeg-js), sans binaire natif à faire correspondre à la Lambda.
@@ -39,7 +41,6 @@ type FontSpec = {
 
 // Satori n'utilise aucune police système et ne lit ni le WOFF2 ni les axes
 // variables : TTF statiques versionnés dans assets/fonts (licence OFL).
-const FONT_DIR = path.join(process.cwd(), 'assets', 'fonts')
 const FONT_FILES: Array<Omit<FontSpec, 'data'> & { file: string }> = [
   { file: 'fraunces/Fraunces-SemiBold.ttf', name: 'Fraunces', weight: 600, style: 'normal' },
   { file: 'fraunces/Fraunces-Italic.ttf', name: 'Fraunces', weight: 400, style: 'italic' },
@@ -57,13 +58,26 @@ const FONT_FILES: Array<Omit<FontSpec, 'data'> & { file: string }> = [
   },
 ]
 
+function getFontPath(file: string): string {
+  const candidates = [
+    path.join(process.cwd(), 'assets', 'fonts', file),
+    path.join(__dirname, 'assets', 'fonts', file),
+    path.join(__dirname, '..', '..', '..', '..', 'assets', 'fonts', file),
+    path.resolve('assets', 'fonts', file),
+  ]
+  for (const c of candidates) {
+    if (existsSync(c)) return c
+  }
+  return path.join(process.cwd(), 'assets', 'fonts', file)
+}
+
 let fontsPromise: Promise<FontSpec[]> | null = null
 
 function loadFonts(): Promise<FontSpec[]> {
   fontsPromise ??= Promise.all(
     FONT_FILES.map(async ({ file, ...spec }) => ({
       ...spec,
-      data: await readFile(path.join(FONT_DIR, file)),
+      data: await readFile(getFontPath(file)),
     }))
   ).catch((error) => {
     fontsPromise = null // nouvel essai à la prochaine requête
@@ -99,30 +113,32 @@ async function fetchAsDataUri(src: string, base: URL): Promise<string> {
   return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString('base64')}`
 }
 
-import { currentUser } from '@/lib/guards'
-
-async function isAuthorized(request: Request, expected: string): Promise<boolean> {
-  const url = new URL(request.url)
-  const querySecret = url.searchParams.get('secret') ?? ''
-  const headerSecret = request.headers.get('x-render-secret') ?? ''
-  const token = headerSecret || querySecret
-
-  if (token) {
-    const given = Buffer.from(token)
-    const wanted = Buffer.from(expected)
-    if (given.length === wanted.length && timingSafeEqual(given, wanted)) {
-      return true
-    }
-  }
-
-  // Permet la prévisualisation directe dans le navigateur si connecté à l'admin
+async function isAuthorized(request: Request): Promise<boolean> {
+  // 1. Session admin ou gestionnaire connectée dans le navigateur
   const user = await currentUser().catch(() => null)
   if (user) return true
+
+  // 2. Secret passé par header ou paramètre d'URL (pour scripts et n8n)
+  const secret = process.env.INSTAGRAM_RENDER_SECRET
+  if (secret) {
+    const url = new URL(request.url)
+    const querySecret = url.searchParams.get('secret') ?? ''
+    const headerSecret = request.headers.get('x-render-secret') ?? ''
+    const token = headerSecret || querySecret
+
+    if (token) {
+      const given = Buffer.from(token)
+      const wanted = Buffer.from(secret)
+      if (given.length === wanted.length && timingSafeEqual(given, wanted)) {
+        return true
+      }
+    }
+  }
 
   return false
 }
 
-/** « Turgowy 2019 » + millésime 2019 → « Turgowy » ; retire aussi un préfixe « NEW: ». */
+/** « Turgowy 2019 » + millésime 2019 -> « Turgowy » ; retire aussi un préfixe « NEW: ». */
 function cuveeName(name: string, year: number | null): string {
   let cleaned = name.replace(/^\s*new\s*:\s*/i, '').trim()
   if (year) cleaned = cleaned.replace(new RegExp(`\\s*${year}\\s*$`), '').trim()
@@ -151,9 +167,7 @@ function json(status: number, error: string) {
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const secret = process.env.INSTAGRAM_RENDER_SECRET
-  if (!secret) return json(503, 'INSTAGRAM_RENDER_SECRET n’est pas configuré')
-  if (!(await isAuthorized(request, secret))) return json(401, 'Non autorisé')
+  if (!(await isAuthorized(request))) return json(401, 'Non autorisé')
 
   const { id } = await params
   const byArticle = /^\d{1,9}$/.test(id)
