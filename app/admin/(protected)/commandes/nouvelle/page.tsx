@@ -16,12 +16,15 @@ export default async function NouvelleCommandePage() {
       orderBy: { name: 'asc' },
       select: {
         id: true,
+        articleNumber: true,
         name: true,
+        year: true,
         priceCents: true,
         stock: true,
         bottleSize: true,
         bottlesPerUnit: true,
         category: { select: { name: true } },
+        producer: { select: { name: true } },
         promotions: {
           where: { active: true },
         },
