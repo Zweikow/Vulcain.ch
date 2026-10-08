@@ -11,7 +11,15 @@ export default async function ProducteursPage() {
 
   const producers = await prisma.producer.findMany({
     orderBy: { name: 'asc' },
-    include: { _count: { select: { products: true } } },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      region: true,
+      photoUrl: true,
+      _count: { select: { products: true } },
+    },
   })
 
   return <ProducteursClient producers={producers} canEdit={canEdit} />

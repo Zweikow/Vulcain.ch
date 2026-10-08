@@ -377,6 +377,20 @@ export default function ProductDetailModal({
               </p>
             </div>
           )}
+
+          {/* Lien vers la fiche permanente */}
+          {product.slug && (
+            <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Fiche dédiée :</span>
+              <Link
+                href={`/produits/${product.slug}`}
+                onClick={onClose}
+                className="font-medium text-foreground hover:text-primary-text underline underline-offset-2 transition-colors"
+              >
+                Ouvrir la fiche cuvée
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

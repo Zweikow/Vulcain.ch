@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 
+import { generateUniqueCategorySlug } from '@/lib/slug'
+
 const schema = z.object({
   name: z.string().min(1).max(100),
 })
@@ -23,7 +25,8 @@ export async function createCategory(input: { name: string }) {
       select: { position: true },
     })
     const position = (max?.position ?? -1) + 1
-    await prisma.category.create({ data: { ...parsed.data, position } })
+    const slug = await generateUniqueCategorySlug(parsed.data.name)
+    await prisma.category.create({ data: { ...parsed.data, slug, position } })
     revalidatePath('/admin/categories')
     revalidatePath('/admin/produits')
     revalidatePath('/')
@@ -31,6 +34,40 @@ export async function createCategory(input: { name: string }) {
   } catch (e: any) {
     if (e.code === 'P2002') return { error: 'Cette catégorie existe déjà.' }
     return { error: 'Erreur inattendue.' }
+  }
+}
+
+const updateCategorySchema = z.object({
+  name: z.string().trim().min(1, 'Le nom est requis').max(100),
+  description: z.string().trim().max(1000).optional().nullable(),
+})
+
+export async function updateCategory(
+  id: string,
+  input: { name: string; description?: string | null }
+) {
+  const guard = await assertCapability(can.manageCatalogue)
+  if (!guard.ok) return { error: guard.error }
+
+  const parsed = updateCategorySchema.safeParse(input)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message || 'Données invalides' }
+
+  try {
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        name: parsed.data.name,
+        description: parsed.data.description ? parsed.data.description.trim() : null,
+      },
+    })
+    revalidatePath('/admin/categories')
+    revalidatePath('/admin/produits')
+    revalidatePath(`/categories/${category.slug}`)
+    revalidatePath('/')
+    return { ok: true, category }
+  } catch (e: any) {
+    if (e.code === 'P2002') return { error: 'Ce nom de catégorie est déjà utilisé.' }
+    return { error: 'Erreur inattendue lors de la mise à jour.' }
   }
 }
 

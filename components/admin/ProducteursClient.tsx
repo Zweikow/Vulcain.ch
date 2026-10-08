@@ -1,6 +1,15 @@
 'use client'
 
-import { Pencil, Trash2, Check, X, Wine } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  Wine,
+  Globe,
+  AlertCircle,
+  Sparkles,
+  MapPin,
+  CheckCircle2,
+} from 'lucide-react'
 import { useState, useTransition } from 'react'
 import {
   createProducer,
@@ -9,9 +18,13 @@ import {
 } from '@/app/admin/(protected)/producteurs/actions'
 import { useRouter } from 'next/navigation'
 
-interface ProducerItem {
+export interface ProducerItem {
   id: string
   name: string
+  slug: string
+  description?: string | null
+  region?: string | null
+  photoUrl?: string | null
   _count: { products: number }
 }
 
@@ -26,8 +39,13 @@ export function ProducteursClient({
   const [pending, startTransition] = useTransition()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
+  const [editingProducer, setEditingProducer] = useState<ProducerItem | null>(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    region: '',
+    photoUrl: '',
+  })
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const handleCreate = () => {
@@ -45,26 +63,30 @@ export function ProducteursClient({
   }
 
   const handleStartEdit = (p: ProducerItem) => {
-    setEditingId(p.id)
-    setEditName(p.name)
+    setEditingProducer(p)
+    setEditForm({
+      name: p.name,
+      description: p.description || '',
+      region: p.region || '',
+      photoUrl: p.photoUrl || '',
+    })
     setError('')
   }
 
-  const handleCancelEdit = () => {
-    setEditingId(null)
-    setEditName('')
-  }
-
-  const handleSaveEdit = (id: string) => {
-    if (!editName.trim()) return
+  const handleSaveEdit = () => {
+    if (!editingProducer || !editForm.name.trim()) return
     startTransition(async () => {
       setError('')
-      const res = await updateProducer(id, { name: editName })
+      const res = await updateProducer(editingProducer.id, {
+        name: editForm.name,
+        description: editForm.description.trim() ? editForm.description : null,
+        region: editForm.region.trim() ? editForm.region : null,
+        photoUrl: editForm.photoUrl.trim() ? editForm.photoUrl : null,
+      })
       if (res?.error) {
         setError(res.error)
       } else {
-        setEditingId(null)
-        setEditName('')
+        setEditingProducer(null)
         router.refresh()
       }
     })
@@ -97,8 +119,9 @@ export function ProducteursClient({
       </div>
 
       {error && (
-        <div className="bg-[#FDF2F2] dark:bg-red-950/40 border border-[#F3D5D5] dark:border-red-900/50 text-[#C62828] dark:text-red-300 px-4 py-3 rounded-xl text-sm shadow-xs">
-          {error}
+        <div className="bg-[#FDF2F2] dark:bg-red-950/40 border border-[#F3D5D5] dark:border-red-900/50 text-[#C62828] dark:text-red-300 px-4 py-3 rounded-xl text-sm shadow-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -133,6 +156,9 @@ export function ProducteursClient({
                   Nom du producteur
                 </th>
                 <th className="px-4 py-3.5 font-medium text-text-secondary dark:text-text-secondary-dark">
+                  Statut SEO
+                </th>
+                <th className="px-4 py-3.5 font-medium text-text-secondary dark:text-text-secondary-dark">
                   Produits associés
                 </th>
                 <th className="px-4 py-3.5 text-right font-medium text-text-secondary dark:text-text-secondary-dark">
@@ -144,7 +170,7 @@ export function ProducteursClient({
               {producers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-4 py-12 text-center text-text-tertiary dark:text-text-tertiary-dark"
                   >
                     Aucun producteur enregistré.
@@ -152,8 +178,8 @@ export function ProducteursClient({
                 </tr>
               ) : (
                 producers.map((p) => {
-                  const isEditing = editingId === p.id
                   const hasProducts = p._count.products > 0
+                  const isIndexable = Boolean(p.description && p.description.trim().length > 0)
 
                   return (
                     <tr
@@ -161,42 +187,30 @@ export function ProducteursClient({
                       className="hover:bg-bg-page/40 dark:hover:bg-bg-page-dark/40 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-text-primary dark:text-text-primary-dark">
-                        {isEditing ? (
-                          <div className="flex items-center gap-2 max-w-sm">
-                            <input
-                              type="text"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSaveEdit(p.id)
-                                if (e.key === 'Escape') handleCancelEdit()
-                              }}
-                              className="input-field py-1 text-sm flex-1"
-                              autoFocus
-                            />
-                            <button
-                              onClick={() => handleSaveEdit(p.id)}
-                              disabled={pending || !editName.trim()}
-                              className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors"
-                              title="Enregistrer"
-                              aria-label="Enregistrer"
-                            >
-                              <Check className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={handleCancelEdit}
-                              disabled={pending}
-                              className="p-1.5 text-text-tertiary hover:bg-bg-page dark:hover:bg-bg-page-dark rounded-lg transition-colors"
-                              title="Annuler"
-                              aria-label="Annuler"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
+                        <div>
+                          <span className="font-semibold">{p.name}</span>
+                          {p.region && (
+                            <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark ml-2">
+                              ({p.region})
+                            </span>
+                          )}
+                          <div className="text-[11px] text-text-tertiary font-mono">
+                            /producteurs/{p.slug}
                           </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {isIndexable ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Indexé (Sitemap)
+                          </span>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <span>{p.name}</span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                            <Globe className="w-3 h-3" />
+                            Noindex (desc. vide)
+                          </span>
                         )}
                       </td>
 
@@ -216,17 +230,16 @@ export function ProducteursClient({
                       <td className="px-4 py-3 text-right">
                         {canEdit && (
                           <div className="flex items-center justify-end gap-2">
-                            {!isEditing && (
-                              <button
-                                onClick={() => handleStartEdit(p)}
-                                disabled={pending}
-                                className="p-1.5 text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark rounded-lg transition-colors"
-                                title="Modifier le nom"
-                                aria-label="Modifier le nom"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleStartEdit(p)}
+                              disabled={pending}
+                              className="p-1.5 text-text-secondary dark:text-text-secondary-dark hover:text-text-primary dark:hover:text-text-primary-dark hover:bg-bg-page dark:hover:bg-bg-page-dark rounded-lg transition-colors flex items-center gap-1 text-xs"
+                              title="Modifier la fiche"
+                              aria-label="Modifier la fiche"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Modifier</span>
+                            </button>
 
                             {confirmDeleteId === p.id ? (
                               <div className="flex items-center gap-2 text-xs bg-red-50 dark:bg-red-950/30 px-2 py-1 rounded-md border border-red-200 dark:border-red-900/50">
@@ -279,6 +292,132 @@ export function ProducteursClient({
           </table>
         </div>
       </div>
+
+      {/* Modale d'édition complète du producteur */}
+      {editingProducer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-text-primary dark:text-text-primary-dark">
+                  Modifier le producteur
+                </h3>
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-1">
+                  Éditez les détails éditoriaux et SEO du producteur
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingProducer(null)}
+                disabled={pending}
+                className="text-text-tertiary hover:text-text-primary p-1 rounded-md"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="block font-medium text-text-primary dark:text-text-primary-dark mb-1">
+                  Nom du producteur *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  className="input-field w-full text-xs"
+                  placeholder="Ex. Jacques Perritaz"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium text-text-primary dark:text-text-primary-dark mb-1">
+                  Slug (URL permanente)
+                </label>
+                <input
+                  type="text"
+                  value={editingProducer.slug}
+                  disabled
+                  className="input-field w-full text-xs bg-bg-page/50 dark:bg-bg-page-dark/50 cursor-not-allowed text-text-tertiary font-mono"
+                />
+                <p className="text-[11px] text-text-tertiary mt-1">
+                  Le slug est figé pour préserver le référencement Google.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-medium text-text-primary dark:text-text-primary-dark mb-1">
+                    Région / Terroir
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.region}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, region: e.target.value }))}
+                    className="input-field w-full text-xs"
+                    placeholder="Ex. Le Mouret, Fribourg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-text-primary dark:text-text-primary-dark mb-1">
+                    Photo URL
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.photoUrl}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, photoUrl: e.target.value }))}
+                    className="input-field w-full text-xs"
+                    placeholder="Ex. /images/histoire/jacques-perritaz.jpg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium text-text-primary dark:text-text-primary-dark mb-1">
+                  Description éditoriale & SEO
+                </label>
+                <textarea
+                  rows={5}
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  className="input-field w-full text-xs resize-none"
+                  placeholder="Présentation du producteur, de son histoire, de sa méthode de vinification naturelle..."
+                />
+                <div className="mt-2 p-2.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark text-[11px] text-text-secondary dark:text-text-secondary-dark flex items-start gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Règle SEO :</strong> Une description rédigée rend la page producteur
+                    indexable par Google et l&apos;intègre dans le sitemap XML. Si la description
+                    est vide, la page reste protégée en noindex et hors sitemap.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingProducer(null)}
+                disabled={pending}
+                className="btn-secondary text-xs py-2 px-3.5"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={pending || !editForm.name.trim()}
+                className="btn-primary text-xs py-2 px-4 disabled:opacity-50"
+              >
+                {pending ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -7,7 +7,7 @@ import BoutiqueClient from '@/components/BoutiqueClient'
 import MaintenancePage from '@/components/MaintenancePage'
 import { SITE_CONFIG } from '@/lib/site'
 
-// Catalogue lu en base à chaque requête — un produit désactivé disparaît aussitôt.
+// Catalogue lu en base a chaque requete - un produit desactive disparait aussitot.
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
@@ -44,6 +44,7 @@ export default async function Home() {
     return {
       id: p.id,
       name: p.name,
+      slug: p.slug,
       category: p.category.name as Product['category'],
       producerName: p.producer?.name ?? undefined,
       year: p.year ?? undefined,

@@ -76,24 +76,31 @@ model AuditLog {
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  position Int       @default(0)
-  products Product[]
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  position    Int       @default(0)
+  products    Product[]
 }
 
 model Producer {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  region      String?
+  photoUrl    String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Product {
   id                  String          @id @default(cuid())
   articleNumber       Int             @unique @default(autoincrement())
   name                String
+  slug                String          @unique
   description         String?
   priceCents          Int // prix public TTC — le prix pro est dérivé du taux Setting, jamais stocké
   purchasePriceCents  Int             @default(0) // prix d'achat payé au producteur
