@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { prisma } from '@/lib/prisma'
+import { prisma, hasDatabaseUrl } from '@/lib/prisma'
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import { getMainImageUrl } from '@/lib/cuvees-gallery'
 import { formatCHF } from '@/lib/money'
@@ -17,6 +17,18 @@ interface CategoryPageProps {
 }
 
 export const revalidate = 3600
+
+export async function generateStaticParams() {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
+  const categories = await prisma.category.findMany({
+    select: { slug: true },
+  })
+
+  return categories.map((c) => ({ slug: c.slug }))
+}
 
 async function getCategoryBySlug(slug: string) {
   return prisma.category.findUnique({

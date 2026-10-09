@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma, hasDatabaseUrl } from '@/lib/prisma'
 import { getSiteUrl } from '@/lib/site'
 import { getMainImageUrl } from '@/lib/cuvees-gallery'
 
@@ -7,6 +7,46 @@ export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl()
+
+  // Entrées fixes du site
+  const staticEntries: MetadataRoute.Sitemap = [
+    {
+      url: `${siteUrl}/`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    {
+      url: `${siteUrl}/producteurs`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${siteUrl}/cgv`,
+      lastModified: new Date('2026-08-14'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/mentions-legales`,
+      lastModified: new Date('2026-08-14'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/confidentialite`,
+      lastModified: new Date('2026-08-14'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+  ]
+
+  // En l'absence de base de donnees (ex: etape de validation CI sans DATABASE_URL),
+  // on retourne uniquement les routes statiques sans lancer de requete.
+  if (!hasDatabaseUrl()) {
+    return staticEntries
+  }
 
   const [dbProducts, dbCategories, dbProducers] = await Promise.all([
     prisma.product.findMany({
@@ -56,39 +96,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const latestProductDate = dbProducts[0]?.updatedAt || new Date()
 
-  // Entrées fixes du site
-  const staticEntries: MetadataRoute.Sitemap = [
-    {
-      url: `${siteUrl}/`,
-      lastModified: latestProductDate,
-      changeFrequency: 'weekly',
-      priority: 1.0,
-    },
-    {
-      url: `${siteUrl}/producteurs`,
-      lastModified: latestProductDate,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/cgv`,
-      lastModified: new Date('2026-08-14'),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/mentions-legales`,
-      lastModified: new Date('2026-08-14'),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/confidentialite`,
-      lastModified: new Date('2026-08-14'),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-  ]
+  // Mise a jour de la date sur les entrees fixes
+  staticEntries[0].lastModified = latestProductDate
+  staticEntries[1].lastModified = latestProductDate
 
   // Fiches produits avec images réelles pour Google Images (omise si pas de photo)
   const productEntries: MetadataRoute.Sitemap = dbProducts.map((p) => {

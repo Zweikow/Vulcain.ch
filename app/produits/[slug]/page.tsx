@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { prisma } from '@/lib/prisma'
+import { prisma, hasDatabaseUrl } from '@/lib/prisma'
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import { formatCHF } from '@/lib/money'
 import { getMainImageUrl, getCuveeGallery } from '@/lib/cuvees-gallery'
@@ -29,6 +29,10 @@ interface ProductPageProps {
 }
 
 export async function generateStaticParams() {
+  if (!hasDatabaseUrl()) {
+    return []
+  }
+
   const products = await prisma.product.findMany({
     where: {
       active: true,

@@ -1,13 +1,41 @@
-import { prisma } from '@/lib/prisma'
+import type { Setting } from '@prisma/client'
+import { prisma, hasDatabaseUrl } from '@/lib/prisma'
 
-/** Réglages globaux — crée la ligne par défaut au premier accès. */
-export async function getSettings() {
+/** Valeurs par defaut du schema - utilisees si la base est absente ou injoignable. */
+export const DEFAULT_SETTINGS: Setting = {
+  id: 1,
+  proRatePercent: 20,
+  shippingCents: 1000,
+  francoCents: 12000,
+  prepDays: 3,
+  companyName: 'Drinkcider',
+  companyAddress: 'Ch. des Moilles 16',
+  contactEmail: 'info@drinkcider.ch',
+  contactPhone: '',
+  vatSubject: false,
+  vatNumber: '',
+  vatRatePermille: 81,
+  iban: 'CH57 0900 0000 1703 3189 6',
+  contactName: 'Bertrand Baeriswyl',
+  companyTagline: 'Drinkcider',
+  companyZipCity: '1619 Les Paccots',
+  invoicePlace: 'Les Paccots',
+  bankName: 'PostFinance AG',
+  paymentTermsDays: 30,
+  maintenanceMode: false,
+}
+
+/** Reglages globaux - cree la ligne par defaut au premier acces. */
+export async function getSettings(): Promise<Setting> {
+  if (!hasDatabaseUrl()) {
+    return DEFAULT_SETTINGS
+  }
   const existing = await prisma.setting.findUnique({ where: { id: 1 } })
   if (existing) return existing
   return prisma.setting.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } })
 }
 
-/** Valeurs par défaut du schéma — utilisées si la base est injoignable. */
+/** Valeurs par defaut du schema pour la boutique. */
 export const DEFAULT_PUBLIC_SETTINGS = {
   shippingCents: 1000,
   francoCents: 12000,
@@ -17,8 +45,11 @@ export const DEFAULT_PUBLIC_SETTINGS = {
 
 export type PublicSettings = typeof DEFAULT_PUBLIC_SETTINGS
 
-/** Sous-ensemble exposable à la boutique (jamais l'IBAN ni le taux pro). */
+/** Sous-ensemble exposable a la boutique (jamais l'IBAN ni le taux pro). */
 export async function getPublicSettings(): Promise<PublicSettings> {
+  if (!hasDatabaseUrl()) {
+    return DEFAULT_PUBLIC_SETTINGS
+  }
   try {
     const s = await getSettings()
     return {
@@ -33,10 +64,13 @@ export async function getPublicSettings(): Promise<PublicSettings> {
 }
 
 /**
- * Boutique fermée pour maintenance. Si la base est injoignable, on considère la
- * boutique ouverte : le formulaire échouera de lui-même, sans bloquer la vitrine.
+ * Boutique fermee pour maintenance. Si la base est absente ou injoignable, on considere la
+ * boutique ouverte : le formulaire echouera de lui-meme, sans bloquer la vitrine.
  */
 export async function isMaintenanceMode(): Promise<boolean> {
+  if (!hasDatabaseUrl()) {
+    return false
+  }
   try {
     return (await getSettings()).maintenanceMode
   } catch {
