@@ -13,12 +13,13 @@ export interface ProductPromotion {
 export interface Product {
   id: string
   name: string
+  slug: string
   category: 'Cidre' | 'Eau-de-vie' | 'Liqueur' | 'Cuisine'
   year?: number
-  priceCents: number // centimes entiers — jamais de flottant pour l'argent
-  compareAtPriceCents?: number | null // prix d'origine barré
+  priceCents: number // centimes entiers - jamais de flottant pour l'argent
+  compareAtPriceCents?: number | null // prix d'origine barre
   stock: number
-  bottlesPerUnit: number // nombre de bouteilles par unité (+1)
+  bottlesPerUnit: number // nombre de bouteilles par unite (+1)
   description: string
   image?: string
   active: boolean
@@ -28,7 +29,7 @@ export interface Product {
   bottleSize?: '75cl' | '27.5cl'
   origin?: 'CH' | 'FR'
   producerName?: string
-  // Badges calculés côté serveur — « Nouveau » ou « Derniers exemplaires », jamais les deux
+  // Badges calcules cote serveur - « Nouveau » ou « Derniers exemplaires », jamais les deux
   isNew?: boolean
   isLastUnits?: boolean
   activePromotion?: ProductPromotion | null

@@ -84,6 +84,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
         select: {
           id: true,
           name: true,
+          slug: true,
           priceCents: true,
           purchasePriceCents: true,
           stock: true,
@@ -226,6 +227,16 @@ export async function createManualOrder(input: CreateManualOrderInput) {
     revalidatePath('/admin/commandes')
     revalidatePath('/admin')
     revalidatePath('/admin/produits')
+    revalidatePath('/')
+    const orderedProducts = await prisma.product.findMany({
+      where: { id: { in: input.items.map((i) => i.productId) } },
+      select: { slug: true },
+    })
+    for (const prod of orderedProducts) {
+      if (prod.slug) {
+        revalidatePath(`/produits/${prod.slug}`)
+      }
+    }
 
     return { success: true, orderId: order.id }
   } catch (err: unknown) {

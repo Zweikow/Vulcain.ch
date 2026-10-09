@@ -1,13 +1,13 @@
 import { prisma } from '@/lib/prisma'
 import { getPublicSettings, getSettings } from '@/lib/settings'
 import { Product } from '@/types'
-import { getCuveeGallery } from '@/lib/cuvees-gallery'
+import { getMainImageUrl } from '@/lib/cuvees-gallery'
 import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
 import MaintenancePage from '@/components/MaintenancePage'
 import { SITE_CONFIG } from '@/lib/site'
 
-// Catalogue lu en base à chaque requête — un produit désactivé disparaît aussitôt.
+// Catalogue lu en base a chaque requete - un produit desactive disparait aussitot.
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
@@ -44,6 +44,7 @@ export default async function Home() {
     return {
       id: p.id,
       name: p.name,
+      slug: p.slug,
       category: p.category.name as Product['category'],
       producerName: p.producer?.name ?? undefined,
       year: p.year ?? undefined,
@@ -55,7 +56,7 @@ export default async function Home() {
       bottlesPerUnit: p.bottlesPerUnit ?? 1,
       description: p.description ?? '',
       // Sans image choisie dans l'admin, la vignette reprend le packshot principal de la cuvée
-      image: p.imageUrl ?? getCuveeGallery(null, p.articleNumber)[0]?.url,
+      image: getMainImageUrl(p.imageUrl, p.articleNumber) ?? undefined,
       active: p.active,
       isLastUnits,
       isNew: !isLastUnits && p.createdAt.getTime() > newSince,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCHF, proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
 import { createManualOrder } from '@/app/admin/(protected)/commandes/nouvelle/actions'
@@ -14,16 +14,20 @@ import {
   TruckIcon,
   MailIcon,
   CheckIcon,
+  SearchIcon,
 } from '@/components/admin/AdminIcons'
 
 interface ProductOption {
   id: string
+  articleNumber?: number | null
   name: string
+  year?: number | null
   priceCents: number
   stock: number
   bottleSize?: string | null
   bottlesPerUnit?: number
   category?: { name: string }
+  producer?: { name: string } | null
   promotions?: Array<{
     id: string
     name: string
@@ -97,10 +101,101 @@ export function CreateOrderForm({
   const [city, setCity] = useState('')
   const [isPro, setIsPro] = useState(false)
 
-  // 2. Articles
+  // 2. Articles & Recherche
   const [lines, setLines] = useState<OrderLineItem[]>([])
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || '')
   const [addQuantity, setAddQuantity] = useState<number>(6)
+  const [productSearch, setProductSearch] = useState('')
+  const [isProductMenuOpen, setIsProductMenuOpen] = useState(false)
+  const [highlightedProductIndex, setHighlightedProductIndex] = useState(0)
+  const [justAddedProduct, setJustAddedProduct] = useState(false)
+  const productMenuRef = useRef<HTMLDivElement>(null)
+  const productInputRef = useRef<HTMLInputElement>(null)
+
+  // Normalisation du texte (minuscules, sans accents) pour la recherche insensible
+  const normalizeSearch = (str: string) =>
+    str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+
+  // Filtrage multi-mots en direct
+  const filteredProducts = useMemo(() => {
+    const raw = productSearch.trim()
+    if (!raw) return products
+
+    const tokens = normalizeSearch(raw).split(/\s+/).filter(Boolean)
+    if (tokens.length === 0) return products
+
+    return products.filter((p) => {
+      const haystack = normalizeSearch(
+        [
+          p.name,
+          p.year?.toString() ?? '',
+          p.articleNumber ? `art ${p.articleNumber} #${p.articleNumber} ${p.articleNumber}` : '',
+          p.category?.name ?? '',
+          p.producer?.name ?? '',
+          p.bottleSize ?? '',
+        ].join(' ')
+      )
+      return tokens.every((token) => haystack.includes(token))
+    })
+  }, [products, productSearch])
+
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === selectedProductId) || null,
+    [products, selectedProductId]
+  )
+
+  // Fermeture du menu déroulant lors d'un clic extérieur
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (productMenuRef.current && !productMenuRef.current.contains(e.target as Node)) {
+        setIsProductMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelectProduct = (prod: ProductOption) => {
+    setSelectedProductId(prod.id)
+    setIsProductMenuOpen(false)
+    setProductSearch('')
+  }
+
+  const handleProductInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isProductMenuOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault()
+      setIsProductMenuOpen(true)
+      return
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (filteredProducts.length > 0) {
+        setHighlightedProductIndex((prev) => (prev + 1) % filteredProducts.length)
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (filteredProducts.length > 0) {
+        setHighlightedProductIndex((prev) =>
+          prev - 1 < 0 ? filteredProducts.length - 1 : prev - 1
+        )
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (isProductMenuOpen && filteredProducts[highlightedProductIndex]) {
+        handleSelectProduct(filteredProducts[highlightedProductIndex])
+      } else if (!isProductMenuOpen && selectedProduct) {
+        handleAddLine()
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setIsProductMenuOpen(false)
+    }
+  }
 
   // 3. Expédition & Statut
   const [shippingOption, setShippingOption] = useState<'STANDARD' | 'RETRAIT' | 'CUSTOM'>(
@@ -196,7 +291,7 @@ export function CreateOrderForm({
           newLines.push({
             id: `${line.productId}-free-${Date.now()}`,
             productId: line.productId,
-            productName: `${line.productName} — ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
+            productName: `${line.productName} - ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
             listPriceCents: line.listPriceCents,
             unitPriceCents: 0,
             quantity: freeUnits,
@@ -259,7 +354,7 @@ export function CreateOrderForm({
             newLines.push({
               id: `${prod.id}-free-${Date.now()}`,
               productId: prod.id,
-              productName: `${prod.name} — ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
+              productName: `${prod.name} - ${promo.name} (${freeUnits} offert${freeUnits > 1 ? 's' : ''})`,
               listPriceCents: prod.priceCents,
               unitPriceCents: 0,
               quantity: freeUnits,
@@ -313,6 +408,11 @@ export function CreateOrderForm({
         },
       ]
     })
+
+    setJustAddedProduct(true)
+    setTimeout(() => setJustAddedProduct(false), 1500)
+    setProductSearch('')
+    productInputRef.current?.focus()
   }
 
   const handleRemoveLine = (lineId: string) => {
@@ -475,7 +575,7 @@ export function CreateOrderForm({
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.customerNumber ? `N° ${c.customerNumber} · ` : ''}
-                  {c.lastName.toUpperCase()} {c.firstName} ({c.city || 'Suisse'}) — {c.email}{' '}
+                  {c.lastName.toUpperCase()} {c.firstName} ({c.city || 'Suisse'}) - {c.email}{' '}
                   {c.isPro ? `[PRO -${c.proRatePercent ?? settings.proRatePercent}%]` : ''}
                 </option>
               ))}
@@ -610,63 +710,319 @@ export function CreateOrderForm({
           Ajoutez les bouteilles et spécifiez les quantités
         </p>
 
-        {/* Sélecteur d'ajout */}
-        <div className="flex flex-wrap items-end gap-3 p-3 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark mb-4">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-              Produit
-            </label>
-            <select
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-              className="input-field w-full text-sm"
-            >
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {formatCHF(p.priceCents)} (Stock: {p.stock})
-                </option>
-              ))}
-            </select>
-            {(() => {
-              const selProd = products.find((p) => p.id === selectedProductId)
-              const promo = selProd?.promotions?.[0]
-              if (!promo) return null
-              return (
-                <p className="mt-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
-                  <GiftIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span>
-                    {promo.name} :{' '}
-                    {promo.type === 'BUY_X_GET_Y_FREE'
-                      ? `pour ${promo.buyQuantity} unité(s) achetée(s), ${promo.getFreeQuantity} est offerte.`
-                      : promo.type === 'PERCENTAGE'
-                        ? `remise de ${promo.discountPercent}%.`
-                        : `rabais de ${formatCHF(promo.discountCents ?? 0)}.`}
+        {/* Sélecteur d'ajout avec recherche en direct */}
+        <div className="p-4 rounded-xl bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark mb-4 space-y-3">
+          <div className="flex flex-col md:flex-row items-stretch md:items-end gap-3">
+            {/* Champ de recherche combobox */}
+            <div className="flex-1 relative" ref={productMenuRef}>
+              <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                Rechercher un article dans la base
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
+                  <SearchIcon className="w-4 h-4" />
+                </div>
+                <input
+                  ref={productInputRef}
+                  type="text"
+                  value={productSearch}
+                  onChange={(e) => {
+                    setProductSearch(e.target.value)
+                    setIsProductMenuOpen(true)
+                    setHighlightedProductIndex(0)
+                  }}
+                  onFocus={() => setIsProductMenuOpen(true)}
+                  onKeyDown={handleProductInputKeyDown}
+                  placeholder={
+                    selectedProduct
+                      ? 'Rechercher un autre article (nom, millésime, réf. n°)...'
+                      : 'Rechercher par cuvée, millésime, réf. n°, producteur...'
+                  }
+                  className="input-field w-full pl-9 pr-8 text-sm"
+                />
+                {productSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProductSearch('')
+                      setHighlightedProductIndex(0)
+                      productInputRef.current?.focus()
+                    }}
+                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-text-tertiary hover:text-text-primary"
+                    title="Effacer la recherche"
+                  >
+                    <CloseIcon className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Menu déroulant de résultats */}
+              {isProductMenuOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-30 max-h-80 overflow-y-auto rounded-xl border border-border dark:border-border-dark bg-bg-card dark:bg-bg-card-dark shadow-xl divide-y divide-border/60 dark:divide-border-dark/60">
+                  {filteredProducts.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-text-tertiary">
+                      Aucun article ne correspond à «{' '}
+                      <span className="font-semibold text-text-primary dark:text-text-primary-dark">
+                        {productSearch}
+                      </span>{' '}
+                      »
+                    </div>
+                  ) : (
+                    filteredProducts.map((p, idx) => {
+                      const isHighlighted = idx === highlightedProductIndex
+                      const isSelected = p.id === selectedProductId
+                      const effectivePrice = isPro
+                        ? proUnitPriceCents(p.priceCents, customProRate ?? settings.proRatePercent)
+                        : p.priceCents
+                      const promo = p.promotions?.[0]
+
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            handleSelectProduct(p)
+                          }}
+                          onMouseEnter={() => setHighlightedProductIndex(idx)}
+                          className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors flex items-center justify-between gap-3 ${
+                            isHighlighted
+                              ? 'bg-primary/10 dark:bg-primary/20 text-text-primary dark:text-text-primary-dark'
+                              : isSelected
+                                ? 'bg-bg-page dark:bg-bg-page-dark'
+                                : 'hover:bg-bg-page dark:hover:bg-bg-page-dark text-text-primary dark:text-text-primary-dark'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {p.articleNumber != null && (
+                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-bg-page dark:bg-bg-page-dark text-text-secondary dark:text-text-secondary-dark border border-border/70 dark:border-border-dark/70 font-semibold">
+                                  #{p.articleNumber}
+                                </span>
+                              )}
+                              <span className="font-semibold text-sm truncate">{p.name}</span>
+                              {p.year != null && (
+                                <span className="text-xs text-text-secondary dark:text-text-secondary-dark font-medium">
+                                  {p.year}
+                                </span>
+                              )}
+                              {promo && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                  <GiftIcon className="w-2.5 h-2.5" />
+                                  {promo.name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark truncate mt-0.5 flex items-center gap-1.5">
+                              {p.producer?.name && <span>{p.producer.name}</span>}
+                              {p.producer?.name && p.category?.name && <span>·</span>}
+                              {p.category?.name && <span>{p.category.name}</span>}
+                              {p.bottleSize && <span>({p.bottleSize})</span>}
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                            <div className="font-semibold text-sm">
+                              {formatCHF(effectivePrice)}
+                              {isPro && effectivePrice !== p.priceCents && (
+                                <span className="text-[10px] text-primary-text font-normal ml-1">
+                                  HT
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              {p.stock > 5 ? (
+                                <span className="inline-flex items-center text-[10px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                                  {p.stock} en stock
+                                </span>
+                              ) : p.stock > 0 ? (
+                                <span className="inline-flex items-center text-[10px] font-medium text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
+                                  ⚠ {p.stock} restants
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center text-[10px] font-medium text-rose-700 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded-full">
+                                  Rupture (0)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Quantité & Boutons */}
+            <div className="w-full md:w-auto flex items-end gap-2">
+              <div className="w-28">
+                <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                  Quantité
+                </label>
+                <div className="flex items-center rounded-lg border border-border dark:border-border-dark bg-bg-card dark:bg-bg-card-dark overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAddQuantity((q) => Math.max(1, q - 1))}
+                    className="w-8 h-[38px] flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-bg-page dark:hover:bg-bg-page-dark transition-colors"
+                    title="Diminuer de 1"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={addQuantity}
+                    onChange={(e) => setAddQuantity(parseInt(e.target.value, 10) || 1)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleAddLine()
+                      }
+                    }}
+                    className="w-12 h-[38px] text-center text-sm font-semibold bg-transparent focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAddQuantity((q) => q + 1)}
+                    className="w-8 h-[38px] flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-bg-page dark:hover:bg-bg-page-dark transition-colors"
+                    title="Augmenter de 1"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddLine}
+                disabled={!selectedProduct}
+                className="btn-primary text-sm whitespace-nowrap h-[38px] px-4 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {justAddedProduct ? (
+                  <>
+                    <CheckIcon className="w-4 h-4 text-emerald-400" />
+                    <span>Ajouté !</span>
+                  </>
+                ) : (
+                  <>
+                    <span>+ Ajouter</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Raccourcis de quantité rapide */}
+          <div className="flex items-center gap-1.5 text-xs text-text-secondary dark:text-text-secondary-dark flex-wrap">
+            <span className="text-[11px] text-text-tertiary">Quantité rapide :</span>
+            {[1, 6, 12, 24].map((qty) => (
+              <button
+                key={qty}
+                type="button"
+                onClick={() => setAddQuantity(qty)}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors border ${
+                  addQuantity === qty
+                    ? 'border-primary bg-primary/10 text-primary-text'
+                    : 'border-border dark:border-border-dark hover:bg-bg-card dark:hover:bg-bg-card-dark'
+                }`}
+              >
+                {qty} {qty === 6 ? '(1 carton)' : qty === 12 ? '(2 cartons)' : ''}
+              </button>
+            ))}
+          </div>
+
+          {/* Carte récapitulative du produit sélectionné */}
+          {selectedProduct ? (
+            <div className="mt-2 p-3 rounded-lg bg-bg-card dark:bg-bg-card-dark border border-border/80 dark:border-border-dark/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary-text shrink-0">
+                  <BottleIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {selectedProduct.articleNumber != null && (
+                      <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark font-semibold text-text-secondary dark:text-text-secondary-dark">
+                        Art. #{selectedProduct.articleNumber}
+                      </span>
+                    )}
+                    <span className="font-semibold text-sm text-text-primary dark:text-text-primary-dark">
+                      {selectedProduct.name}
+                    </span>
+                    {selectedProduct.year != null && (
+                      <span className="text-xs text-text-secondary dark:text-text-secondary-dark font-medium">
+                        {selectedProduct.year}
+                      </span>
+                    )}
+                    {selectedProduct.bottleSize && (
+                      <span className="text-xs text-text-tertiary">
+                        ({selectedProduct.bottleSize})
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-text-secondary dark:text-text-secondary-dark flex items-center gap-2 mt-0.5 flex-wrap">
+                    {selectedProduct.producer?.name && <span>{selectedProduct.producer.name}</span>}
+                    {selectedProduct.producer?.name && selectedProduct.category?.name && (
+                      <span>·</span>
+                    )}
+                    {selectedProduct.category?.name && <span>{selectedProduct.category.name}</span>}
+                    <span>· Prix public : {formatCHF(selectedProduct.priceCents)}</span>
+                    {isPro && (
+                      <span className="font-semibold text-primary-text">
+                        · Prix Pro :{' '}
+                        {formatCHF(
+                          proUnitPriceCents(
+                            selectedProduct.priceCents,
+                            customProRate ?? settings.proRatePercent
+                          )
+                        )}{' '}
+                        HT
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                {selectedProduct.stock > 5 ? (
+                  <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    {selectedProduct.stock} en stock
                   </span>
-                </p>
-              )
-            })()}
-          </div>
+                ) : selectedProduct.stock > 0 ? (
+                  <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                    ⚠ {selectedProduct.stock} restants
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                    Rupture de stock (0)
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-text-tertiary italic">
+              Sélectionnez un article ci-dessus pour l&apos;ajouter à la commande.
+            </div>
+          )}
 
-          <div className="w-24">
-            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-              Quantité
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={addQuantity}
-              onChange={(e) => setAddQuantity(parseInt(e.target.value, 10) || 1)}
-              className="input-field w-full text-sm text-center font-semibold"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleAddLine}
-            className="btn-primary text-sm whitespace-nowrap h-[38px] px-4"
-          >
-            + Ajouter
-          </button>
+          {/* Affichage d'éventuelle promotion sur le produit sélectionné */}
+          {(() => {
+            const promo = selectedProduct?.promotions?.[0]
+            if (!promo) return null
+            return (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5 pt-1">
+                <GiftIcon className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {promo.name} :{' '}
+                  {promo.type === 'BUY_X_GET_Y_FREE'
+                    ? `pour ${promo.buyQuantity} unité(s) achetée(s), ${promo.getFreeQuantity} est offerte.`
+                    : promo.type === 'PERCENTAGE'
+                      ? `remise de ${promo.discountPercent}%.`
+                      : `rabais de ${formatCHF(promo.discountCents ?? 0)}.`}
+                </span>
+              </p>
+            )
+          })()}
         </div>
 
         {/* Tableau des lignes */}

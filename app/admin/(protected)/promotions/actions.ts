@@ -25,6 +25,7 @@ export type PromoInput = z.infer<typeof promoSchema>
 function revalidate() {
   revalidatePath('/admin/promotions')
   revalidatePath('/admin/produits')
+  revalidatePath('/admin/categories')
   revalidatePath('/')
   revalidatePath('/api/commandes')
 }
@@ -88,13 +89,65 @@ export async function togglePromotionActive(id: string, active: boolean) {
   }
 }
 
-export async function deletePromotion(id: string) {
+export type ProductPostPromoAction = {
+  productId: string
+  action: 'KEEP' | 'ARCHIVE' | 'CHANGE_CATEGORY'
+  newCategoryId?: string
+}
+
+export async function deletePromotion(
+  id: string,
+  options?: {
+    deleteAllWithSameName?: boolean
+    productActions?: ProductPostPromoAction[]
+    archiveProduct?: boolean
+  }
+) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
   try {
-    await prisma.promotion.delete({
+    const promo = await prisma.promotion.findUnique({
       where: { id },
+      select: { id: true, name: true, productId: true },
+    })
+
+    if (!promo) return { error: 'Promotion introuvable' }
+
+    // Déterminer la liste des promotions à supprimer
+    let promoIds = [promo.id]
+    if (options?.deleteAllWithSameName) {
+      const sameNamePromos = await prisma.promotion.findMany({
+        where: { name: promo.name },
+        select: { id: true },
+      })
+      promoIds = sameNamePromos.map((p) => p.id)
+    }
+
+    // Traitement des actions spécifiques par produit
+    if (options?.productActions && options.productActions.length > 0) {
+      for (const item of options.productActions) {
+        if (item.action === 'ARCHIVE') {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { archived: true, active: false },
+          })
+        } else if (item.action === 'CHANGE_CATEGORY' && item.newCategoryId) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { categoryId: item.newCategoryId },
+          })
+        }
+      }
+    } else if (options?.archiveProduct && promo.productId) {
+      await prisma.product.update({
+        where: { id: promo.productId },
+        data: { archived: true, active: false },
+      })
+    }
+
+    await prisma.promotion.deleteMany({
+      where: { id: { in: promoIds } },
     })
     revalidate()
     return { ok: true }

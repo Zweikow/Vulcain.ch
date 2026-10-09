@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 
+import { generateUniqueProductSlug, generateUniqueProducerSlug } from '@/lib/slug'
+
 const productSchema = z.object({
   name: z.string().min(1).max(200),
   categoryId: z.string().min(1),
@@ -29,10 +31,14 @@ const productSchema = z.object({
 
 export type ProductInput = z.infer<typeof productSchema>
 
-function revalidate() {
+function revalidate(slug?: string | null) {
   revalidatePath('/admin/produits')
   revalidatePath('/admin')
   revalidatePath('/')
+  revalidatePath('/sitemap.xml')
+  if (slug) {
+    revalidatePath(`/produits/${slug}`)
+  }
 }
 
 export async function getProducers() {
@@ -47,10 +53,11 @@ export async function createProducer(name: string) {
   if (!trimmed) return { error: 'Nom du producteur requis' }
 
   try {
+    const slug = await generateUniqueProducerSlug(trimmed)
     const producer = await prisma.producer.upsert({
       where: { name: trimmed },
       update: {},
-      create: { name: trimmed },
+      create: { name: trimmed, slug },
     })
     revalidate()
     return { ok: true, producer }
@@ -66,10 +73,11 @@ export async function createProduct(input: ProductInput) {
   const parsed = productSchema.safeParse(input)
   if (!parsed.success) return { error: 'Complétez les champs requis' }
 
-  await prisma.product.create({
-    data: { ...parsed.data, imageUrl: parsed.data.imageUrl || null },
+  const slug = await generateUniqueProductSlug(parsed.data.name, parsed.data.year)
+  const product = await prisma.product.create({
+    data: { ...parsed.data, slug, imageUrl: parsed.data.imageUrl || null },
   })
-  revalidate()
+  revalidate(product.slug)
   return { ok: true }
 }
 
@@ -80,11 +88,12 @@ export async function updateProduct(id: string, input: ProductInput) {
   const parsed = productSchema.safeParse(input)
   if (!parsed.success) return { error: 'Complétez les champs requis' }
 
-  await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: { ...parsed.data, imageUrl: parsed.data.imageUrl || null },
+    select: { slug: true },
   })
-  revalidate()
+  revalidate(product.slug)
   return { ok: true }
 }
 
@@ -92,11 +101,12 @@ export async function updateProductStockInline(id: string, stock: number) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
-  await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: { stock: Math.max(0, stock) },
+    select: { slug: true },
   })
-  revalidate()
+  revalidate(product.slug)
   return { ok: true }
 }
 
@@ -104,10 +114,13 @@ export async function toggleProductActive(id: string) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return
 
-  const product = await prisma.product.findUnique({ where: { id } })
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { active: true, archived: true, slug: true },
+  })
   if (!product || product.archived) return
   await prisma.product.update({ where: { id }, data: { active: !product.active } })
-  revalidate()
+  revalidate(product.slug)
 }
 
 /**
@@ -118,16 +131,17 @@ export async function archiveProduct(id: string) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
+  const product = await prisma.product.findUnique({ where: { id }, select: { slug: true } })
   const orderCount = await prisma.orderItem.count({ where: { productId: id } })
   if (orderCount === 0) {
     await prisma.stockMovement.deleteMany({ where: { productId: id } })
     await prisma.product.delete({ where: { id } })
-    revalidate()
+    revalidate(product?.slug)
     return { ok: true, deleted: true }
   }
 
   await prisma.product.update({ where: { id }, data: { archived: true, active: false } })
-  revalidate()
+  revalidate(product?.slug)
   return { ok: true, deleted: false }
 }
 
@@ -135,10 +149,11 @@ export async function updateProductImage(id: string, imageUrl: string | null) {
   const guard = await assertCapability(can.manageCatalogue)
   if (!guard.ok) return { error: guard.error }
 
-  await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: { imageUrl: imageUrl ? imageUrl.trim() : null },
+    select: { slug: true },
   })
-  revalidate()
+  revalidate(product.slug)
   return { ok: true }
 }

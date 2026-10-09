@@ -61,6 +61,11 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/packshots/cidre-de-fer-2020-face.jpg', label: 'Étiquette' },
     { url: '/packshots/cidre-de-fer-2020-dos.jpg', label: 'Contre-étiquette' },
   ],
+  'brute-de-rue-2020': [
+    { url: '/packshots/brute-de-rue-2020-extra-1.jpg', label: 'Bouteille' },
+    { url: '/packshots/brute-de-rue-2020-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/brute-de-rue-2020-dos.jpg', label: 'Contre-étiquette' },
+  ],
   'brute-de-rue-2021': [
     { url: '/packshots/brute-de-rue-2021-duo.jpg', label: 'Deux bouteilles (face et dos)' },
     { url: '/packshots/brute-de-rue-2021-face.jpg', label: 'Étiquette' },
@@ -70,6 +75,11 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/packshots/belle-brutale-2017-duo.jpg', label: 'Deux bouteilles (face et dos)' },
     { url: '/packshots/belle-brutale-2017-face.jpg', label: 'Étiquette' },
     { url: '/packshots/belle-brutale-2017-dos.jpg', label: 'Contre-étiquette' },
+  ],
+  'brute-bestiale-2017': [
+    { url: '/packshots/brute-bestiale-2017-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/brute-bestiale-2017-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/brute-bestiale-2017-dos.jpg', label: 'Contre-étiquette' },
   ],
   'quatre-pepins-2022': [
     { url: '/packshots/quatre-pepins-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
@@ -100,15 +110,26 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/packshots/baie-de-rue-2023-face.jpg', label: 'Étiquette' },
     { url: '/packshots/baie-de-rue-2023-dos.jpg', label: 'Contre-étiquette' },
   ],
+  'cidre-effervescence-2022': [
+    { url: '/packshots/cidre-effervescence-2022-face.jpg', label: 'Bouteille' },
+    { url: '/packshots/cidre-effervescence-2022-face-etiquette.jpg', label: 'Étiquette' },
+    {
+      url: '/packshots/cidre-effervescence-2022-dos-etiquette.jpg',
+      label: 'Contre-étiquette',
+    },
+  ],
 }
 
 export const ARTICLE_SLUG_MAP: Record<number, string> = {
+  11: 'cidre-effervescence-2022',
   13: 'poire-la-premoudiere-2022',
   14: 'trois-pepins-2023',
   15: 'lande-foy-2022',
   16: 'belle-brutale-2017',
+  17: 'brute-bestiale-2017',
   18: 'turgowy-2019',
   19: 'turgowy-2020',
+  20: 'brute-de-rue-2020',
   21: 'cidre-de-fer-2020',
   22: 'la-fribourgeoise-2021',
   23: 'premiers-emois-2021',
@@ -156,4 +177,12 @@ export function getCuveeGallery(imageUrl?: string | null, articleNumber?: number
   }
 
   return images.length > 0 ? images : imageUrl ? [{ url: imageUrl, label: 'Bouteille' }] : []
+}
+
+/**
+ * Visuel principal d'un produit : l'image choisie dans l'admin, sinon le premier
+ * packshot de sa galerie. Même règle pour la vignette boutique et le visuel Instagram.
+ */
+export function getMainImageUrl(imageUrl: string | null, articleNumber: number): string | null {
+  return imageUrl ?? getCuveeGallery(null, articleNumber)[0]?.url ?? null
 }

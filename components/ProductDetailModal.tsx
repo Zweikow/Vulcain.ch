@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { OriginBadge } from '@/components/OriginBadge'
@@ -245,10 +246,20 @@ export default function ProductDetailModal({
 
           {/* Producteur et conditionnement */}
           <div className="text-sm text-muted-foreground mb-6 flex flex-col gap-1">
-            <span className="font-semibold text-foreground">
-              {product.producerName ? `${product.producerName} · ` : ''}
-              {product.category}
-            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {product.producerName ? (
+                <Link
+                  href={`/producteurs#${product.producerName.toLowerCase().includes('perritaz') ? 'jacques-perritaz' : 'producteurs'}`}
+                  onClick={onClose}
+                  className="font-semibold text-foreground hover:text-primary-text underline decoration-border/80 hover:decoration-primary-text transition-colors"
+                  title="Découvrir le producteur"
+                >
+                  {product.producerName}
+                </Link>
+              ) : null}
+              {product.producerName && <span className="text-muted-foreground">·</span>}
+              <span className="text-muted-foreground">{product.category}</span>
+            </div>
             {isCarton && (
               <span className="text-xs">
                 Conditionnement : Carton renforcé de {product.bottlesPerUnit} bouteilles
@@ -364,6 +375,20 @@ export default function ProductDetailModal({
               <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
                 {product.description}
               </p>
+            </div>
+          )}
+
+          {/* Lien vers la fiche permanente */}
+          {product.slug && (
+            <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Fiche dédiée :</span>
+              <Link
+                href={`/produits/${product.slug}`}
+                onClick={onClose}
+                className="font-medium text-foreground hover:text-primary-text underline underline-offset-2 transition-colors"
+              >
+                Ouvrir la fiche cuvée
+              </Link>
             </div>
           )}
         </div>

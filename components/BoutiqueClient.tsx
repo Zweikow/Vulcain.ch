@@ -1,8 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { useState, useMemo } from 'react'
 import Header from '@/components/Header'
 import DeliveryWarning from '@/components/DeliveryWarning'
 import ProductCard from '@/components/ProductCard'
@@ -15,12 +13,21 @@ import { PublicSettings } from '@/lib/settings'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowDown, ArrowUpRight, Sparkles, Wine } from 'lucide-react'
+import { ArrowDown, Sparkles, Wine, Search, X } from 'lucide-react'
+import Footer from '@/components/Footer'
 
 interface BoutiqueClientProps {
   products: Product[]
   settings: PublicSettings
   categories?: string[]
+}
+
+function normalizeText(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
 }
 
 export default function BoutiqueClient({
@@ -31,6 +38,7 @@ export default function BoutiqueClient({
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [confirmation, setConfirmation] = useState<{
     orderId: string
     totalCents: number
@@ -89,8 +97,33 @@ export default function BoutiqueClient({
 
   const categories = ['all', ...rawCategories]
 
-  const filteredProducts =
-    selectedCategory === 'all' ? products : products.filter((p) => p.category === selectedCategory)
+  const filteredProducts = useMemo(() => {
+    const q = normalizeText(searchQuery)
+
+    return products.filter((p) => {
+      if (selectedCategory !== 'all' && p.category !== selectedCategory) {
+        return false
+      }
+
+      if (!q) return true
+
+      const nameNorm = normalizeText(p.name)
+      const descNorm = p.description ? normalizeText(p.description) : ''
+      const producerNorm = p.producerName ? normalizeText(p.producerName) : ''
+      const yearNorm = p.year ? p.year.toString() : ''
+      const catNorm = p.category ? normalizeText(p.category) : ''
+      const refNorm = p.articleNumber ? p.articleNumber.toString() : ''
+
+      return (
+        nameNorm.includes(q) ||
+        descNorm.includes(q) ||
+        producerNorm.includes(q) ||
+        yearNorm.includes(q) ||
+        catNorm.includes(q) ||
+        refNorm.includes(q)
+      )
+    })
+  }, [products, selectedCategory, searchQuery])
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -161,19 +194,55 @@ export default function BoutiqueClient({
           </div>
         </section>
 
-        {/* BARRE DE FILTRES PAR CATÉGORIE SHADCN */}
-        <div id="catalogue" className="mb-8 flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+        {/* BARRE DE FILTRES ET RECHERCHE */}
+        <div id="catalogue" className="mb-8 flex flex-col gap-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-5">
             <div>
-              <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground">
-                Le catalogue
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="font-display font-bold text-2xl sm:text-3xl text-foreground">
+                  Le catalogue
+                </h2>
+                <span className="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  {filteredProducts.length} cuvée{filteredProducts.length > 1 ? 's' : ''}
+                </span>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Bouteilles et cartons expédiés partout en Suisse
               </p>
             </div>
 
-            {/* Pill Tabs de sélection */}
+            {/* Barre de recherche instantanée */}
+            <div className="relative w-full md:w-80 lg:w-96">
+              <div className="relative flex items-center">
+                <Search className="absolute left-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setSearchQuery('')
+                  }}
+                  placeholder="Rechercher une cuvée, un producteur, un millésime..."
+                  aria-label="Rechercher une cuvée"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl text-xs sm:text-sm bg-muted/60 border border-border/70 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all shadow-xs"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    title="Effacer la recherche"
+                    aria-label="Effacer la recherche"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Pill Tabs de sélection par catégorie & badge de statut */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl bg-muted/60 border border-border/50">
               {categories.map((cat) => {
                 const label = cat === 'all' ? 'Toutes les cuvées' : cat
@@ -208,6 +277,22 @@ export default function BoutiqueClient({
                 )
               })}
             </div>
+
+            {/* Indicateur de recherche active */}
+            {searchQuery && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>
+                  Résultats pour « <strong className="text-foreground">{searchQuery}</strong> »
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="text-primary-text hover:underline font-medium"
+                >
+                  Effacer
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -215,19 +300,48 @@ export default function BoutiqueClient({
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
           {/* Grille des produits & Formulaire de commande */}
           <div className="flex flex-col gap-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  quantity={getQuantity(product.id)}
-                  onAdd={() => addToCart(product.id)}
-                  onRemove={() => removeFromCart(product.id)}
-                  onSetQuantity={(qty) => setProductQuantity(product.id, qty)}
-                  onOpenDetails={() => setSelectedProduct(product)}
-                />
-              ))}
-            </div>
+            {filteredProducts.length === 0 ? (
+              <div className="p-12 text-center rounded-3xl border border-dashed border-border/80 bg-card/50 flex flex-col items-center justify-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                  <Wine className="w-6 h-6 opacity-60" />
+                </div>
+                <h3 className="font-display font-semibold text-lg text-foreground">
+                  Aucune cuvée trouvée
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-md leading-relaxed">
+                  Aucun résultat ne correspond à votre recherche
+                  {searchQuery ? ` « ${searchQuery} »` : ''}
+                  {selectedCategory !== 'all' ? ` dans la catégorie « ${selectedCategory} »` : ''}.
+                  Essayez un autre mot-clé ou réinitialisez les filtres.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSelectedCategory('all')
+                  }}
+                  className="mt-2 text-xs rounded-xl"
+                >
+                  Voir toutes les cuvées
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    quantity={getQuantity(product.id)}
+                    onAdd={() => addToCart(product.id)}
+                    onRemove={() => removeFromCart(product.id)}
+                    onSetQuantity={(qty) => setProductQuantity(product.id, qty)}
+                    onOpenDetails={() => setSelectedProduct(product)}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Formulaire de commande */}
             <div id="commande" className="pt-8 border-t border-border/60">
@@ -280,109 +394,7 @@ export default function BoutiqueClient({
       )}
 
       {/* FOOTER NOCTURNE ARTISANAL & ÉDITORIAL */}
-      <footer className="mt-20 border-t border-border bg-card/50 text-muted-foreground text-xs py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-border/50">
-            {/* Col 1 & 2 : Présentation & Terroir Fribourg */}
-            <div className="md:col-span-2 flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/images/logo-drinkcider.svg"
-                  alt="Drinkcider"
-                  width={36}
-                  height={36}
-                  className="w-9 h-9 rounded-full object-cover border border-border/80 shadow-xs"
-                />
-                <span className="font-display font-bold text-base text-foreground">Drinkcider</span>
-              </div>
-              <p className="text-muted-foreground leading-relaxed max-w-md">
-                Drinkcider est une boutique en ligne de cidres et de poirés artisanaux, sélectionnés
-                auprès de producteurs indépendants et livrés partout en Suisse.
-              </p>
-              <div className="flex flex-wrap items-center gap-2 text-muted-foreground mt-1">
-                <span>
-                  Partenaire actif :{' '}
-                  <a
-                    href="https://www.terroir-fribourg.ch"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
-                  >
-                    Terroir Fribourg{' '}
-                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
-                  </a>
-                </span>
-                <span>·</span>
-                <span>
-                  Instagram :{' '}
-                  <a
-                    href="https://www.instagram.com/drinkcider.ch/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-foreground hover:text-primary-text transition-colors underline font-medium"
-                  >
-                    @drinkcider.ch{' '}
-                    <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
-                  </a>
-                </span>
-              </div>
-            </div>
-
-            {/* Col 3 : Navigation */}
-            <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-foreground mb-3">
-                La boutique
-              </p>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/#catalogue" className="hover:text-foreground transition-colors">
-                    Catalogue
-                  </Link>
-                </li>
-                <li>
-                  <a href="#commande" className="hover:text-foreground transition-colors">
-                    Commander en ligne
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 4 : Informations Légales */}
-            <div>
-              <p className="font-semibold text-xs uppercase tracking-wider text-foreground mb-3">
-                Informations &amp; Vente
-              </p>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/cgv" className="hover:text-foreground transition-colors">
-                    Conditions Générales de Vente
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/mentions-legales"
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Mentions légales
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/confidentialite" className="hover:text-foreground transition-colors">
-                    Protection des données
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-muted-foreground text-[11px]">
-            <span>&copy; {new Date().getFullYear()} Drinkcider · Tous droits réservés.</span>
-            <span>
-              Expédition réservée aux personnes majeures en Suisse · Facture avec QR-code suisse
-            </span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

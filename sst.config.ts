@@ -74,6 +74,7 @@ export default $config({
       environment: {
         DATABASE_URL: process.env.DATABASE_URL || '',
         AUTH_SECRET: process.env.AUTH_SECRET || '',
+        INSTAGRAM_RENDER_SECRET: process.env.INSTAGRAM_RENDER_SECRET || '',
         MAIL_FROM: process.env.MAIL_FROM || 'commandes@drinkcider.ch',
         SES_REGION: process.env.SES_REGION || 'eu-central-2',
         ADMIN_BASE_URL: process.env.ADMIN_BASE_URL || '',

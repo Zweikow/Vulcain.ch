@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Image from 'next/image'
 import { Product } from '@/types'
 import { formatCHF } from '@/lib/money'
@@ -89,28 +90,20 @@ export default function ProductCard({
         </div>
       )}
 
-      {/* Zone cliquable vers la fiche détaillée */}
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={onOpenDetails}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onOpenDetails()
-          }
-        }}
-        className="p-3.5 flex flex-col gap-2.5 text-left w-full focus:outline-none cursor-pointer flex-1"
-      >
-        {/* Photo produit */}
-        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-border/50">
+      {/* Zone produit : photo, titre et presentation */}
+      <div className="p-3.5 flex flex-col gap-2.5 text-left w-full flex-1">
+        {/* Photo produit avec lien HTML reel */}
+        <Link
+          href={`/produits/${product.slug}`}
+          className="relative w-full aspect-square rounded-xl overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-border/50 block group/img"
+        >
           {product.image ? (
             <Image
               src={product.image}
-              alt={product.name}
+              alt={`${product.name} - ${product.producerName || 'Drinkcider'}${product.year ? ` (${product.year})` : ''}`}
               fill
               unoptimized
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              className="object-cover transition-transform duration-500 ease-out group-hover/img:scale-105"
               sizes="(max-width: 768px) 100vw, 300px"
             />
           ) : (
@@ -119,8 +112,22 @@ export default function ProductCard({
             </div>
           )}
 
+          {/* Bouton discret aperçu rapide sur l'image */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onOpenDetails()
+            }}
+            className="absolute bottom-2 right-2 z-20 px-2 py-1 rounded-md bg-black/60 hover:bg-black/80 text-white text-[10px] font-medium backdrop-blur-xs opacity-0 group-hover/img:opacity-100 transition-opacity"
+            title="Aperçu rapide"
+          >
+            Aperçu rapide
+          </button>
+
           {/* Badges de statut */}
-          <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 items-end">
+          <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 items-end pointer-events-none">
             {product.isNew && !ribbonText && (
               <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-text-on-primary shadow-xs">
                 Nouveau
@@ -132,14 +139,19 @@ export default function ProductCard({
               </Badge>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Informations produit */}
         <div className="flex flex-col gap-1 flex-1">
           <div className="flex items-start justify-between gap-1.5">
-            <h3 className="font-display font-semibold text-base text-foreground leading-snug group-hover:underline transition-colors">
-              {product.name}
-            </h3>
+            <Link
+              href={`/produits/${product.slug}`}
+              className="group-hover:text-primary-text transition-colors"
+            >
+              <h3 className="font-display font-semibold text-base text-foreground leading-snug hover:underline">
+                {product.name}
+              </h3>
+            </Link>
             <OriginBadge origin={product.origin} className="w-4 h-4 shrink-0 mt-0.5" />
           </div>
 
@@ -148,7 +160,19 @@ export default function ProductCard({
             {product.year && <span>· {product.year}</span>}
           </div>
 
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+          <p
+            onClick={onOpenDetails}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onOpenDetails()
+              }
+            }}
+            className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed cursor-pointer hover:text-foreground transition-colors"
+            title="Cliquer pour afficher la description complète"
+          >
             {product.description}
           </p>
         </div>

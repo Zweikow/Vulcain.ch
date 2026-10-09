@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { AuditAction, ClientType, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
         select: {
           id: true,
           name: true,
+          slug: true,
           priceCents: true,
           purchasePriceCents: true,
           stock: true,
@@ -293,6 +295,22 @@ export async function POST(request: NextRequest) {
     // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
     // est indisponible.
     await notifyOrderPlaced(order.id)
+
+    // Revalidation des fiches produits commandees et de la boutique
+    try {
+      revalidatePath('/')
+      const orderedProducts = await prisma.product.findMany({
+        where: { id: { in: data.items.map((i) => i.productId) } },
+        select: { slug: true },
+      })
+      for (const p of orderedProducts) {
+        if (p.slug) {
+          revalidatePath(`/produits/${p.slug}`)
+        }
+      }
+    } catch (err) {
+      console.error('Revalidation error:', err)
+    }
 
     return NextResponse.json(
       { orderId: order.numero, totalCents: order.totalCents },

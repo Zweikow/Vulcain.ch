@@ -51,12 +51,15 @@ export default function JsonLd({ products }: JsonLdProps) {
             item: {
               '@type': 'Product',
               name: product.name,
+              url: `${siteUrl}/produits/${product.slug}`,
               description: product.description || product.name,
-              image: product.image
-                ? product.image.startsWith('http')
-                  ? product.image
-                  : `${siteUrl}${product.image}`
-                : `${siteUrl}/facture/logo-drinkcider.png`,
+              ...(product.image
+                ? {
+                    image: product.image.startsWith('http')
+                      ? product.image
+                      : `${siteUrl}${product.image}`,
+                  }
+                : {}),
               brand: {
                 '@type': 'Brand',
                 name: product.producerName || SITE_CONFIG.name,

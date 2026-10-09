@@ -17,6 +17,7 @@ type FactureOrder = {
   npa: string
   city: string
   clientEmail: string
+  clientPhone?: string | null
   deliveryDate: Date | null
   shippedAt: Date | null
   createdAt: Date
@@ -221,6 +222,9 @@ export function FactureDocument({
                 <p className="font-medium">{settings.contactName}</p>
                 <p>{settings.companyAddress}</p>
                 <p>{settings.companyZipCity}</p>
+                {settings.contactPhone && (
+                  <p className="text-[#4A6278]">Tél. {settings.contactPhone}</p>
+                )}
                 {settings.vatNumber && (
                   <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">
                     {settings.vatNumber}
@@ -251,6 +255,7 @@ export function FactureDocument({
                 <p>
                   {order.npa} {order.city}
                 </p>
+                {order.clientPhone && <p className="text-[#4A6278]">Tél. {order.clientPhone}</p>}
               </div>
             </div>
 
@@ -509,6 +514,9 @@ export function FactureDocument({
                 <p className="text-[#7A95A5] text-[11px]">
                   {settings.companyAddress}, {settings.companyZipCity}
                 </p>
+                {settings.contactPhone && (
+                  <p className="text-[#7A95A5] text-[11px]">Tél. {settings.contactPhone}</p>
+                )}
                 {settings.vatNumber && (
                   <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">
                     {settings.vatNumber}
@@ -569,6 +577,7 @@ export function FactureDocument({
                   <p className="text-[#4A6278]">
                     {order.npa} {order.city}
                   </p>
+                  {order.clientPhone && <p className="text-[#4A6278]">Tél. {order.clientPhone}</p>}
                 </div>
               </div>
 
@@ -670,6 +679,9 @@ export function FactureDocument({
             <p className="font-medium">{settings.contactName}</p>
             <p>{settings.companyAddress}</p>
             <p>{settings.companyZipCity}</p>
+            {settings.contactPhone && (
+              <p className="text-[#4A6278]">Tél. {settings.contactPhone}</p>
+            )}
             {settings.vatNumber && (
               <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">{settings.vatNumber}</p>
             )}
@@ -698,6 +710,7 @@ export function FactureDocument({
             <p>
               {order.npa} {order.city}
             </p>
+            {order.clientPhone && <p className="text-[#4A6278]">Tél. {order.clientPhone}</p>}
           </div>
         </div>
 

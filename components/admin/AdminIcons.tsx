@@ -497,3 +497,29 @@ export function SparklesIcon({ className = 'w-4 h-4' }: IconProps) {
     </svg>
   )
 }
+
+/**
+ * Producteurs : Tonneau artisanal / chai de cidrification
+ */
+export function ProducteursIcon({ className = 'w-4 h-4' }: IconProps) {
+  return (
+    <svg className={className} {...baseProps}>
+      <ellipse cx="12" cy="5" rx="8" ry="2.5" />
+      <path d="M4 5c0 5-1 9-1 14 0 1.5 4 2.5 9 2.5s9-1 9-2.5c0-5-1-9-1-14" />
+      <path d="M3.5 12c1.5 1 5 1.5 8.5 1.5s7-.5 8.5-1.5" />
+    </svg>
+  )
+}
+
+/**
+ * Instagram : Appareil photo / post
+ */
+export function InstagramIcon({ className = 'w-4 h-4' }: IconProps) {
+  return (
+    <svg className={className} {...baseProps}>
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  )
+}
