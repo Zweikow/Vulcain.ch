@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { prisma, hasDatabaseUrl } from '@/lib/prisma'
+import { prisma, hasDatabaseUrl, isBuildWithoutDatabase } from '@/lib/prisma'
 import { getSiteUrl } from '@/lib/site'
 import { getMainImageUrl } from '@/lib/cuvees-gallery'
 
@@ -42,10 +42,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // En l'absence de base de donnees (ex: etape de validation CI sans DATABASE_URL),
+  // En l'absence de base de donnees durant le build statique CI (phase-production-build),
   // on retourne uniquement les routes statiques sans lancer de requete.
-  if (!hasDatabaseUrl()) {
+  if (isBuildWithoutDatabase()) {
     return staticEntries
+  }
+
+  if (!hasDatabaseUrl()) {
+    throw new Error("DATABASE_URL est absente : impossible de générer le sitemap à l'exécution.")
   }
 
   const [dbProducts, dbCategories, dbProducers] = await Promise.all([

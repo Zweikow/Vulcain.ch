@@ -19,3 +19,12 @@ export function hasDatabaseUrl(): boolean {
   const url = process.env.DATABASE_URL
   return typeof url === 'string' && url.trim().length > 0
 }
+
+/**
+ * Renvoie true uniquement si DATABASE_URL est absente ET que process.env.NEXT_PHASE
+ * vaut 'phase-production-build'.
+ * Permet de limiter strictement le repli sans base de donnees au build de validation CI.
+ */
+export function isBuildWithoutDatabase(): boolean {
+  return !hasDatabaseUrl() && process.env.NEXT_PHASE === 'phase-production-build'
+}
