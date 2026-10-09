@@ -304,6 +304,23 @@ def process(session, path, debug_dir=None, zoom=False, side=None):
         span = y1 - y0
         ref = np.arange(y0 + span // 10, y0 + 7 * span // 10)
         slope, intercept = np.polyfit(ref, rows[ref], 1)
+        # En haut, le verre sombre reflète parfois le mur et le détourage l'entame
+        # (encoche blanche, bord rongé). Dans le quart supérieur, on rend au masque
+        # tout ce qui est entre les deux bords du corps, prolongés ; on n'en retire rien.
+        upper = np.arange(y0, y0 + span // 4)
+        if (rows[upper] < 0.985 * (slope * upper + intercept)).any():
+            # Ajustement robuste : l'entaille peut descendre jusque dans `ref`
+            la, lb = robust_line(ref.astype(np.float64), solid[ref].argmax(axis=1).astype(np.float64))
+            ra, rb = robust_line(ref.astype(np.float64), (w - solid[ref, ::-1].argmax(axis=1)).astype(np.float64))
+            yy = upper.astype(np.float32)[:, None]
+            xx = np.arange(w, dtype=np.float32)[None, :] + 0.5
+            dist = np.minimum(xx - (la * yy + lb), (ra * yy + rb) - xx)
+            alpha[upper] = np.maximum(alpha[upper], (dist - 0.5).clip(0, 1))  # 1 px en retrait
+            # …et rien à plus de 6 px au-delà de ces bords (miettes de mur)
+            alpha[upper] = np.minimum(alpha[upper], (dist + 6.5).clip(0, 1))
+            solid = alpha > 0.5
+            rows = solid.sum(axis=1)
+            slope, intercept = np.polyfit(ref, rows[ref], 1)
         lower = np.arange(y0 + 7 * span // 10, y1 + 1)
         drop = np.nonzero(rows[lower] < 0.97 * (slope * lower + intercept))[0]
         if len(drop):

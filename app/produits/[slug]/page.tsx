@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { prisma, hasDatabaseUrl } from '@/lib/prisma'
+import { prisma, isBuildWithoutDatabase } from '@/lib/prisma'
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import { formatCHF } from '@/lib/money'
 import { getMainImageUrl, getCuveeGallery } from '@/lib/cuvees-gallery'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import ProductGallery from '@/components/ProductGallery'
 import { OriginBadge } from '@/components/OriginBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,7 @@ interface ProductPageProps {
 }
 
 export async function generateStaticParams() {
-  if (!hasDatabaseUrl()) {
+  if (isBuildWithoutDatabase()) {
     return []
   }
 
@@ -270,55 +271,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
         {/* Fiche produit détaillée */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-          {/* Galerie photos */}
-          <div className="flex flex-col gap-4">
-            <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-border/70 shadow-sm flex items-center justify-center">
-              {mainImage ? (
-                <Image
-                  src={mainImage}
-                  alt={altText}
-                  fill
-                  priority
-                  unoptimized
-                  className="object-contain p-4 sm:p-8"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
-                  <span className="text-4xl mb-2">🍾</span>
-                  <span className="text-sm font-medium">Cuvée artisanale</span>
-                </div>
-              )}
-              {isOutOfStock && (
-                <div className="absolute top-4 right-4 z-10">
-                  <Badge variant="subtle" className="text-xs px-3 py-1 font-semibold">
-                    Épuisé
-                  </Badge>
-                </div>
-              )}
-            </div>
-
-            {/* Vignettes secondaires si disponibles */}
-            {gallery.length > 1 && (
-              <div className="grid grid-cols-3 gap-3">
-                {gallery.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative aspect-square rounded-xl overflow-hidden bg-bg-page dark:bg-bg-page-dark border border-border/60"
-                  >
-                    <Image
-                      src={img.url}
-                      alt={`${product.name} - visuel ${idx + 1}`}
-                      fill
-                      unoptimized
-                      className="object-contain p-2"
-                      sizes="(max-width: 768px) 30vw, 150px"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Galerie photos interactive */}
+          <ProductGallery
+            gallery={gallery}
+            productName={product.name}
+            altText={altText}
+            isOutOfStock={isOutOfStock}
+            fallbackImageUrl={product.imageUrl}
+          />
 
           {/* Informations produit */}
           <div className="flex flex-col gap-6">
