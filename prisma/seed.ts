@@ -19,12 +19,17 @@ async function main() {
   })
   console.log(`✓ Admin créé : ${username} (mot de passe à changer)`)
 
-  const categories = ['Cidre', 'Eau-de-vie', 'Liqueur', 'Cuisine']
-  for (const catName of categories) {
+  const categories = [
+    { name: 'Cidre', slug: 'cidre' },
+    { name: 'Eau-de-vie', slug: 'eau-de-vie' },
+    { name: 'Liqueur', slug: 'liqueur' },
+    { name: 'Cuisine', slug: 'cuisine' },
+  ]
+  for (const cat of categories) {
     await prisma.category.upsert({
-      where: { name: catName },
+      where: { name: cat.name },
       update: {},
-      create: { name: catName },
+      create: { name: cat.name, slug: cat.slug },
     })
   }
   console.log(`✓ ${categories.length} catégories créées`)
@@ -32,11 +37,11 @@ async function main() {
   const producer = await prisma.producer.upsert({
     where: { name: 'Jacques Perritaz' },
     update: {},
-    create: { name: 'Jacques Perritaz' },
+    create: { name: 'Jacques Perritaz', slug: 'jacques-perritaz' },
   })
   console.log(`✓ Producteur créé : ${producer.name}`)
 
-  // Réglages typés — une seule ligne, valeurs par défaut du schéma
+  // Réglages typés - une seule ligne, valeurs par défaut du schéma
   await prisma.setting.upsert({
     where: { id: 1 },
     update: {
@@ -53,13 +58,14 @@ async function main() {
   })
   console.log('✓ Paramètres initialisés (port, franco, taux pro, TVA, facturation)')
 
-  // Catalogue de démonstration en centimes — à remplacer par le vrai catalogue
+  // Catalogue de démonstration en centimes - à remplacer par le vrai catalogue
   const cidre = await prisma.category.findUniqueOrThrow({ where: { name: 'Cidre' } })
   const eauDeVie = await prisma.category.findUniqueOrThrow({ where: { name: 'Eau-de-vie' } })
 
   const produits = [
     {
       name: 'Cidre Doux 2026',
+      slug: 'cidre-doux-2026',
       categoryId: cidre.id,
       year: 2026,
       priceCents: 900,
@@ -69,6 +75,7 @@ async function main() {
     },
     {
       name: 'Cidre Brut 2024',
+      slug: 'cidre-brut-2024',
       categoryId: cidre.id,
       year: 2024,
       priceCents: 900,
@@ -78,6 +85,7 @@ async function main() {
     },
     {
       name: 'Cidre Rosé 2025',
+      slug: 'cidre-rose-2025',
       categoryId: cidre.id,
       year: 2025,
       priceCents: 1000,
@@ -87,6 +95,7 @@ async function main() {
     },
     {
       name: 'Eau-de-vie de pomme',
+      slug: 'eau-de-vie-de-pomme',
       categoryId: eauDeVie.id,
       year: null,
       priceCents: 4500,

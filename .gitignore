@@ -53,3 +53,15 @@ scratch/
 cidrerie-vulcain/
 public/photo-all-bottle-raw/
 public/photo-bouteilles-raw/
+exports/
+
+# Import donnees personnelles (EML, CSV extraits)
+*.eml
+import-eml/
+imports/
+data-import/
+import/
+data/
+commandes-2025/
+Commandes-2025-eml/
+exports-eml/

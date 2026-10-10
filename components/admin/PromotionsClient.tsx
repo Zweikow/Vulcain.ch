@@ -8,23 +8,36 @@ import AdminPromoModal, {
 } from '@/components/admin/AdminPromoModal'
 import { togglePromotionActive, deletePromotion } from '@/app/admin/(protected)/promotions/actions'
 import { formatCHF } from '@/lib/money'
-import { PromoIcon, GiftIcon, CoinsIcon } from '@/components/admin/AdminIcons'
+import {
+  PromoIcon,
+  GiftIcon,
+  CoinsIcon,
+  AlertCircleIcon,
+  CloseIcon,
+} from '@/components/admin/AdminIcons'
 
 export type PromotionRow = AdminPromotion & {
   productName: string
   productBottleSize: string
   productBottlesPerUnit: number
   productPriceCents: number
+  productCategoryId?: string
   categoryName?: string
 }
 
 interface PromotionsClientProps {
   promotions: PromotionRow[]
   products: PromoProductItem[]
+  categories: { id: string; name: string }[]
   canEdit: boolean
 }
 
-export function PromotionsClient({ promotions, products, canEdit }: PromotionsClientProps) {
+export function PromotionsClient({
+  promotions,
+  products,
+  categories,
+  canEdit,
+}: PromotionsClientProps) {
   const router = useRouter()
   const [modal, setModal] = useState<'closed' | 'new' | PromotionRow>('closed')
   const [pending, startTransition] = useTransition()
@@ -38,6 +51,20 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
 
   const activeCount = promotions.filter((p) => p.active).length
 
+  type ProductDecision = {
+    action: 'CHANGE_CATEGORY' | 'KEEP' | 'ARCHIVE'
+    newCategoryId: string
+  }
+
+  const [deleteTarget, setDeleteTarget] = useState<PromotionRow | null>(null)
+  const [productDecisions, setProductDecisions] = useState<Record<string, ProductDecision>>({})
+
+  const relatedPromos = deleteTarget
+    ? promotions.filter(
+        (p) => p.name.trim().toLowerCase() === deleteTarget.name.trim().toLowerCase()
+      )
+    : []
+
   const handleToggle = (id: string, currentActive: boolean) => {
     startTransition(async () => {
       await togglePromotionActive(id, !currentActive)
@@ -45,10 +72,44 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
     })
   }
 
-  const handleDelete = (id: string, name: string) => {
-    if (!confirm(`Supprimer définitivement l'offre "${name}" ?`)) return
+  const openDeleteModal = (promo: PromotionRow) => {
+    const matching = promotions.filter(
+      (p) => p.name.trim().toLowerCase() === promo.name.trim().toLowerCase()
+    )
+    const initial: Record<string, ProductDecision> = {}
+    matching.forEach((p) => {
+      const currentCatExists = categories.some((c) => c.id === p.productCategoryId)
+      const fallbackCat = categories[0]?.id || ''
+      initial[p.productId] = {
+        action: 'CHANGE_CATEGORY',
+        newCategoryId: currentCatExists ? p.productCategoryId || fallbackCat : fallbackCat,
+      }
+    })
+    setProductDecisions(initial)
+    setDeleteTarget(promo)
+  }
+
+  const confirmDeletePromotion = () => {
+    if (!deleteTarget) return
+    const productActions = relatedPromos.map((p) => {
+      const decision = productDecisions[p.productId] || {
+        action: 'KEEP' as const,
+        newCategoryId: p.productCategoryId,
+      }
+      return {
+        productId: p.productId,
+        action: decision.action,
+        newCategoryId: decision.newCategoryId,
+      }
+    })
+
     startTransition(async () => {
-      await deletePromotion(id)
+      await deletePromotion(deleteTarget.id, {
+        deleteAllWithSameName: relatedPromos.length > 1,
+        productActions,
+      })
+      setDeleteTarget(null)
+      setProductDecisions({})
       router.refresh()
     })
   }
@@ -195,7 +256,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                         </span>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-text-tertiary">—</span>
+                      <span className="text-[11px] text-text-tertiary">-</span>
                     )}
                   </td>
 
@@ -230,7 +291,7 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
                         <span className="text-border">·</span>
                         <button
                           type="button"
-                          onClick={() => handleDelete(promo.id, promo.name)}
+                          onClick={() => openDeleteModal(promo)}
                           className="text-xs font-medium text-text-error hover:underline transition-colors"
                         >
                           Supprimer
@@ -252,6 +313,157 @@ export function PromotionsClient({ promotions, products, canEdit }: PromotionsCl
           products={products}
           onClose={() => setModal('closed')}
         />
+      )}
+
+      {/* Modale de confirmation de suppression avec choix de catégorie par produit */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-bg-card dark:bg-bg-card-dark rounded-xl border border-border dark:border-border-dark shadow-2xl max-w-xl w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertCircleIcon className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-text-primary dark:text-text-primary-dark">
+                  Supprimer l&apos;offre « {deleteTarget.name} » ?
+                </h3>
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-1">
+                  {relatedPromos.length > 1
+                    ? `Cette offre s'applique à ${relatedPromos.length} articles différents. Choisissez la catégorie ou l'action pour chacun :`
+                    : "Choisissez ci-dessous la catégorie de destination ou l'archivage de l'article :"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="text-text-tertiary hover:text-text-primary"
+              >
+                <CloseIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Liste des articles concernés avec sélection de catégorie par article */}
+            <div className="space-y-3">
+              {relatedPromos.map((p) => {
+                const decision = productDecisions[p.productId] || {
+                  action: 'CHANGE_CATEGORY' as const,
+                  newCategoryId: p.productCategoryId || categories[0]?.id || '',
+                }
+
+                return (
+                  <div
+                    key={p.productId}
+                    className="p-3.5 rounded-lg bg-bg-page dark:bg-bg-page-dark border border-border dark:border-border-dark space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-xs text-text-primary dark:text-text-primary-dark">
+                          {p.productName}
+                        </div>
+                        <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark mt-0.5">
+                          Catégorie actuelle :{' '}
+                          <span className="font-semibold">
+                            {p.categoryName || 'Non catégorisé'}
+                          </span>{' '}
+                          · {formatCHF(p.productPriceCents)} ({p.productBottleSize})
+                        </div>
+                      </div>
+                      {p.badgeText && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary-text shrink-0">
+                          {p.badgeText}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Choix d'action pour cet article */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border/60 dark:border-border-dark/60">
+                      <div>
+                        <label className="block text-[11px] font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                          Sort de l&apos;article :
+                        </label>
+                        <select
+                          value={decision.action}
+                          onChange={(e) => {
+                            const act = e.target.value as 'CHANGE_CATEGORY' | 'KEEP' | 'ARCHIVE'
+                            setProductDecisions((prev) => ({
+                              ...prev,
+                              [p.productId]: {
+                                action: act,
+                                newCategoryId:
+                                  prev[p.productId]?.newCategoryId || categories[0]?.id || '',
+                              },
+                            }))
+                          }}
+                          className="input-field w-full text-xs"
+                        >
+                          <option value="CHANGE_CATEGORY">Changer de catégorie</option>
+                          <option value="KEEP">Conserver la catégorie actuelle</option>
+                          <option value="ARCHIVE">Archiver l&apos;article (retirer du site)</option>
+                        </select>
+                      </div>
+
+                      {decision.action === 'CHANGE_CATEGORY' && (
+                        <div>
+                          <label className="block text-[11px] font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                            Nouvelle catégorie :
+                          </label>
+                          <select
+                            value={decision.newCategoryId}
+                            onChange={(e) => {
+                              const catId = e.target.value
+                              setProductDecisions((prev) => ({
+                                ...prev,
+                                [p.productId]: {
+                                  ...prev[p.productId],
+                                  action: 'CHANGE_CATEGORY',
+                                  newCategoryId: catId,
+                                },
+                              }))
+                            }}
+                            className="input-field w-full text-xs"
+                          >
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Avertissement récapitulatif */}
+            <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark bg-bg-page/50 dark:bg-bg-page-dark/50 p-2.5 rounded border border-border/50">
+              💡 <strong>D&apos;une pierre deux coups :</strong> La promotion et son ruban seront
+              définitivement supprimés, et chaque article sera immédiatement mis à jour avec la
+              catégorie ou l&apos;archivage choisi ci-dessus.
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={pending}
+                className="btn-secondary text-xs py-2 px-3.5"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePromotion}
+                disabled={pending}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50"
+              >
+                {pending ? 'Suppression...' : 'Confirmer et appliquer les catégories'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

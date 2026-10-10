@@ -67,6 +67,7 @@ deploy_dev:
       when: never
     - if: '$CI_COMMIT_BRANCH == "develop"'
   script:
+    - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement automatique sur AWS (Dev) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
@@ -85,6 +86,7 @@ deploy_sandbox:
       when: never
     - if: '$CI_COMMIT_BRANCH == "sandbox"'
   script:
+    - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement automatique sur AWS (Sandbox) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
@@ -105,6 +107,7 @@ deploy_production:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
   script:
+    - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement manuel sur AWS (Production) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci

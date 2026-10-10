@@ -34,7 +34,7 @@ export const metadata: Metadata = {
         url: '/facture/logo-drinkcider.png',
         width: 800,
         height: 600,
-        alt: `${SITE_CONFIG.name} — ${SITE_CONFIG.legalName}`,
+        alt: `${SITE_CONFIG.name} - ${SITE_CONFIG.legalName}`,
       },
     ],
   },
@@ -57,6 +57,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: siteUrl,
+  },
+  verification: {
+    google:
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || process.env.GOOGLE_SITE_VERIFICATION,
   },
   icons: {
     icon: [

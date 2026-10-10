@@ -15,6 +15,7 @@ import {
   CommandesIcon,
   ClientsIcon,
   ProduitsIcon,
+  ProducteursIcon,
   CategoriesIcon,
   UtilisateursIcon,
   JournalIcon,
@@ -23,6 +24,7 @@ import {
   LogoutIcon,
   PromoIcon,
   FacturesIcon,
+  InstagramIcon,
 } from '@/components/admin/AdminIcons'
 
 const NAV_LINKS = [
@@ -69,6 +71,13 @@ const NAV_LINKS = [
     capability: () => true,
   },
   {
+    href: '/admin/producteurs',
+    label: 'Producteurs',
+    icon: ProducteursIcon,
+    exact: false,
+    capability: can.manageCatalogue,
+  },
+  {
     href: '/admin/promotions',
     label: 'Offres & Promos',
     icon: PromoIcon,
@@ -81,6 +90,13 @@ const NAV_LINKS = [
     icon: CategoriesIcon,
     exact: false,
     capability: () => true,
+  },
+  {
+    href: '/admin/instagram',
+    label: 'Posts Instagram',
+    icon: InstagramIcon,
+    exact: false,
+    capability: can.manageCatalogue,
   },
   {
     href: '/admin/utilisateurs',

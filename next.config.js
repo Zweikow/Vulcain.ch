@@ -31,6 +31,12 @@ const expiresHeader = new Date(Date.now() + 31536000 * 1000).toUTCString()
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // Polices du visuel Instagram, lues sur disque par la route : sans cette ligne
+  // le traçage de fichiers ne les copie pas dans la fonction serveur.
+  // NON TESTÉ EN LIGNE (OpenNext / Lambda) : à vérifier au premier déploiement.
+  outputFileTracingIncludes: {
+    '/api/instagram/[id]': ['./assets/fonts/**/*'],
+  },
   compiler: {
     removeConsole:
       process.env.NODE_ENV === 'production'

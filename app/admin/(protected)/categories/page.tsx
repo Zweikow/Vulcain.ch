@@ -9,7 +9,13 @@ export default async function CategoriesPage() {
 
   const categories = await prisma.category.findMany({
     orderBy: { position: 'asc' },
-    include: { _count: { select: { products: true } } },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      _count: { select: { products: true } },
+    },
   })
 
   return <CategoriesClient categories={categories} canEdit={canEdit} />

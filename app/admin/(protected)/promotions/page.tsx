@@ -11,7 +11,7 @@ export default async function PromotionsPage() {
     redirect('/admin')
   }
 
-  const [dbPromotions, dbProducts] = await Promise.all([
+  const [dbPromotions, dbProducts, categories] = await Promise.all([
     prisma.promotion.findMany({
       include: {
         product: {
@@ -21,7 +21,8 @@ export default async function PromotionsPage() {
             bottleSize: true,
             bottlesPerUnit: true,
             priceCents: true,
-            category: { select: { name: true } },
+            categoryId: true,
+            category: { select: { id: true, name: true } },
           },
         },
       },
@@ -38,6 +39,10 @@ export default async function PromotionsPage() {
         category: { select: { name: true } },
       },
       orderBy: [{ category: { position: 'asc' } }, { name: 'asc' }],
+    }),
+    prisma.category.findMany({
+      orderBy: { position: 'asc' },
+      select: { id: true, name: true },
     }),
   ])
 
@@ -57,6 +62,7 @@ export default async function PromotionsPage() {
     productBottleSize: p.product.bottleSize,
     productBottlesPerUnit: p.product.bottlesPerUnit,
     productPriceCents: p.product.priceCents,
+    productCategoryId: p.product.categoryId,
     categoryName: p.product.category.name,
   }))
 
@@ -73,6 +79,7 @@ export default async function PromotionsPage() {
     <PromotionsClient
       promotions={promotions}
       products={products}
+      categories={categories}
       canEdit={can.manageCatalogue(user.role)}
     />
   )

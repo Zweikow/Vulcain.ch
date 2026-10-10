@@ -67,6 +67,7 @@ le back-office Next.js sur mesure (catalogue, commandes, paramètres).
 - **Un produit cité dans une commande ne se supprime pas** : archivage.
 - **Vente d'alcool** : case « 18 ans révolus » bloquante, mention d'interdiction
   aux mineurs en pied de boutique et sur la facture.
+- **Typographie (tirets)** : JAMAIS de long tiret (pas de tiret cadratin ni demi-cadratin). Uniquement des tirets simples courts `-` partout (code, textes, commits, docs).
 
 ## Design
 

@@ -18,6 +18,7 @@ export default function Header() {
 
   const links = [
     { label: 'Catalogue', href: '/#catalogue' },
+    { label: 'Producteurs', href: '/producteurs' },
     { label: 'Nous contacter', href: 'mailto:info@drinkcider.ch' },
     {
       label: 'Informations',
