@@ -81,4 +81,8 @@ export const SITE_CONFIG = {
   contact: {
     email: 'info@drinkcider.ch',
   },
+  social: {
+    instagram: 'https://www.instagram.com/drinkcider.ch/',
+    instagramHandle: '@drinkcider.ch',
+  },
 }
