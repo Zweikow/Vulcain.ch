@@ -126,6 +126,7 @@ US-12 (auth — fait) → US-01 (dashboard) → US-04/05 (commandes) → US-07 (
 ## Conventions
 
 - Messages de commit en **français**
+- **Une branche feature dédiée par tâche** : pour toute nouvelle fonctionnalité, amélioration ou correction, créer systématiquement une branche dédiée (ex. `feature/<nom-court>` ou `fix/<nom-court>`) qui concerne uniquement le périmètre en question. Ne jamais travailler directement sur `main` ou `develop`.
 - **Pas de push sans validation explicite** : chaque push sur `develop` ou `sandbox` déclenche un pipeline CI/CD complet (SST / AWS). Ne jamais exécuter `git push` sans l'accord préalable d'Hugo.
 - Pas de push direct sur `main`
 - Les MR passent toujours par : `develop → sandbox → main`
