@@ -5,7 +5,7 @@ import { CustomerInfo, CartItem } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
 import { shippingCentsFor } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
-import { User, Check, ShieldCheck, Mail, MapPin } from 'lucide-react'
+import { User, Check, ShieldCheck, Mail, MapPin, Phone } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     npa: '',
     lieu: '',
     email: '',
+    phone: '',
     message: '',
     acceptsMarketing: false,
   })
@@ -76,6 +77,14 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     if (!form.npa) e.npa = 'NPA requis'
     if (!form.lieu) e.lieu = 'Localité requise'
     if (!form.email) e.email = 'Adresse e-mail requise'
+    if (!form.phone?.trim()) {
+      e.phone = 'Numéro de téléphone requis'
+    } else {
+      const digits = form.phone.replace(/[\s\.\-\/\(\)\+]/g, '')
+      if (!/^\d{8,15}$/.test(digits)) {
+        e.phone = 'Numéro invalide (ex: 079 123 45 67)'
+      }
+    }
     if (!ageConfirmed)
       e.ageConfirmed = "La vente d'alcool en Suisse est réservée aux personnes majeures (+18 ans)"
     setErrors(e)
@@ -94,6 +103,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
       firstName: form.firstName,
       lastName: form.lastName,
       email: form.email,
+      phone: form.phone.trim(),
       address: form.address,
       npa: form.npa,
       city: form.lieu,
@@ -233,22 +243,43 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
             </div>
           </div>
 
-          {/* Adresse e-mail */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-foreground flex items-center gap-1">
-              <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-              <span>
-                Adresse e-mail (pour la facture) <span className="text-primary-text">*</span>
-              </span>
-            </label>
-            <Input
-              type="email"
-              className={errors.email ? 'border-destructive' : ''}
-              placeholder="votre@email.ch"
-              value={form.email}
-              onChange={(e) => update('email', e.target.value)}
-            />
-            {errors.email && <span className="text-xs text-destructive">{errors.email}</span>}
+          {/* Adresse e-mail + Téléphone */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>
+                  Adresse e-mail (pour la facture) <span className="text-primary-text">*</span>
+                </span>
+              </label>
+              <Input
+                type="email"
+                autoComplete="email"
+                className={errors.email ? 'border-destructive' : ''}
+                placeholder="votre@email.ch"
+                value={form.email}
+                onChange={(e) => update('email', e.target.value)}
+              />
+              {errors.email && <span className="text-xs text-destructive">{errors.email}</span>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                <span>
+                  Téléphone (pour la livraison) <span className="text-primary-text">*</span>
+                </span>
+              </label>
+              <Input
+                type="tel"
+                autoComplete="tel"
+                className={errors.phone ? 'border-destructive' : ''}
+                placeholder="Ex. 079 123 45 67"
+                value={form.phone}
+                onChange={(e) => update('phone', e.target.value)}
+              />
+              {errors.phone && <span className="text-xs text-destructive">{errors.phone}</span>}
+            </div>
           </div>
 
           {/* Message ou instructions particulières */}
