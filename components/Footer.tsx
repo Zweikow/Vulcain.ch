@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight } from 'lucide-react'
+import { InstagramIcon } from '@/components/Icons'
+import { SITE_CONFIG } from '@/lib/site'
 
 export default function Footer() {
   return (
     <footer className="mt-20 border-t border-border bg-card/50 text-muted-foreground text-xs py-12 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-border/50">
-          {/* Col 1 & 2 : Présentation & Terroir Fribourg */}
+          {/* Col 1 & 2 : Présentation & Réseaux */}
           <div className="md:col-span-2 flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <Image
@@ -23,32 +25,24 @@ export default function Footer() {
               Drinkcider est une boutique en ligne de cidres et de poirés artisanaux, sélectionnés
               auprès de producteurs indépendants et livrés partout en Suisse.
             </p>
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground mt-1">
-              <span>
-                Partenaire actif :{' '}
-                <a
-                  href="https://www.terroir-fribourg.ch"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:text-primary-text transition-colors underline font-medium"
-                >
-                  Terroir Fribourg{' '}
-                  <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
-                </a>
-              </span>
-              <span>·</span>
-              <span>
-                Instagram :{' '}
-                <a
-                  href="https://www.instagram.com/drinkcider.ch/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground hover:text-primary-text transition-colors underline font-medium"
-                >
-                  @drinkcider.ch{' '}
-                  <ArrowUpRight className="inline-block h-[1em] w-[1em] align-[-0.125em]" />
-                </a>
-              </span>
+
+            {/* Bouton Instagram */}
+            <div className="flex flex-wrap items-center gap-3 mt-1">
+              <a
+                href={SITE_CONFIG.social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-card border border-border/80 hover:border-[#DD2A7B]/60 text-foreground hover:text-[#DD2A7B] transition-all duration-200 group shadow-xs hover:shadow-sm"
+              >
+                <span className="w-4 h-4 rounded-sm bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform">
+                  <InstagramIcon className="w-2.5 h-2.5 text-white" />
+                </span>
+                <span>Suivez-nous sur Instagram</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {SITE_CONFIG.social.instagramHandle}
+                </span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-[#DD2A7B] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
             </div>
           </div>
 

@@ -5,7 +5,7 @@ import { CustomerInfo, CartItem } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
 import { shippingCentsFor } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
-import { User, Check, ShieldCheck, Mail, MapPin, Calendar } from 'lucide-react'
+import { User, Check, ShieldCheck, Mail, MapPin } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,6 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     address: '',
     npa: '',
     lieu: '',
-    deliveryDate: '',
     email: '',
     message: '',
     acceptsMarketing: false,
@@ -76,7 +75,6 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     if (!form.address) e.address = 'Adresse requise'
     if (!form.npa) e.npa = 'NPA requis'
     if (!form.lieu) e.lieu = 'Localité requise'
-    if (!form.deliveryDate) e.deliveryDate = 'Délai souhaité requis'
     if (!form.email) e.email = 'Adresse e-mail requise'
     if (!ageConfirmed)
       e.ageConfirmed = "La vente d'alcool en Suisse est réservée aux personnes majeures (+18 ans)"
@@ -99,7 +97,6 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
       address: form.address,
       npa: form.npa,
       city: form.lieu,
-      deliveryDate: form.deliveryDate || undefined,
       message: form.message || undefined,
       acceptsMarketing: form.acceptsMarketing,
       ageConfirmed,
@@ -236,42 +233,22 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
             </div>
           </div>
 
-          {/* Date souhaitée + Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>
-                  Date de livraison souhaitée <span className="text-primary-text">*</span>
-                </span>
-              </label>
-              <Input
-                type="date"
-                className={errors.deliveryDate ? 'border-destructive' : ''}
-                value={form.deliveryDate}
-                onChange={(e) => update('deliveryDate', e.target.value)}
-              />
-              {errors.deliveryDate && (
-                <span className="text-xs text-destructive">{errors.deliveryDate}</span>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>
-                  Adresse e-mail (pour la facture) <span className="text-primary-text">*</span>
-                </span>
-              </label>
-              <Input
-                type="email"
-                className={errors.email ? 'border-destructive' : ''}
-                placeholder="votre@email.ch"
-                value={form.email}
-                onChange={(e) => update('email', e.target.value)}
-              />
-              {errors.email && <span className="text-xs text-destructive">{errors.email}</span>}
-            </div>
+          {/* Adresse e-mail */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+              <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>
+                Adresse e-mail (pour la facture) <span className="text-primary-text">*</span>
+              </span>
+            </label>
+            <Input
+              type="email"
+              className={errors.email ? 'border-destructive' : ''}
+              placeholder="votre@email.ch"
+              value={form.email}
+              onChange={(e) => update('email', e.target.value)}
+            />
+            {errors.email && <span className="text-xs text-destructive">{errors.email}</span>}
           </div>
 
           {/* Message ou instructions particulières */}
