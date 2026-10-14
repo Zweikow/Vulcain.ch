@@ -101,6 +101,13 @@ export function CreateOrderForm({
   const [city, setCity] = useState('')
   const [isPro, setIsPro] = useState(false)
 
+  // Recherche et sélection de client existant
+  const [customerSearch, setCustomerSearch] = useState('')
+  const [isCustomerMenuOpen, setIsCustomerMenuOpen] = useState(false)
+  const [highlightedCustomerIndex, setHighlightedCustomerIndex] = useState(0)
+  const customerMenuRef = useRef<HTMLDivElement>(null)
+  const customerInputRef = useRef<HTMLInputElement>(null)
+
   // 2. Articles & Recherche
   const [lines, setLines] = useState<OrderLineItem[]>([])
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || '')
@@ -148,11 +155,15 @@ export function CreateOrderForm({
     [products, selectedProductId]
   )
 
-  // Fermeture du menu déroulant lors d'un clic extérieur
+  // Fermeture des menus déroulants lors d'un clic extérieur
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (productMenuRef.current && !productMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (productMenuRef.current && !productMenuRef.current.contains(target)) {
         setIsProductMenuOpen(false)
+      }
+      if (customerMenuRef.current && !customerMenuRef.current.contains(target)) {
+        setIsCustomerMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -208,9 +219,70 @@ export function CreateOrderForm({
   const [notifyCustomer, setNotifyCustomer] = useState(false)
   const [allowNegativeStock, setAllowNegativeStock] = useState(false)
 
+  // Filtrage multi-mots en direct des clients
+  const filteredCustomers = useMemo(() => {
+    const raw = customerSearch.trim()
+    if (!raw) return customers
+
+    const tokens = normalizeSearch(raw).split(/\s+/).filter(Boolean)
+    if (tokens.length === 0) return customers
+
+    return customers.filter((c) => {
+      const haystack = normalizeSearch(
+        [
+          c.lastName,
+          c.firstName,
+          c.email,
+          c.city || '',
+          c.npa || '',
+          c.phone || '',
+          c.customerNumber ? `n ${c.customerNumber} #${c.customerNumber} ${c.customerNumber}` : '',
+          c.isPro ? 'pro professionnel b2b' : 'particulier prive b2c',
+        ].join(' ')
+      )
+      return tokens.every((token) => haystack.includes(token))
+    })
+  }, [customers, customerSearch])
+
+  const selectedCustomer = useMemo(
+    () => customers.find((c) => c.id === selectedCustomerId) || null,
+    [customers, selectedCustomerId]
+  )
+
+  const handleCustomerInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isCustomerMenuOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault()
+      setIsCustomerMenuOpen(true)
+      return
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (filteredCustomers.length > 0) {
+        setHighlightedCustomerIndex((prev) => (prev + 1) % filteredCustomers.length)
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (filteredCustomers.length > 0) {
+        setHighlightedCustomerIndex(
+          (prev) => (prev - 1 + filteredCustomers.length) % filteredCustomers.length
+        )
+      }
+    } else if (e.key === 'Enter') {
+      if (isCustomerMenuOpen && filteredCustomers[highlightedCustomerIndex]) {
+        e.preventDefault()
+        handleSelectCustomer(filteredCustomers[highlightedCustomerIndex].id)
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setIsCustomerMenuOpen(false)
+    }
+  }
+
   // Sélection d'un client existant
   const handleSelectCustomer = (id: string) => {
     setSelectedCustomerId(id)
+    setIsCustomerMenuOpen(false)
     const cust = customers.find((c) => c.id === id)
     if (cust) {
       setFirstName(cust.firstName)
@@ -562,24 +634,165 @@ export function CreateOrderForm({
         </div>
 
         {customerMode === 'EXISTING' && (
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-              Rechercher parmi les clients enregistrés
+          <div className="mb-4 space-y-2">
+            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Rechercher parmi les clients enregistrés ({customers.length})
             </label>
-            <select
-              value={selectedCustomerId}
-              onChange={(e) => handleSelectCustomer(e.target.value)}
-              className="input-field w-full text-sm"
-            >
-              <option value="">-- Choisir un client ({customers.length}) --</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.customerNumber ? `N° ${c.customerNumber} · ` : ''}
-                  {c.lastName.toUpperCase()} {c.firstName} ({c.city || 'Suisse'}) - {c.email}{' '}
-                  {c.isPro ? `[PRO -${c.proRatePercent ?? settings.proRatePercent}%]` : ''}
-                </option>
-              ))}
-            </select>
+
+            {/* Combobox de recherche de client */}
+            <div className="relative" ref={customerMenuRef}>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
+                  <SearchIcon className="w-4 h-4" />
+                </div>
+                <input
+                  ref={customerInputRef}
+                  type="text"
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value)
+                    setIsCustomerMenuOpen(true)
+                    setHighlightedCustomerIndex(0)
+                  }}
+                  onFocus={() => setIsCustomerMenuOpen(true)}
+                  onKeyDown={handleCustomerInputKeyDown}
+                  placeholder={
+                    selectedCustomer
+                      ? `Rechercher un autre client (actuel : ${selectedCustomer.lastName.toUpperCase()} ${selectedCustomer.firstName})...`
+                      : 'Rechercher par nom, prénom, email, ville, n° client...'
+                  }
+                  className="input-field w-full pl-9 pr-8 text-sm"
+                />
+                {customerSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerSearch('')
+                      setHighlightedCustomerIndex(0)
+                      customerInputRef.current?.focus()
+                    }}
+                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-text-tertiary hover:text-text-primary"
+                    title="Effacer la recherche"
+                  >
+                    <CloseIcon className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Menu déroulant de résultats clients */}
+              {isCustomerMenuOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-30 max-h-80 overflow-y-auto rounded-xl border border-border dark:border-border-dark bg-bg-card dark:bg-bg-card-dark shadow-xl divide-y divide-border/60 dark:divide-border-dark/60">
+                  {filteredCustomers.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-text-tertiary">
+                      Aucun client ne correspond à «{' '}
+                      <span className="font-semibold text-text-primary dark:text-text-primary-dark">
+                        {customerSearch}
+                      </span>{' '}
+                      »
+                    </div>
+                  ) : (
+                    filteredCustomers.map((c, idx) => {
+                      const isHighlighted = idx === highlightedCustomerIndex
+                      const isSelected = c.id === selectedCustomerId
+
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            handleSelectCustomer(c.id)
+                          }}
+                          onMouseEnter={() => setHighlightedCustomerIndex(idx)}
+                          className={`w-full text-left px-3.5 py-2.5 text-xs transition-colors flex items-center justify-between gap-3 ${
+                            isHighlighted
+                              ? 'bg-primary/10 dark:bg-primary/20 text-text-primary dark:text-text-primary-dark'
+                              : isSelected
+                                ? 'bg-bg-page dark:bg-bg-page-dark'
+                                : 'hover:bg-bg-page dark:hover:bg-bg-page-dark text-text-primary dark:text-text-primary-dark'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {c.customerNumber != null && (
+                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-bg-page dark:bg-bg-page-dark text-text-secondary dark:text-text-secondary-dark border border-border/70 dark:border-border-dark/70 font-semibold">
+                                  N° {c.customerNumber}
+                                </span>
+                              )}
+                              <span className="font-semibold text-sm text-text-primary dark:text-text-primary-dark">
+                                {c.lastName.toUpperCase()} {c.firstName}
+                              </span>
+                              {c.isPro && (
+                                <span className="inline-flex items-center text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                  PRO -{c.proRatePercent ?? settings.proRatePercent}%
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-text-secondary dark:text-text-secondary-dark truncate mt-0.5 flex items-center gap-1.5">
+                              <span>{c.email}</span>
+                              {(c.city || c.npa) && <span>·</span>}
+                              {c.npa && <span>{c.npa}</span>}
+                              {c.city && <span>{c.city}</span>}
+                              {c.phone && <span>· {c.phone}</span>}
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div className="shrink-0 text-primary-text flex items-center gap-1 font-medium text-[11px]">
+                              <CheckIcon className="w-3.5 h-3.5" />
+                              <span>Sélectionné</span>
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Bannière de confirmation du client sélectionné */}
+            {selectedCustomer && (
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckIcon className="w-4 h-4 text-primary-text shrink-0" />
+                  <span className="truncate">
+                    Client chargé :{' '}
+                    <strong className="text-text-primary dark:text-text-primary-dark">
+                      {selectedCustomer.lastName.toUpperCase()} {selectedCustomer.firstName}
+                    </strong>{' '}
+                    ({selectedCustomer.email}
+                    {selectedCustomer.city ? ` · ${selectedCustomer.city}` : ''})
+                    {selectedCustomer.isPro && (
+                      <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                        [Tarif Pro -{selectedCustomer.proRatePercent ?? settings.proRatePercent}%]
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCustomerId('')
+                    setCustomerSearch('')
+                    setFirstName('')
+                    setLastName('')
+                    setEmail('')
+                    setPhone('')
+                    setAddress('')
+                    setNpa('')
+                    setCity('')
+                    setIsPro(false)
+                    setCustomProRate(null)
+                    updateLinesForPro(false)
+                    customerInputRef.current?.focus()
+                  }}
+                  className="shrink-0 text-text-secondary hover:text-red-600 dark:hover:text-red-400 font-medium ml-2 underline"
+                >
+                  Désélectionner
+                </button>
+              </div>
+            )}
           </div>
         )}
 
