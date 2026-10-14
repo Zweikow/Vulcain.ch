@@ -46,7 +46,6 @@ export interface CustomerInfo {
   address: string
   npa: string
   lieu: string
-  deliveryDate: string
   email: string
   message?: string
   acceptsMarketing: boolean
