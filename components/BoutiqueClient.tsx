@@ -13,7 +13,9 @@ import { PublicSettings } from '@/lib/settings'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowDown, Sparkles, Wine, Search, X } from 'lucide-react'
+import { ArrowDown, Sparkles, Wine, Search, X, ArrowUpRight } from 'lucide-react'
+import { InstagramIcon } from '@/components/Icons'
+import { SITE_CONFIG } from '@/lib/site'
 import Footer from '@/components/Footer'
 
 interface BoutiqueClientProps {
@@ -188,6 +190,25 @@ export default function BoutiqueClient({
                 <a href="#commande">
                   <ArrowDown className="w-4 h-4" />
                   <span>Passer commande</span>
+                </a>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-xl font-semibold gap-2 border-border/80 hover:bg-accent/60 group"
+              >
+                <a
+                  href={SITE_CONFIG.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Rejoindre Drinkcider sur Instagram"
+                >
+                  <span className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                    <InstagramIcon className="w-3.5 h-3.5 text-white" />
+                  </span>
+                  <span>Instagram</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </Button>
             </div>

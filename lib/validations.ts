@@ -18,7 +18,19 @@ export const orderSchema = z.object({
   firstName: z.string().min(1, 'Requis'),
   lastName: z.string().min(1, 'Requis'),
   email: z.string().email('Email invalide'),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'Numéro de téléphone requis')
+    .refine(
+      (val) => {
+        const digits = val.replace(/[\s\.\-\/\(\)\+]/g, '')
+        return /^\d{8,15}$/.test(digits)
+      },
+      {
+        message: 'Numéro de téléphone invalide (ex: 079 123 45 67)',
+      }
+    ),
   address: z.string().min(1, 'Requis'),
   npa: z.string().length(4, 'NPA invalide'),
   city: z.string().min(1, 'Requis'),

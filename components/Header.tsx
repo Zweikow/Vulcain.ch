@@ -5,10 +5,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useTheme } from '@/components/ThemeProvider'
-import { Sun, Moon, Menu, X, ChevronDown } from 'lucide-react'
+import { Sun, Moon, Menu, X, ChevronDown, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { OriginBadge } from '@/components/OriginBadge'
+import { InstagramIcon } from '@/components/Icons'
+import { SITE_CONFIG } from '@/lib/site'
 
 export default function Header() {
   const { theme, toggle } = useTheme()
@@ -121,8 +123,30 @@ export default function Header() {
             })}
           </nav>
 
-          {/* Actions : Dark mode toggle & Menu mobile */}
-          <div className="flex items-center gap-2">
+          {/* Actions : Bouton Instagram, Dark mode toggle & Menu mobile */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5 sm:px-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-all duration-200 group gap-2"
+            >
+              <a
+                href={SITE_CONFIG.social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Rejoindre Drinkcider sur Instagram (@drinkcider.ch)"
+                title="Suivez-nous sur Instagram (@drinkcider.ch)"
+              >
+                <span className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform duration-200 shrink-0">
+                  <InstagramIcon className="w-3.5 h-3.5 text-white" />
+                </span>
+                <span className="hidden sm:inline text-xs font-medium tracking-tight">
+                  Instagram
+                </span>
+              </a>
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -186,6 +210,30 @@ export default function Header() {
               </Link>
             )
           })}
+
+          {/* Lien Instagram dans le menu mobile */}
+          <div className="pt-3 mt-2 border-t border-border/60">
+            <a
+              href={SITE_CONFIG.social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent/70 rounded-xl transition-colors group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                <InstagramIcon className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-xs leading-none">
+                  Rejoignez-nous sur Instagram
+                </span>
+                <span className="text-[11px] text-muted-foreground mt-1 font-mono">
+                  {SITE_CONFIG.social.instagramHandle}
+                </span>
+              </div>
+              <ArrowUpRight className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-foreground transition-colors" />
+            </a>
+          </div>
         </div>
       )}
     </header>

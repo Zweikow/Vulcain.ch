@@ -20,7 +20,7 @@ stages:
 # 1. STAGE TEST (QUALITÉ & DEVSECOPS)
 # ==============================================================================
 
-# Validation systématique (TypeScript, Prisma & Build Next.js)
+# Validation systématique (TypeScript, Prisma, Tests & Build Next.js)
 validate:
   stage: test
   image: node:20
@@ -37,6 +37,7 @@ validate:
     - npm ci
     - npx prisma generate
     - npx tsc --noEmit
+    - npm test
     - npm run build
 
 # Audit de sécurité des dépendances (DevSecOps)
