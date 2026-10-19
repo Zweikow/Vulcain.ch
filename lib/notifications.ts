@@ -51,6 +51,8 @@ async function loadOrder(orderId: string): Promise<MailOrder | null> {
     message: order.message,
     subtotalCents: order.subtotalCents,
     discountCents: order.discountCents,
+    promoCode: order.promoCode,
+    promoDiscountCents: order.promoDiscountCents,
     shippingCents: order.shippingCents,
     totalCents: order.totalCents,
     trackingNumber: order.trackingNumber,

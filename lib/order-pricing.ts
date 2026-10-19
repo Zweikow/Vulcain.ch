@@ -77,6 +77,12 @@ export async function recalculateOrderPricing(
       })
     }
 
+    const promoDiscountCents = order.promoDiscountCents || 0
+    if (promoDiscountCents > 0) {
+      subtotalCents = Math.max(0, subtotalCents - promoDiscountCents)
+      discountCents += promoDiscountCents
+    }
+
     const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
     const totalCents = subtotalCents + shippingCents
     const vatCents = orderVatCents(totalCents, settings)

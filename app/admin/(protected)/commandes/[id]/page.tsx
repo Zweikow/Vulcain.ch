@@ -267,6 +267,21 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 {formatCHF(order.subtotalCents)}
               </td>
             </tr>
+            {order.discountCents > 0 && (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 py-2 text-right text-emerald-700 dark:text-emerald-400 font-medium"
+                >
+                  {order.promoCode
+                    ? `Remise code promo (${order.promoCode})`
+                    : 'Remise commerciale'}
+                </td>
+                <td className="px-4 py-2 text-right text-emerald-700 dark:text-emerald-400 font-semibold tabular">
+                  −{formatCHF(order.discountCents)}
+                </td>
+              </tr>
+            )}
             <tr>
               <td
                 colSpan={3}
