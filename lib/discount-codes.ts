@@ -1,6 +1,13 @@
-import { DiscountType, Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { prisma as defaultPrisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
+
+export const DiscountType = {
+  PERCENTAGE: 'PERCENTAGE',
+  FIXED_AMOUNT: 'FIXED_AMOUNT',
+} as const
+
+export type DiscountType = (typeof DiscountType)[keyof typeof DiscountType]
 
 export interface ValidatedDiscount {
   valid: true

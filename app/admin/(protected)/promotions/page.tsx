@@ -102,7 +102,7 @@ export default async function PromotionsPage({
           }`}
         >
           <Tag className="w-4 h-4" />
-          <span>Codes promo (Campagnes &amp; Instagram)</span>
+          <span>Codes promo</span>
           <span
             className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
               tab === 'codes'
@@ -123,7 +123,7 @@ export default async function PromotionsPage({
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>Offres cuvées &amp; Packs (3+1...)</span>
+          <span>Offres cuvées &amp; Packs</span>
           <span
             className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
               tab === 'offres'

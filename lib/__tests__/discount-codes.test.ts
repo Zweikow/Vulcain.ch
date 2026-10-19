@@ -3,8 +3,8 @@ import {
   normalizePromoCode,
   calculateDiscount,
   validateDiscountCodeRules,
+  DiscountType,
 } from '@/lib/discount-codes'
-import { DiscountType } from '@prisma/client'
 
 describe('lib/discount-codes', () => {
   describe('normalizePromoCode', () => {
