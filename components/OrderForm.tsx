@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { CustomerInfo, CartItem } from '@/types'
+import { CustomerInfo, CartItem, AppliedPromoCode } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
-import { shippingCentsFor } from '@/lib/money'
+import { shippingCentsFor, formatCHF } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
-import { User, Check, ShieldCheck, Mail, MapPin, Phone } from 'lucide-react'
+import { User, Check, ShieldCheck, Mail, MapPin, Phone, Tag } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button'
 interface OrderFormProps {
   items: CartItem[]
   settings: PublicSettings
+  appliedPromo?: AppliedPromoCode | null
   onSubmit: (customer: CustomerInfo, orderId: string, totalCents: number) => void
 }
 
-export default function OrderForm({ items, settings, onSubmit }: OrderFormProps) {
+export default function OrderForm({ items, settings, appliedPromo, onSubmit }: OrderFormProps) {
   const [form, setForm] = useState<CustomerInfo>({
     firstName: '',
     lastName: '',
@@ -65,7 +66,20 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
     }
   }
 
-  const subtotalCents = Math.max(0, grossSubtotalCents - promoDiscountCents)
+  const itemsSubtotalCents = Math.max(0, grossSubtotalCents - promoDiscountCents)
+
+  let codeDiscountCents = 0
+  if (appliedPromo) {
+    if (appliedPromo.type === 'PERCENTAGE' && appliedPromo.percentage) {
+      codeDiscountCents = Math.round(itemsSubtotalCents * (appliedPromo.percentage / 100))
+    } else if (appliedPromo.type === 'FIXED_AMOUNT' && appliedPromo.amountCents) {
+      codeDiscountCents = Math.min(itemsSubtotalCents, appliedPromo.amountCents)
+    } else {
+      codeDiscountCents = Math.min(itemsSubtotalCents, appliedPromo.discountCents)
+    }
+  }
+
+  const subtotalCents = Math.max(0, itemsSubtotalCents - codeDiscountCents)
   const estimatedTotalCents =
     subtotalCents + (items.length > 0 ? shippingCentsFor(subtotalCents, false, settings) : 0)
 
@@ -114,6 +128,7 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
         productId: i.product.id,
         quantity: i.quantity,
       })),
+      promoCode: appliedPromo?.code || undefined,
       turnstileToken: turnstileToken.current,
       website: '', // honeypot
     }
@@ -366,6 +381,21 @@ export default function OrderForm({ items, settings, onSubmit }: OrderFormProps)
             autoComplete="off"
             aria-hidden="true"
           />
+
+          {/* Rappel du code promo appliqué */}
+          {appliedPromo && codeDiscountCents > 0 && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+              <span className="flex items-center gap-1.5 font-medium text-emerald-800 dark:text-emerald-300">
+                <Tag className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>
+                  Code promo appliqué : <strong className="font-mono">{appliedPromo.code}</strong>
+                </span>
+              </span>
+              <span className="font-semibold text-emerald-700 dark:text-emerald-400 tabular shrink-0">
+                −{formatCHF(codeDiscountCents)}
+              </span>
+            </div>
+          )}
 
           {/* Cloudflare Turnstile */}
           <TurnstileWidget onToken={handleTurnstileToken} />
