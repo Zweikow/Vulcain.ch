@@ -42,6 +42,7 @@ export const orderSchema = z.object({
   }),
   items: z.array(orderItemSchema).min(1, 'Panier vide'),
   turnstileToken: z.string().min(1, 'Vérification requise'),
+  promoCode: z.string().trim().max(50).optional(),
   website: z.string().max(0).optional(),
 })
 

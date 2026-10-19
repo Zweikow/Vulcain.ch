@@ -10,6 +10,7 @@ import { orderSchema } from '@/lib/validations'
 import { getSettings, isMaintenanceMode } from '@/lib/settings'
 import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
 import { recordCustomerAudit } from '@/lib/audit'
+import { findAndValidateDiscountCode } from '@/lib/discount-codes'
 
 class OrderConflictError extends Error {}
 
@@ -228,6 +229,29 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // 5.1 Validation et application du code promo (rabais panier)
+      let promoCodeToSave: string | null = null
+      let promoDiscountCents = 0
+
+      if (data.promoCode) {
+        const promoValidation = await findAndValidateDiscountCode(data.promoCode, subtotalCents, tx)
+        if (!promoValidation.valid) {
+          throw new OrderConflictError(promoValidation.error)
+        }
+
+        promoCodeToSave = promoValidation.discountCode.code
+        promoDiscountCents = promoValidation.discountCents
+
+        subtotalCents = Math.max(0, subtotalCents - promoDiscountCents)
+        discountCents += promoDiscountCents
+
+        // Décompte atomique de l'utilisation
+        await tx.discountCode.update({
+          where: { id: promoValidation.discountCode.id },
+          data: { usedCount: { increment: 1 } },
+        })
+      }
+
       const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
       const totalCents = subtotalCents + shippingCents
       const vatCents = orderVatCents(totalCents, settings)
@@ -261,6 +285,8 @@ export async function POST(request: NextRequest) {
           city: data.city,
           subtotalCents,
           discountCents,
+          promoCode: promoCodeToSave,
+          promoDiscountCents,
           shippingCents,
           totalCents,
           vatCents,

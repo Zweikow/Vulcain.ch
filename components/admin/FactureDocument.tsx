@@ -23,6 +23,8 @@ type FactureOrder = {
   createdAt: Date
   subtotalCents: number
   discountCents: number
+  promoCode?: string | null
+  promoDiscountCents?: number
   shippingCents: number
   totalCents: number
   vatCents: number
@@ -366,7 +368,7 @@ export function FactureDocument({
                 })}
               </tbody>
               <tfoot>
-                {isPro && order.discountCents > 0 && (
+                {isPro && order.discountCents > (order.promoDiscountCents || 0) && (
                   <>
                     <tr>
                       <td className={`${cellBase} text-right`} colSpan={6}>
@@ -381,10 +383,21 @@ export function FactureDocument({
                         Remise professionnelle (−{effectiveProRate}%)
                       </td>
                       <td className={`${cellBase} text-right text-[#6B4F68]`}>
-                        −{formatInvoiceAmount(order.discountCents)}
+                        −
+                        {formatInvoiceAmount(order.discountCents - (order.promoDiscountCents || 0))}
                       </td>
                     </tr>
                   </>
+                )}
+                {order.promoCode && (order.promoDiscountCents || order.discountCents) > 0 && (
+                  <tr>
+                    <td className={`${cellBase} text-right text-[#28a745] font-medium`} colSpan={6}>
+                      Remise code promo ({order.promoCode})
+                    </td>
+                    <td className={`${cellBase} text-right text-[#28a745] font-medium`}>
+                      −{formatInvoiceAmount(order.promoDiscountCents || order.discountCents)}
+                    </td>
+                  </tr>
                 )}
                 <tr>
                   <td className={`${cellBase} text-right`} colSpan={6}>
@@ -828,7 +841,7 @@ export function FactureDocument({
             ))}
           </tbody>
           <tfoot>
-            {isPro && order.discountCents > 0 && (
+            {isPro && order.discountCents > (order.promoDiscountCents || 0) && (
               <>
                 <tr>
                   <td className={`${cellBase} text-right`} colSpan={6}>
@@ -843,10 +856,20 @@ export function FactureDocument({
                     Remise professionnelle (−{effectiveProRate}%)
                   </td>
                   <td className={`${cellBase} text-right text-[#6B4F68]`}>
-                    −{formatInvoiceAmount(order.discountCents)}
+                    −{formatInvoiceAmount(order.discountCents - (order.promoDiscountCents || 0))}
                   </td>
                 </tr>
               </>
+            )}
+            {order.promoCode && (order.promoDiscountCents || order.discountCents) > 0 && (
+              <tr>
+                <td className={`${cellBase} text-right text-[#28a745] font-medium`} colSpan={6}>
+                  Remise code promo ({order.promoCode})
+                </td>
+                <td className={`${cellBase} text-right text-[#28a745] font-medium`}>
+                  −{formatInvoiceAmount(order.promoDiscountCents || order.discountCents)}
+                </td>
+              </tr>
             )}
             <tr>
               <td className={`${cellBase} text-right`} colSpan={6}>

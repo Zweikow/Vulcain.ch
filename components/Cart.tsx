@@ -1,6 +1,7 @@
 'use client'
 
-import { CartItem } from '@/types'
+import { useState } from 'react'
+import { CartItem, AppliedPromoCode } from '@/types'
 import { formatCHF } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
 import {
@@ -12,6 +13,9 @@ import {
   Minus,
   ShieldCheck,
   Sparkles,
+  Tag,
+  X,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -22,14 +26,20 @@ import { Separator } from '@/components/ui/separator'
 interface CartProps {
   items: CartItem[]
   settings: PublicSettings
+  appliedPromo?: AppliedPromoCode | null
+  onApplyPromo?: (_code: string) => Promise<{ ok: boolean; error?: string }>
+  onRemovePromo?: () => void
   onCheckout?: () => void
-  onUpdateQuantity?: (productId: string, quantity: number) => void
-  onRemoveItem?: (productId: string) => void
+  onUpdateQuantity?: (_productId: string, _quantity: number) => void
+  onRemoveItem?: (_productId: string) => void
 }
 
 export default function Cart({
   items,
   settings,
+  appliedPromo,
+  onApplyPromo,
+  onRemovePromo,
   onCheckout,
   onUpdateQuantity,
   onRemoveItem,
@@ -77,8 +87,40 @@ export default function Cart({
     }
   }
 
+  const [promoInput, setPromoInput] = useState('')
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+
+  const handleApplyPromo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!promoInput.trim() || !onApplyPromo) return
+    setIsApplyingPromo(true)
+    setPromoError(null)
+    const res = await onApplyPromo(promoInput.trim())
+    setIsApplyingPromo(false)
+    if (!res.ok) {
+      setPromoError(res.error || 'Code promo invalide')
+    } else {
+      setPromoInput('')
+    }
+  }
+
   const promoDiscountCents = promoDiscounts.reduce((sum, d) => sum + d.discountCents, 0)
-  const subtotalCents = Math.max(0, grossSubtotalCents - promoDiscountCents)
+  const subtotalBeforePromoCodeCents = Math.max(0, grossSubtotalCents - promoDiscountCents)
+
+  // Calcul du rabais du code promo appliqué
+  let codeDiscountCents = 0
+  if (appliedPromo) {
+    if (appliedPromo.type === 'PERCENTAGE' && appliedPromo.percentage) {
+      codeDiscountCents = Math.round(subtotalBeforePromoCodeCents * (appliedPromo.percentage / 100))
+    } else if (appliedPromo.type === 'FIXED_AMOUNT' && appliedPromo.amountCents) {
+      codeDiscountCents = Math.min(subtotalBeforePromoCodeCents, appliedPromo.amountCents)
+    } else {
+      codeDiscountCents = Math.min(subtotalBeforePromoCodeCents, appliedPromo.discountCents)
+    }
+  }
+
+  const subtotalCents = Math.max(0, subtotalBeforePromoCodeCents - codeDiscountCents)
 
   const isFreeShipping = hasItems && subtotalCents >= settings.francoCents
   const shippingCents = hasItems && !isFreeShipping ? settings.shippingCents : 0
@@ -224,6 +266,73 @@ export default function Cart({
           </div>
         )}
 
+        {/* Code de réduction / Promo */}
+        {hasItems && (
+          <div className="pt-2 border-t border-border/60">
+            {appliedPromo ? (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Tag className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div className="truncate">
+                    <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300">
+                      {appliedPromo.code}
+                    </span>
+                    <span className="text-emerald-700/80 dark:text-emerald-400/80 ml-1.5 text-[11px]">
+                      (−
+                      {appliedPromo.type === 'PERCENTAGE'
+                        ? `${appliedPromo.percentage}%`
+                        : formatCHF(appliedPromo.amountCents ?? 0)}
+                      )
+                    </span>
+                  </div>
+                </div>
+                {onRemovePromo && (
+                  <button
+                    type="button"
+                    onClick={onRemovePromo}
+                    className="p-1 rounded-md text-emerald-700/70 hover:text-emerald-900 dark:text-emerald-400/70 dark:hover:text-emerald-200 transition-colors"
+                    title="Retirer le code promo"
+                    aria-label="Retirer le code"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <form onSubmit={handleApplyPromo} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder="Code promo (ex: OUVERTURE10)"
+                      value={promoInput}
+                      onChange={(e) => {
+                        setPromoInput(e.target.value.toUpperCase())
+                        if (promoError) setPromoError(null)
+                      }}
+                      className="w-full text-xs uppercase font-mono px-3 py-1.5 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary placeholder:normal-case placeholder:font-sans placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={!promoInput.trim() || isApplyingPromo}
+                    className="text-xs h-7 px-3 text-foreground font-medium shrink-0"
+                  >
+                    {isApplyingPromo ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Appliquer'}
+                  </Button>
+                </div>
+                {promoError && (
+                  <p className="text-[11px] text-destructive leading-tight px-1 font-medium">
+                    {promoError}
+                  </p>
+                )}
+              </form>
+            )}
+          </div>
+        )}
+
         {/* Détail financier */}
         {hasItems && (
           <div className="pt-2 border-t border-border/60 flex flex-col gap-2">
@@ -242,10 +351,22 @@ export default function Cart({
               </div>
             ))}
 
+            {appliedPromo && codeDiscountCents > 0 && (
+              <div className="flex justify-between items-center text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1.5 rounded-lg">
+                <span className="flex items-center gap-1.5 truncate">
+                  <Tag className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Code promo ({appliedPromo.code})</span>
+                </span>
+                <span className="tabular font-semibold shrink-0">
+                  −{formatCHF(codeDiscountCents)}
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between text-xs text-muted-foreground pt-1">
               <span>Sous-total articles</span>
               <span className="tabular font-medium text-foreground">
-                {formatCHF(subtotalCents)}
+                {formatCHF(subtotalBeforePromoCodeCents)}
               </span>
             </div>
 
