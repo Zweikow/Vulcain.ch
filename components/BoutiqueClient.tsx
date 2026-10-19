@@ -8,7 +8,7 @@ import Cart from '@/components/Cart'
 import OrderForm from '@/components/OrderForm'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import ProductDetailModal from '@/components/ProductDetailModal'
-import { CartItem, CustomerInfo, Product } from '@/types'
+import { CartItem, CustomerInfo, Product, AppliedPromoCode } from '@/types'
 import { PublicSettings } from '@/lib/settings'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Badge } from '@/components/ui/badge'
@@ -38,6 +38,7 @@ export default function BoutiqueClient({
   categories: propCategories,
 }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromoCode | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -86,9 +87,69 @@ export default function BoutiqueClient({
     })
   }
 
+  const calculateCartSubtotalCents = (items: CartItem[]) => {
+    const gross = items.reduce((sum, item) => sum + item.product.priceCents * item.quantity, 0)
+    let promoDiscount = 0
+    for (const item of items) {
+      const promo = item.product.activePromotion
+      if (!promo) continue
+      if (promo.type === 'BUY_X_GET_Y_FREE' && promo.buyQuantity && promo.getFreeQuantity) {
+        if (item.quantity >= promo.buyQuantity) {
+          const sets = Math.floor(item.quantity / promo.buyQuantity)
+          const freeUnits = sets * promo.getFreeQuantity
+          promoDiscount += freeUnits * item.product.priceCents
+        }
+      } else if (promo.type === 'PERCENTAGE' && promo.discountPercent) {
+        promoDiscount += Math.round(
+          item.quantity * item.product.priceCents * (promo.discountPercent / 100)
+        )
+      } else if (promo.type === 'FIXED_DISCOUNT' && promo.discountCents) {
+        promoDiscount += item.quantity * promo.discountCents
+      }
+    }
+    return Math.max(0, gross - promoDiscount)
+  }
+
+  const handleApplyPromo = async (code: string): Promise<{ ok: boolean; error?: string }> => {
+    const subtotalCents = calculateCartSubtotalCents(cart)
+    if (subtotalCents <= 0) {
+      return { ok: false, error: 'Votre panier est vide' }
+    }
+
+    try {
+      const res = await fetch('/api/promo-code/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotalCents }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.valid) {
+        return { ok: false, error: data?.error || 'Code promo invalide' }
+      }
+
+      setAppliedPromo({
+        code: data.code,
+        type: data.type,
+        percentage: data.percentage,
+        amountCents: data.amountCents,
+        discountCents: data.discountCents,
+        description: data.description,
+      })
+      return { ok: true }
+    } catch {
+      return { ok: false, error: 'Impossible de vérifier le code promo' }
+    }
+  }
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null)
+  }
+
   const handleOrder = (_customer: CustomerInfo, orderId: string, totalCents: number) => {
     setConfirmation({ orderId, totalCents })
     setCart([])
+    setAppliedPromo(null)
   }
 
   // Catégories ordonnées
@@ -366,7 +427,12 @@ export default function BoutiqueClient({
 
             {/* Formulaire de commande */}
             <div id="commande" className="pt-8 border-t border-border/60">
-              <OrderForm items={cart} settings={settings} onSubmit={handleOrder} />
+              <OrderForm
+                items={cart}
+                settings={settings}
+                appliedPromo={appliedPromo}
+                onSubmit={handleOrder}
+              />
             </div>
           </div>
 
@@ -375,6 +441,9 @@ export default function BoutiqueClient({
             <Cart
               items={cart}
               settings={settings}
+              appliedPromo={appliedPromo}
+              onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
               onCheckout={() => {}}
               onUpdateQuantity={setProductQuantity}
               onRemoveItem={removeFromCart}
@@ -387,6 +456,9 @@ export default function BoutiqueClient({
           <Cart
             items={cart}
             settings={settings}
+            appliedPromo={appliedPromo}
+            onApplyPromo={handleApplyPromo}
+            onRemovePromo={handleRemovePromo}
             onCheckout={() => {}}
             onUpdateQuantity={setProductQuantity}
             onRemoveItem={removeFromCart}

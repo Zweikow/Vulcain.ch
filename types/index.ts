@@ -51,3 +51,12 @@ export interface CustomerInfo {
   message?: string
   acceptsMarketing: boolean
 }
+
+export interface AppliedPromoCode {
+  code: string
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT'
+  percentage?: number | null
+  amountCents?: number | null
+  discountCents: number
+  description?: string | null
+}

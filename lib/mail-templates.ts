@@ -23,6 +23,8 @@ export type MailOrder = {
   message: string | null
   subtotalCents: number
   discountCents: number
+  promoCode?: string | null
+  promoDiscountCents?: number
   shippingCents: number
   totalCents: number
   trackingNumber?: string | null
@@ -160,7 +162,7 @@ function itemsHtml(order: MailOrder): string {
       ${
         order.discountCents > 0
           ? `<tr>
-              <td colspan="2" style="padding:4px 0;color:#27AE60;">Remise professionnelle</td>
+              <td colspan="2" style="padding:4px 0;color:#27AE60;">${order.promoCode ? `Remise code promo (${escapeHtml(order.promoCode)})` : 'Remise professionnelle'}</td>
               <td style="padding:4px 0;text-align:right;color:#27AE60;font-weight:600;">-${formatCHF(order.discountCents)}</td>
             </tr>`
           : ''
@@ -182,7 +184,8 @@ function itemsText(order: MailOrder): string {
     `  Frais de port — ${order.isPickup ? 'Retrait à la cave' : order.shippingCents === 0 ? 'offerts' : formatCHF(order.shippingCents)}`
   )
   if (order.discountCents > 0) {
-    lines.push(`  Remise pro — -${formatCHF(order.discountCents)}`)
+    const discountLabel = order.promoCode ? `Remise code promo (${order.promoCode})` : 'Remise pro'
+    lines.push(`  ${discountLabel} — -${formatCHF(order.discountCents)}`)
   }
   lines.push(`  Total TTC — ${formatCHF(order.totalCents)}`)
   return lines.join('\n')

@@ -183,6 +183,8 @@ model Order {
   city           String
   subtotalCents  Int // somme des lignes au prix appliqué
   discountCents  Int             @default(0) // remise pro totale, pour affichage
+  promoCode      String? // Code de réduction appliqué (ex: "OUVERTURE10")
+  promoDiscountCents Int         @default(0) // Montant de la réduction issue du code promo
   shippingCents  Int             @default(0) // port facturé, figé au moment de la commande
   totalCents     Int
   vatCents       Int             @default(0) // TVA incluse, informative
@@ -334,5 +336,30 @@ model Promotion {
   updatedAt       DateTime  @updatedAt
 
   @@index([productId])
+  @@index([active])
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+model DiscountCode {
+  id               String       @id @default(cuid())
+  code             String       @unique // Toujours stocké en majuscules (ex: "OUVERTURE10")
+  description      String?      // Note ou nom de campagne (ex: "Campagne Instagram ouverture du site - 10%")
+  type             DiscountType @default(PERCENTAGE)
+  percentage       Int?         // Taux de remise en % (ex: 10 pour 10%)
+  amountCents      Int?         // Montant fixe en centimes (ex: 1000 pour 10 CHF)
+  minSubtotalCents Int?         // Montant minimum d'achat en centimes (optionnel)
+  maxUses          Int?         // Nombre max d'utilisations (null = illimité)
+  usedCount        Int          @default(0) // Compteur d'utilisations
+  active           Boolean      @default(true) // Actif / Désactivé
+  startDate        DateTime?    // Date de début de validité (optionnel)
+  endDate          DateTime?    // Date de fin de validité (optionnel)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([code])
   @@index([active])
 }
