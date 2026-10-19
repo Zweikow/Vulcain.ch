@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/db-sync.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -11,6 +12,7 @@
     "test:watch": "vitest",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:migrate": "npx prisma migrate dev",
+    "db:sync": "node scripts/db-sync.js",
     "db:studio": "npx prisma studio",
     "admin:password": "npx tsx scripts/set-admin-password.ts",
     "prepare": "husky"
