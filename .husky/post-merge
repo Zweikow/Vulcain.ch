@@ -1,0 +1,3 @@
+# Pull ou merge : applique les migrations arrivées avec.
+git diff --quiet ORIG_HEAD HEAD -- prisma/ 2>/dev/null && exit 0
+node scripts/db-sync.js || true
