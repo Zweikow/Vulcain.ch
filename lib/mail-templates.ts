@@ -70,7 +70,7 @@ function getDpdTrackingUrl(trackingNumber: string): string {
 
 function shell(title: string, body: string, settings: MailSettings): string {
   const siteUrl = getSiteUrl()
-  const logoUrl = `${siteUrl}/facture/logo-drinkcider.png`
+  const logoUrl = `${siteUrl}/images/facture/logo-drinkcider.png`
 
   return `<!doctype html>
 <html lang="fr">

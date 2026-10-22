@@ -41,8 +41,8 @@ async function main() {
   fs.writeFileSync('public/images/logo-drinkcider.png', png800)
   console.log('Updated public/images/logo-drinkcider.png (800x800)')
 
-  fs.writeFileSync('public/facture/logo-drinkcider.png', png800)
-  console.log('Updated public/facture/logo-drinkcider.png (800x800)')
+  fs.writeFileSync('public/images/facture/logo-drinkcider.png', png800)
+  console.log('Updated public/images/facture/logo-drinkcider.png (800x800)')
 
   // 2. Generate 1080x1080 Instagram Avatar PNG
   const png1080 = await sharp(svgBuffer).resize(1080, 1080).png({ compressionLevel: 9 }).toBuffer()
