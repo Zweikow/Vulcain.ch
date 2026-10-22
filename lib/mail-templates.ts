@@ -455,7 +455,7 @@ ${SITE_CONFIG.name}`
 /** 4. Envoi de la facture officielle au client. */
 export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMessage {
   const siteUrl = getSiteUrl()
-  const invoiceUrl = `${siteUrl}/admin/commandes/${order.id || ''}/facture`
+  const invoiceUrl = `${siteUrl}/facture/${order.id || ''}`
   const due = new Date()
   due.setDate(due.getDate() + settings.paymentTermsDays)
   const reference = order.invoiceNumber
@@ -524,7 +524,7 @@ export function paymentReminderEmail(
   }
 ): MailMessage {
   const siteUrl = getSiteUrl()
-  const invoiceUrl = `${siteUrl}/admin/commandes/${order.id || ''}/facture`
+  const invoiceUrl = `${siteUrl}/facture/${order.id || ''}`
   const due = options?.dueDate || new Date()
   const count = options?.reminderCount ?? 1
   const reference = order.invoiceNumber
