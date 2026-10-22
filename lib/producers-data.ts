@@ -11,7 +11,17 @@ export interface ProducerProfile {
   region: string
   cantonOrDept: string
   country: 'CH' | 'FR'
+  countries?: ('CH' | 'FR')[]
+  terroirs?: {
+    name: string
+    country: 'CH' | 'FR'
+  }[]
   sinceYear: number
+  sinceText?: string
+  sinceItems?: {
+    text: string
+    country?: 'CH' | 'FR'
+  }[]
   portraitImage: string
   quote: string
   shortBio: string
@@ -33,26 +43,36 @@ export const PRODUCERS_PROFILES: Record<string, ProducerProfile> = {
     name: 'Jacques Perritaz',
     estateName: 'Cidrerie du Vulcain',
     tagline: 'Cidriculteur artisan - Fondateur de la Cidrerie du Vulcain',
-    region: 'Le Mouret, Fribourg',
-    cantonOrDept: 'Fribourg',
+    region: 'Le Verger de Rue, Fribourg – Suisse & La Ferme La Prémoudière, Normandie – France',
+    terroirs: [
+      { name: 'Le Verger de Rue, Fribourg – Suisse', country: 'CH' },
+      { name: 'La Ferme La Prémoudière, Normandie – France', country: 'FR' },
+    ],
+    cantonOrDept: 'Fribourg & Normandie',
     country: 'CH',
+    countries: ['CH', 'FR'],
     sinceYear: 2006,
+    sinceText: 'CH Depuis 2006 · FR Depuis 2022',
+    sinceItems: [
+      { text: 'CH Depuis 2006', country: 'CH' },
+      { text: 'FR Depuis 2022', country: 'FR' },
+    ],
     portraitImage: '/images/histoire/jacques-perritaz.jpg',
     quote:
       '« Le cidre n’est pas un sous-produit de la pomme : c’est l’expression noble, pure et vivante d’arbres centenaires enracinés dans un terroir préservé. »',
     shortBio:
-      'Pionnier du cidre naturel en Suisse, Jacques Perritaz élabore au Mouret (Fribourg) à la Cidrerie du Vulcain des cidres et poirés de gastronomie issus d’arbres hautes-tiges centenaires non traités, vinifiés en fermentation spontanée.',
+      'Pionnier du cidre naturel en Suisse, Jacques Perritaz élabore au Verger de Rue (Fribourg) et à la Ferme La Prémoudière (Normandie) à la Cidrerie du Vulcain des cidres et poirés de gastronomie issus d’arbres hautes-tiges centenaires non traités, vinifiés en fermentation spontanée.',
     storyParagraphs: [
-      'Biologiste de formation, Jacques Perritaz fonde son domaine, la Cidrerie du Vulcain, en 2006 avec une vision exigeante : redonner au cidre ses lettres de noblesse en l’élevant au rang des plus grands vins de terroir. Installé au Mouret, au cœur des Préalpes fribourgeoises sous le symbole du papillon Vulcain, il s’attache depuis près de vingt ans à révéler la singularité des fruits de plein vent de sa région.',
-      'Son trésor réside dans les vergers traditionnels de plein vent (arbres hautes-tiges). Jacques parcourt inlassablement la région fribourgeoise et la Suisse romande pour récolter à la main des variétés anciennes et oubliées : pommes acidulées sauvages, Bohnapfel, Boskoop, Engishofer, poires à poiré rustiques et la fameuse poire à Botsi AOP. Ces arbres centenaires aux racines profondes puisent dans le sol fribourgeois une minéralité et une intensité aromatique incomparables, sans le moindre traitement phytosanitaire.',
-      'En cave, le cidriculteur fribourgeois applique une vinification minimaliste et ultra-précise inspirée des grands vignerons : pressurage lent et respectueux du fruit, débourbage à froid, et surtout fermentations spontanées lentes conduites exclusivement par les levures indigènes naturellement présentes sur la peau des fruits. Sans collage, sans filtration violente et sans ajout de sulfites pendant la fermentation.',
+      'Biologiste de formation, Jacques Perritaz fonde son domaine, la Cidrerie du Vulcain, en 2006 avec une vision exigeante : redonner au cidre ses lettres de noblesse en l’élevant au rang des plus grands vins de terroir. Installé au Verger de Rue (Fribourg) et à la Ferme La Prémoudière (Normandie) sous le symbole du papillon Vulcain, il s’attache depuis près de vingt ans à révéler la singularité des fruits de plein vent de ses terroirs.',
+      'Son trésor réside dans les vergers traditionnels de plein vent (arbres hautes-tiges). Jacques parcourt inlassablement la région fribourgeoise, la Suisse romande et le bocage normand pour récolter à la main des variétés anciennes et oubliées : pommes acidulées sauvages, Bohnapfel, Boskoop, Engishofer, poires à poiré rustiques et la fameuse poire à Botsi AOP. Ces arbres centenaires aux racines profondes puisent dans le sol une minéralité et une intensité aromatique incomparables, sans le moindre traitement phytosanitaire.',
+      'En cave, le cidriculteur applique une vinification minimaliste et ultra-précise inspirée des grands vignerons : pressurage lent et respectueux du fruit, débourbage à froid, et surtout fermentations spontanées lentes conduites exclusivement par les levures indigènes naturellement présentes sur la peau des fruits. Sans collage, sans filtration violente et sans ajout de sulfites pendant la fermentation.',
       'Les prises de mousse s’effectuent en bouteille selon la méthode traditionnelle ou ancestrale. Le résultat : des cuvées de garde d’une finesse époustouflante, d’une fraîcheur cristalline et d’une complexité qui séduisent aujourd’hui les plus grandes tables gastronomiques et amateurs de vins naturels à travers le monde.',
     ],
     philosophies: [
       {
         title: 'Arbres hautes-tiges centenaires',
         description:
-          'Récolte manuelle exclusive sur de vieux vergers traditionnels non traités, garants de la biodiversité paysagère fribourgeoise.',
+          'Récolte manuelle exclusive sur de vieux vergers traditionnels non traités, garants de la biodiversité paysagère.',
       },
       {
         title: 'Levures indigènes & fermentation spontanée',
@@ -74,7 +94,7 @@ export const PRODUCERS_PROFILES: Record<string, ProducerProfile> = {
       'Cidriculteur artisan',
       'Pionnier du cidre naturel',
       'Cidrerie du Vulcain',
-      'Terroir Fribourgeois 🇨🇭',
+      'Fribourg 🇨🇭 & Normandie 🇫🇷',
       'Arbres hautes-tiges',
       'Levures indigènes',
     ],

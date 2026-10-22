@@ -31,6 +31,35 @@ export const authConfig: NextAuthConfig = {
 
       if (isLoginPage) {
         if (isLoggedIn) return Response.redirect(new URL('/admin', nextUrl.origin))
+
+        // Si un client arrive avec un callbackUrl vers une facture sans être connecté,
+        // on le redirige directement vers la consultation publique sans lui demander de compte.
+        const callbackUrl = nextUrl.searchParams.get('callbackUrl')
+        if (callbackUrl) {
+          try {
+            const cb = new URL(callbackUrl, nextUrl.origin)
+            const cbInvoiceMatch = cb.pathname.match(/^\/admin\/commandes\/([^/]+)\/facture$/)
+            if (cbInvoiceMatch) {
+              const orderId = cbInvoiceMatch[1]
+              return Response.redirect(new URL(`/facture/${orderId}`, nextUrl.origin))
+            }
+          } catch {
+            // URL non valide, ignorer
+          }
+        }
+
+        return true
+      }
+
+      // Redirection transparente des anciens liens de facture client envoyés par email :
+      // si l'utilisateur n'est pas un administrateur connecté, on le bascule directement
+      // vers la vue de facture publique /facture/:id sans passer par le formulaire de login.
+      const invoiceMatch = nextUrl.pathname.match(/^\/admin\/commandes\/([^/]+)\/facture$/)
+      if (invoiceMatch) {
+        if (!isLoggedIn) {
+          const orderId = invoiceMatch[1]
+          return Response.redirect(new URL(`/facture/${orderId}`, nextUrl.origin))
+        }
         return true
       }
 

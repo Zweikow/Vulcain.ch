@@ -48,6 +48,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/facture/logo-drinkcider.png',
+        destination: '/images/facture/logo-drinkcider.png',
+        permanent: true,
+      },
+      {
+        source: '/facture/logo-vulcain.png',
+        destination: '/images/facture/logo-vulcain.png',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.drinkcider.ch' }],
         destination: 'https://drinkcider.ch/:path*',

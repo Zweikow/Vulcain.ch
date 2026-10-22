@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -83,7 +83,19 @@ export default async function FacturePage({
           >
             <ArrowLeft className="inline-block h-[1em] w-[1em] align-[-0.125em]" /> Détail
           </Link>
-          <PrintButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/facture/${order.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary text-xs py-1.5 px-2.5 inline-flex items-center gap-1 text-text-secondary"
+              title="Ouvrir la page de facture publique telle que vue par le client"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Aperçu client</span>
+            </Link>
+            <PrintButton />
+          </div>
         </div>
 
         <FactureLayoutSelect forcedLayout={forcedLayout} itemCount={order.items.length} />

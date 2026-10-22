@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     description: SITE_CONFIG.description,
     images: [
       {
-        url: '/facture/logo-drinkcider.png',
+        url: '/images/facture/logo-drinkcider.png',
         width: 800,
         height: 600,
         alt: `${SITE_CONFIG.name} - ${SITE_CONFIG.legalName}`,
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_CONFIG.title,
     description: SITE_CONFIG.description,
-    images: ['/facture/logo-drinkcider.png'],
+    images: ['/images/facture/logo-drinkcider.png'],
   },
   robots: {
     index: true,

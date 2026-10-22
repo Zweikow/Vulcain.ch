@@ -44,6 +44,8 @@ export default $config({
 
     // 3. Application Next.js avec OpenNext
     const site = new sst.aws.Nextjs('CidrerieSite', {
+      buildCommand:
+        'npx --yes @opennextjs/aws@3.9.14 build --dangerously-use-unsupported-next-version true',
       domain: domain,
       link: [photosBucket], // Lie le bucket au site pour générer l'accès sécurisé
       assets: {
