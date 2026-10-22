@@ -177,6 +177,7 @@ function revalidate(slug?: string | null) {
   revalidatePath('/admin/produits')
   revalidatePath('/admin')
   revalidatePath('/')
+  revalidatePath('/producteurs')
   revalidatePath('/sitemap.xml')
   if (slug) {
     revalidatePath(`/produits/${slug}`)

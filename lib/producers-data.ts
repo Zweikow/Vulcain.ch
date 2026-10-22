@@ -12,8 +12,16 @@ export interface ProducerProfile {
   cantonOrDept: string
   country: 'CH' | 'FR'
   countries?: ('CH' | 'FR')[]
+  terroirs?: {
+    name: string
+    country: 'CH' | 'FR'
+  }[]
   sinceYear: number
   sinceText?: string
+  sinceItems?: {
+    text: string
+    country?: 'CH' | 'FR'
+  }[]
   portraitImage: string
   quote: string
   shortBio: string
@@ -35,12 +43,20 @@ export const PRODUCERS_PROFILES: Record<string, ProducerProfile> = {
     name: 'Jacques Perritaz',
     estateName: 'Cidrerie du Vulcain',
     tagline: 'Cidriculteur artisan - Fondateur de la Cidrerie du Vulcain',
-    region: 'Le Verger de Rue – Fribourg – Suisse et la Ferme La Prémoudière – Normandie – France',
+    region: 'Le Verger de Rue, Fribourg – Suisse & La Ferme La Prémoudière, Normandie – France',
+    terroirs: [
+      { name: 'Le Verger de Rue, Fribourg – Suisse', country: 'CH' },
+      { name: 'La Ferme La Prémoudière, Normandie – France', country: 'FR' },
+    ],
     cantonOrDept: 'Fribourg & Normandie',
     country: 'CH',
     countries: ['CH', 'FR'],
     sinceYear: 2006,
-    sinceText: 'Depuis 2006 et depuis 2022 en Normandie',
+    sinceText: 'CH Depuis 2006 · FR Depuis 2022',
+    sinceItems: [
+      { text: 'CH Depuis 2006', country: 'CH' },
+      { text: 'FR Depuis 2022', country: 'FR' },
+    ],
     portraitImage: '/images/histoire/jacques-perritaz.jpg',
     quote:
       '« Le cidre n’est pas un sous-produit de la pomme : c’est l’expression noble, pure et vivante d’arbres centenaires enracinés dans un terroir préservé. »',

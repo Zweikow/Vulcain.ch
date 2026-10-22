@@ -23,6 +23,114 @@ export interface UpdateCustomerInput {
   updateFirstOrder?: boolean
 }
 
+export interface CreateCustomerInput {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  address?: string | null
+  npa?: string | null
+  city?: string | null
+  isPro?: boolean
+  proRatePercent?: number | null
+  notes?: string | null
+}
+
+export async function createCustomerAction(
+  input: CreateCustomerInput
+): Promise<{
+  success: boolean
+  error?: string
+  customer?: { id: string; customerNumber: number }
+}> {
+  const guard = await assertCapability(can.manageCustomers)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  const firstName = input.firstName?.trim() || ''
+  const lastName = input.lastName?.trim() || ''
+  const email = input.email?.trim().toLowerCase() || ''
+
+  if (!firstName || !lastName || !email) {
+    return { success: false, error: 'Le prénom, le nom et l’adresse email sont requis.' }
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { success: false, error: 'Format d’adresse email invalide.' }
+  }
+
+  const isPro = Boolean(input.isPro)
+  let cleanRate: number | null = null
+  if (isPro && input.proRatePercent !== undefined && input.proRatePercent !== null) {
+    const num = Number(input.proRatePercent)
+    if (!Number.isFinite(num) || num < 0 || num > 100) {
+      return {
+        success: false,
+        error: 'Le taux de remise doit être un pourcentage compris entre 0 et 100.',
+      }
+    }
+    cleanRate = Math.round(num)
+  }
+
+  try {
+    const existing = await prisma.customer.findUnique({
+      where: { email },
+      select: { id: true, customerNumber: true, firstName: true, lastName: true },
+    })
+
+    if (existing) {
+      return {
+        success: false,
+        error: `Cette adresse email est déjà associée au client ${existing.firstName} ${existing.lastName} (N° ${existing.customerNumber}).`,
+      }
+    }
+
+    const created = await prisma.customer.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone: input.phone?.trim() || null,
+        address: input.address?.trim() || '',
+        npa: input.npa?.trim() || '',
+        city: input.city?.trim() || '',
+        isPro,
+        proRatePercent: isPro ? cleanRate : null,
+        notes: input.notes?.trim() || null,
+      },
+      select: {
+        id: true,
+        customerNumber: true,
+        firstName: true,
+        lastName: true,
+        isPro: true,
+      },
+    })
+
+    await recordAudit(
+      AuditAction.STATUT_MODIFIE,
+      {
+        type: AuditTargetType.COMMANDE,
+        id: created.id,
+        label: `Client N° ${created.customerNumber}`,
+      },
+      `Création fiche client ${created.firstName} ${created.lastName} (${created.isPro ? 'Compte Pro' : 'Particulier'})`
+    )
+
+    revalidatePath('/admin/clients')
+    revalidatePath('/admin/commandes/nouvelle')
+
+    return {
+      success: true,
+      customer: {
+        id: created.id,
+        customerNumber: created.customerNumber,
+      },
+    }
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erreur lors de la création du client' }
+  }
+}
+
 export async function updateCustomerAction(
   id: string,
   input: UpdateCustomerInput
