@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
@@ -8,6 +8,7 @@ import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { SearchClients } from '@/components/admin/SearchClients'
 import { CheckIcon } from '@/components/admin/AdminIcons'
+import { CreateCustomerButton } from '@/components/admin/AdminCustomerModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -162,15 +163,20 @@ export default async function ClientsPage({
             commandes.
           </p>
         </div>
-        {user && can.manageOrders(user.role) && (
-          <Link
-            href="/admin/commandes/nouvelle"
-            className="btn-primary text-sm flex items-center gap-1.5 px-4 py-2"
-          >
-            <span>+</span>
-            <span>Nouvelle commande client</span>
-          </Link>
-        )}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {user && can.manageCustomers(user.role) && (
+            <CreateCustomerButton globalProRate={settings.proRatePercent} />
+          )}
+          {user && can.manageOrders(user.role) && (
+            <Link
+              href="/admin/commandes/nouvelle"
+              className="btn-secondary text-sm flex items-center gap-1.5 px-4 py-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nouvelle commande</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Cartes métriques */}

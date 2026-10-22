@@ -173,25 +173,67 @@ export default function AdminProductModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    const trimmedName = form.name.trim()
+    if (!trimmedName) {
+      setError('Le nom du produit est requis.')
+      return
+    }
+
+    if (!form.categoryId) {
+      setError('Veuillez sélectionner une catégorie.')
+      return
+    }
+
+    const calculatedPriceCents = chfInputToCents(form.priceChf)
+    if (!form.priceChf.trim() || calculatedPriceCents < 0) {
+      setError('Veuillez renseigner un prix public valide.')
+      return
+    }
+
+    // Extraction propre du millésime (supporte 2 chiffres comme "24" -> 2024)
+    let year: number | null = null
+    if (form.year && form.year.trim()) {
+      const y = parseInt(form.year.trim(), 10)
+      if (!isNaN(y)) {
+        year = y > 0 && y < 100 ? 2000 + y : y
+      }
+    }
+
+    // Extraction robuste du volume d'alcool (supporte la virgule "4,5" et "%")
+    let alcoholVolume: number | null = null
+    if (form.alcoholVolume && form.alcoholVolume.trim()) {
+      const a = parseFloat(form.alcoholVolume.replace(',', '.').replace('%', '').trim())
+      if (!isNaN(a)) {
+        alcoholVolume = a
+      }
+    }
+
+    const rawStock = parseInt(String(form.stock).replace(',', '.').trim(), 10)
+    const stock = isNaN(rawStock) ? 0 : Math.max(0, rawStock)
+
+    const rawSeuil = parseInt(String(form.stockSeuil).replace(',', '.').trim(), 10)
+    const stockSeuil = isNaN(rawSeuil) ? 5 : Math.max(0, rawSeuil)
+
     const input: ProductInput = {
-      name: form.name,
+      name: trimmedName,
       categoryId: form.categoryId,
-      producerId: form.producerId || null,
-      year: form.year ? Number(form.year) : null,
+      producerId: form.producerId ? form.producerId.trim() : null,
+      year,
       bottleSize: form.bottleSize,
       origin: form.origin,
-      description: form.description,
-      priceCents,
+      description: form.description ? form.description.trim() : null,
+      priceCents: calculatedPriceCents,
       compareAtPriceCents: form.compareAtPriceChf ? chfInputToCents(form.compareAtPriceChf) : null,
       purchasePriceCents: chfInputToCents(form.purchasePriceChf),
-      stock: Number(form.stock),
-      stockSeuil: Number(form.stockSeuil),
+      stock,
+      stockSeuil,
       bottlesPerUnit: Math.max(1, parseInt(form.bottlesPerUnit) || 1),
       active: form.active,
       isBio: form.isBio,
       isVegan: form.isVegan,
-      alcoholVolume: form.alcoholVolume ? Number(form.alcoholVolume) : null,
-      imageUrl: form.imageUrl,
+      alcoholVolume,
+      imageUrl: form.imageUrl ? form.imageUrl.trim() : null,
     }
     startTransition(async () => {
       const result = product ? await updateProduct(product.id, input) : await createProduct(input)
@@ -698,12 +740,18 @@ export default function AdminProductModal({
 
             {/* Description */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-                Description
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                  Description
+                </label>
+                <span className="text-[10px] text-text-tertiary">
+                  {form.description.length} / 2000
+                </span>
+              </div>
               <textarea
                 className="input-field resize-none"
                 rows={3}
+                maxLength={2000}
                 placeholder="Description du produit..."
                 value={form.description}
                 onChange={(e) => update('description', e.target.value)}

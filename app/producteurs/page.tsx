@@ -222,34 +222,76 @@ export default async function ProducteursPage() {
                     </div>
 
                     {/* Fiche d'identité rapide */}
-                    <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3 text-xs sm:text-sm">
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-primary-text" />
-                          Terroir &amp; Domaine
-                        </span>
-                        <span className="font-semibold text-foreground flex items-center gap-1.5">
-                          <OriginBadge origin={profile.country} className="w-3.5 h-3.5" />
-                          {profile.region}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-primary-text" />
+                    <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3.5 text-xs sm:text-sm">
+                      {/* Terroirs & Domaines */}
+                      {profile.terroirs && profile.terroirs.length > 1 ? (
+                        <div className="pb-3 border-b border-border/60">
+                          <span className="text-muted-foreground flex items-center gap-1.5 font-medium mb-2">
+                            <MapPin className="w-4 h-4 text-primary-text shrink-0" />
+                            Terroirs &amp; Domaines
+                          </span>
+                          <div className="space-y-1.5 pl-6">
+                            {profile.terroirs.map((t) => (
+                              <div
+                                key={t.name}
+                                className="flex items-center gap-2 font-semibold text-foreground text-xs sm:text-sm"
+                              >
+                                <OriginBadge origin={t.country} className="w-4 h-4 shrink-0" />
+                                <span>{t.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="pb-3 border-b border-border/60">
+                          <span className="text-muted-foreground flex items-center gap-1.5 font-medium mb-1.5">
+                            <MapPin className="w-4 h-4 text-primary-text shrink-0" />
+                            Terroir &amp; Domaine
+                          </span>
+                          <div className="pl-6 flex items-center gap-2 font-semibold text-foreground text-xs sm:text-sm">
+                            <OriginBadge origin={profile.country} className="w-4 h-4 shrink-0" />
+                            <span>{profile.region}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Année de création */}
+                      <div className="pb-3 border-b border-border/60">
+                        <span className="text-muted-foreground flex items-center gap-1.5 font-medium mb-2">
+                          <Calendar className="w-4 h-4 text-primary-text shrink-0" />
                           Année de création
                         </span>
-                        <span className="font-semibold text-foreground font-mono">
-                          Depuis {profile.sinceYear}
-                        </span>
+                        {profile.sinceItems && profile.sinceItems.length > 0 ? (
+                          <div className="space-y-1.5 pl-6">
+                            {profile.sinceItems.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 font-semibold text-foreground text-xs sm:text-sm"
+                              >
+                                {item.country && (
+                                  <OriginBadge origin={item.country} className="w-4 h-4 shrink-0" />
+                                )}
+                                <span>{item.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="pl-6 font-semibold text-foreground text-xs sm:text-sm">
+                            {profile.sinceText || `Depuis ${profile.sinceYear}`}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <Wine className="w-4 h-4 text-primary-text" />
+
+                      {/* Cuvées au catalogue */}
+                      <div>
+                        <span className="text-muted-foreground flex items-center gap-1.5 font-medium mb-1.5">
+                          <Wine className="w-4 h-4 text-primary-text shrink-0" />
                           Cuvées au catalogue
                         </span>
-                        <span className="font-semibold text-foreground font-mono">
-                          {producer.products.length} cuvées disponibles
-                        </span>
+                        <div className="pl-6 font-semibold text-foreground text-xs sm:text-sm">
+                          <span className="font-mono font-bold">{producer.products.length}</span>{' '}
+                          {producer.products.length > 1 ? 'cuvées disponibles' : 'cuvée disponible'}
+                        </div>
                       </div>
                     </div>
                   </div>

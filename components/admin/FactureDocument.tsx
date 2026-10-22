@@ -234,7 +234,7 @@ export function FactureDocument({
                 )}
               </div>
               <Image
-                src="/facture/logo-drinkcider.png"
+                src="/images/facture/logo-drinkcider.png"
                 alt="Drinkcider"
                 width={180}
                 height={86}
@@ -546,7 +546,7 @@ export function FactureDocument({
                 </p>
               </div>
               <Image
-                src="/facture/logo-drinkcider.png"
+                src="/images/facture/logo-drinkcider.png"
                 alt="Drinkcider"
                 width={140}
                 height={67}
@@ -700,7 +700,7 @@ export function FactureDocument({
             )}
           </div>
           <Image
-            src="/facture/logo-drinkcider.png"
+            src="/images/facture/logo-drinkcider.png"
             alt="Drinkcider"
             width={180}
             height={86}
