@@ -223,31 +223,35 @@ export default async function ProducteursPage() {
 
                     {/* Fiche d'identité rapide */}
                     <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3 text-xs sm:text-sm">
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-primary-text" />
+                      <div className="flex items-start justify-between gap-3 pb-2 border-b border-border/60">
+                        <span className="text-muted-foreground flex items-center gap-1.5 shrink-0 pt-0.5">
+                          <MapPin className="w-4 h-4 text-primary-text shrink-0" />
                           Terroir &amp; Domaine
                         </span>
-                        <span className="font-semibold text-foreground flex items-center gap-1.5">
-                          <OriginBadge origin={profile.country} className="w-3.5 h-3.5" />
-                          {profile.region}
+                        <span className="font-semibold text-foreground text-right leading-snug">
+                          <span className="inline-flex items-center gap-1.5 mr-1.5 align-middle">
+                            {(profile.countries || [profile.country]).map((c) => (
+                              <OriginBadge key={c} origin={c} className="w-3.5 h-3.5" />
+                            ))}
+                          </span>
+                          <span>{profile.region}</span>
                         </span>
                       </div>
-                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-primary-text" />
+                      <div className="flex items-start justify-between gap-3 pb-2 border-b border-border/60">
+                        <span className="text-muted-foreground flex items-center gap-1.5 shrink-0 pt-0.5">
+                          <Calendar className="w-4 h-4 text-primary-text shrink-0" />
                           Année de création
                         </span>
-                        <span className="font-semibold text-foreground font-mono">
-                          Depuis {profile.sinceYear}
+                        <span className="font-semibold text-foreground text-right leading-snug">
+                          {profile.sinceText || `Depuis ${profile.sinceYear}`}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <Wine className="w-4 h-4 text-primary-text" />
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-muted-foreground flex items-center gap-1.5 shrink-0">
+                          <Wine className="w-4 h-4 text-primary-text shrink-0" />
                           Cuvées au catalogue
                         </span>
-                        <span className="font-semibold text-foreground font-mono">
+                        <span className="font-semibold text-foreground font-mono text-right">
                           {producer.products.length} cuvées disponibles
                         </span>
                       </div>
