@@ -214,6 +214,7 @@ export function CreateOrderForm({
   )
   const [customShippingCHF, setCustomShippingCHF] = useState<string>('0.00')
   const [status, setStatus] = useState<OrderStatus>('A_TRAITER')
+  const [deliveryDate, setDeliveryDate] = useState('')
   const [message, setMessage] = useState('')
   const [notifyCustomer, setNotifyCustomer] = useState(false)
   const [allowNegativeStock, setAllowNegativeStock] = useState(false)
@@ -571,6 +572,7 @@ export function CreateOrderForm({
         shippingOption,
         customShippingCents: calculatedShippingCents,
         status,
+        deliveryDate: deliveryDate || undefined,
         message: message || undefined,
         notifyCustomer,
         allowNegativeStock,
@@ -1483,6 +1485,18 @@ export function CreateOrderForm({
               <option value="EN_PREPARATION">En préparation</option>
               <option value="EXPEDIEE">Expédiée / Remise au client</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+              Date de livraison convenue / souhaitée
+            </label>
+            <input
+              type="date"
+              value={deliveryDate}
+              onChange={(e) => setDeliveryDate(e.target.value)}
+              className="input-field w-full text-sm font-medium"
+            />
           </div>
 
           <div className="sm:col-span-2">
