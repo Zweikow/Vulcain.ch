@@ -166,7 +166,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               orderId={order.id}
               clientType={order.clientType}
               isCustomerPro={Boolean(order.customer?.isPro)}
-              proRatePercent={order.customer?.proRatePercent ?? settings.proRatePercent}
+              proRatePercent={
+                order.proRatePercent ?? order.customer?.proRatePercent ?? settings.proRatePercent
+              }
               canManage={canManage}
             />
           </dd>
