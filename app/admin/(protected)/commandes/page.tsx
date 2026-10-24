@@ -87,6 +87,7 @@ export default async function CommandesPage({
         invoicedAt: true,
         reminderCount: true,
         createdAt: true,
+        deliveryDate: true,
         assignedTo: { select: { name: true } },
       },
     }),

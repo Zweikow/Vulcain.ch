@@ -12,6 +12,7 @@ import { AssignSelect } from '@/components/admin/AssignSelect'
 import OrderEmailActions from '@/components/admin/OrderEmailActions'
 import { OrderPaymentPanel } from '@/components/admin/OrderPaymentPanel'
 import { OrderProToggle } from '@/components/admin/OrderProToggle'
+import { OrderDeliveryDateControl } from '@/components/admin/OrderDeliveryDateControl'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 
@@ -95,11 +96,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Statut & Assignation — masqués sur une commande annulée, qui ne progresse plus */}
+      {/* Statut, Assignation & Date de livraison — masqués sur une commande annulée, qui ne progresse plus */}
       {order.status !== 'ANNULEE' && (
-        <div className="card p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="card p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatusSelect orderId={order.id} currentStatus={order.status} />
           <AssignSelect orderId={order.id} currentAssigneeId={order.assignedToId} users={users} />
+          <OrderDeliveryDateControl orderId={order.id} initialDeliveryDate={order.deliveryDate} />
         </div>
       )}
 
@@ -164,7 +166,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               orderId={order.id}
               clientType={order.clientType}
               isCustomerPro={Boolean(order.customer?.isPro)}
-              proRatePercent={order.customer?.proRatePercent ?? settings.proRatePercent}
+              proRatePercent={
+                order.proRatePercent ?? order.customer?.proRatePercent ?? settings.proRatePercent
+              }
               canManage={canManage}
             />
           </dd>
@@ -186,20 +190,20 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             {order.address}, {order.npa} {order.city}
           </dd>
 
-          {order.deliveryDate && (
-            <>
-              <dt className="text-text-secondary dark:text-text-secondary-dark">
-                Livraison souhaitée
-              </dt>
-              <dd className="text-text-primary dark:text-text-primary-dark">
+          <dt className="text-text-secondary dark:text-text-secondary-dark">Date de livraison</dt>
+          <dd className="text-text-primary dark:text-text-primary-dark">
+            {order.deliveryDate ? (
+              <span className="font-medium">
                 {new Date(order.deliveryDate).toLocaleDateString('fr-CH', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                 })}
-              </dd>
-            </>
-          )}
+              </span>
+            ) : (
+              <span className="text-text-tertiary italic">Non définie</span>
+            )}
+          </dd>
 
           {order.message && (
             <>
@@ -330,6 +334,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           trackingNumber={order.trackingNumber}
           carrier={order.carrier}
           isPickup={order.isPickup}
+          deliveryDate={order.deliveryDate}
           emailLogs={order.emailLogs}
         />
       </div>

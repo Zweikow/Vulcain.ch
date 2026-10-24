@@ -156,6 +156,29 @@ export async function updatePickupAction(
   }
 }
 
+export async function updateDeliveryDateAction(
+  orderId: string,
+  deliveryDate: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { success: false, error: guard.error }
+
+  try {
+    const parsedDate = deliveryDate ? new Date(deliveryDate) : null
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { deliveryDate: parsedDate },
+    })
+    revalidate(orderId)
+    return { success: true }
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || 'Erreur lors de la mise à jour de la date de livraison',
+    }
+  }
+}
+
 export async function toggleOrderProAction(
   orderId: string
 ): Promise<{ success: boolean; error?: string; isPro?: boolean }> {
