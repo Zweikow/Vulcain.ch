@@ -74,6 +74,11 @@ const AVAILABLE_PACKSHOTS = [
   { path: '/packshots/belle-brutale-2017-duo.jpg', label: 'Belle Brutale 2017 (Duo)' },
   { path: '/packshots/premiers-emois-2021-duo.jpg', label: 'Premiers Émois 2021 (Duo)' },
   { path: '/packshots/brute-de-rue-2021-duo.jpg', label: 'Brute de Rue 2021 (Duo)' },
+  { path: '/packshots/brute-de-rue-2022-duo.jpg', label: 'Brute de Rue 2022 (Duo)' },
+  {
+    path: '/packshots/poire-comment-2022-duo.jpg',
+    label: 'Poiré Comment! 2022 (Duo)',
+  },
   { path: '/packshots/baie-de-rue-2023-duo.jpg', label: 'Baie de Rue 2023 (Duo)' },
   { path: '/packshots/turgowy-2019-duo.jpg', label: 'Turgowy 2019 (Duo)' },
   { path: '/packshots/turgowy-2020-duo.jpg', label: 'Turgowy 2020 (Duo)' },

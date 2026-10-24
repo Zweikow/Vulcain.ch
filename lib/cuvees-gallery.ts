@@ -71,6 +71,26 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/packshots/brute-de-rue-2021-face.jpg', label: 'Étiquette' },
     { url: '/packshots/brute-de-rue-2021-dos.jpg', label: 'Contre-étiquette' },
   ],
+  'brute-de-rue-2022': [
+    { url: '/packshots/brute-de-rue-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/brute-de-rue-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/brute-de-rue-2022-dos.jpg', label: 'Contre-étiquette' },
+  ],
+  'poire-comment-2022': [
+    { url: '/packshots/poire-comment-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/poire-comment-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/poire-comment-2022-dos.jpg', label: 'Contre-étiquette' },
+  ],
+  'new-poire-comment-2022': [
+    { url: '/packshots/poire-comment-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/poire-comment-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/poire-comment-2022-dos.jpg', label: 'Contre-étiquette' },
+  ],
+  'comment-2022': [
+    { url: '/packshots/poire-comment-2022-duo.jpg', label: 'Deux bouteilles (face et dos)' },
+    { url: '/packshots/poire-comment-2022-face.jpg', label: 'Étiquette' },
+    { url: '/packshots/poire-comment-2022-dos.jpg', label: 'Contre-étiquette' },
+  ],
   'belle-brutale-2017': [
     { url: '/packshots/belle-brutale-2017-duo.jpg', label: 'Deux bouteilles (face et dos)' },
     { url: '/packshots/belle-brutale-2017-face.jpg', label: 'Étiquette' },
@@ -121,7 +141,9 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
 }
 
 export const ARTICLE_SLUG_MAP: Record<number, string> = {
+  6: 'poire-comment-2022',
   11: 'cidre-effervescence-2022',
+  12: 'new-poire-comment-2022',
   13: 'poire-la-premoudiere-2022',
   14: 'trois-pepins-2023',
   15: 'lande-foy-2022',
@@ -136,6 +158,7 @@ export const ARTICLE_SLUG_MAP: Record<number, string> = {
   24: 'brute-de-rue-2021',
   25: 'a-propos-dailes-2021',
   26: 'quatre-pepins-2022',
+  27: 'brute-de-rue-2022',
   28: 'turgowy-2023',
   29: 'baie-de-rue-2023',
   30: 'quatre-pepins-2023',
