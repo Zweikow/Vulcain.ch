@@ -9,6 +9,7 @@ import {
   resendShippingNoticeAction,
   updateTrackingAction,
   updatePickupAction,
+  updateDeliveryDateAction,
 } from '@/app/admin/(protected)/commandes/[id]/actions'
 import {
   TruckIcon,
@@ -17,6 +18,16 @@ import {
   SendIcon,
   FacturesIcon,
 } from '@/components/admin/AdminIcons'
+
+function formatDateToInput(date: Date | string | null | undefined): string {
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 interface EmailLog {
   id: string
@@ -35,6 +46,7 @@ interface OrderEmailActionsProps {
   trackingNumber: string | null
   carrier: string | null
   isPickup: boolean
+  deliveryDate?: Date | string | null
   emailLogs: EmailLog[]
 }
 
@@ -45,6 +57,7 @@ export default function OrderEmailActions({
   trackingNumber: initialTracking,
   carrier: initialCarrier,
   isPickup: initialPickup,
+  deliveryDate: initialDeliveryDate,
   emailLogs,
 }: OrderEmailActionsProps) {
   const router = useRouter()
@@ -56,6 +69,7 @@ export default function OrderEmailActions({
   const [carrier, setCarrier] = useState(initialCarrier || 'DPD')
   const [tracking, setTracking] = useState(initialTracking || '')
   const [isPickup, setIsPickup] = useState(initialPickup)
+  const [deliveryDate, setDeliveryDate] = useState<string>(formatDateToInput(initialDeliveryDate))
   const [isSavingTracking, setIsSavingTracking] = useState(false)
 
   const handleSendInvoice = () => {
@@ -117,20 +131,22 @@ export default function OrderEmailActions({
     setIsSavingTracking(true)
     setFeedback(null)
     try {
-      const [trackRes, pickRes] = await Promise.all([
+      const [trackRes, pickRes, dateRes] = await Promise.all([
         updateTrackingAction(orderId, tracking, carrier),
         updatePickupAction(orderId, isPickup),
+        updateDeliveryDateAction(orderId, deliveryDate ? deliveryDate : null),
       ])
-      if (trackRes.success && pickRes.success) {
+      if (trackRes.success && pickRes.success && dateRes.success) {
         setFeedback({
           type: 'success',
-          message: 'Paramètres de transport enregistrés avec succès.',
+          message: 'Paramètres de transport et date de livraison enregistrés avec succès.',
         })
         router.refresh()
       } else {
         setFeedback({
           type: 'error',
-          message: trackRes.error || pickRes.error || 'Erreur lors de la sauvegarde.',
+          message:
+            trackRes.error || pickRes.error || dateRes.error || 'Erreur lors de la sauvegarde.',
         })
       }
     } finally {
@@ -209,61 +225,86 @@ export default function OrderEmailActions({
             </label>
           </div>
 
-          {!isPickup && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-                    Transporteur
-                  </label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setCarrier('Planzer')}
-                      className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                        carrier.toUpperCase().includes('PLANZER')
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border hover:bg-primary/10'
-                      }`}
-                    >
-                      Planzer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCarrier('DPD')}
-                      className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                        carrier.toUpperCase().includes('DPD')
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'border-border hover:bg-primary/10'
-                      }`}
-                    >
-                      DPD
-                    </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {!isPickup && (
+              <>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                      Transporteur
+                    </label>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setCarrier('Planzer')}
+                        className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                          carrier.toUpperCase().includes('PLANZER')
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-border hover:bg-primary/10'
+                        }`}
+                      >
+                        Planzer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCarrier('DPD')}
+                        className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                          carrier.toUpperCase().includes('DPD')
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-border hover:bg-primary/10'
+                        }`}
+                      >
+                        DPD
+                      </button>
+                    </div>
                   </div>
+                  <input
+                    type="text"
+                    value={carrier}
+                    onChange={(e) => setCarrier(e.target.value)}
+                    placeholder="ex: Planzer ou DPD"
+                    className="input w-full text-sm"
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={carrier}
-                  onChange={(e) => setCarrier(e.target.value)}
-                  placeholder="ex: Planzer ou DPD"
-                  className="input w-full text-sm"
-                />
-              </div>
 
-              <div>
-                <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
-                  Numéro de suivi (Tracking)
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+                    Numéro de suivi (Tracking)
+                  </label>
+                  <input
+                    type="text"
+                    value={tracking}
+                    onChange={(e) => setTracking(e.target.value)}
+                    placeholder="ex: 01234567890123"
+                    className="input w-full text-sm font-mono"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className={isPickup ? 'md:col-span-2' : ''}>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+                  {isPickup ? 'Date de retrait convenue' : 'Date de livraison convenue'}
                 </label>
-                <input
-                  type="text"
-                  value={tracking}
-                  onChange={(e) => setTracking(e.target.value)}
-                  placeholder="ex: 01234567890123"
-                  className="input w-full text-sm font-mono"
-                />
+                {deliveryDate && (
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryDate('')}
+                    className="text-[10px] text-text-tertiary hover:text-red-500 transition-colors"
+                  >
+                    Effacer
+                  </button>
+                )}
               </div>
+              <input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                className="input w-full text-sm"
+              />
             </div>
-          )}
+          </div>
 
           <div className="flex justify-end mt-1">
             <button
@@ -271,7 +312,7 @@ export default function OrderEmailActions({
               disabled={isSavingTracking}
               className="btn-secondary text-xs px-3 py-1.5"
             >
-              {isSavingTracking ? 'Enregistrement…' : 'Enregistrer le transport'}
+              {isSavingTracking ? 'Enregistrement…' : 'Enregistrer le transport et la livraison'}
             </button>
           </div>
         </form>

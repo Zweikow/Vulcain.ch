@@ -23,6 +23,7 @@ export interface OrderRowData {
   invoicedAt: Date | string | null
   reminderCount: number
   createdAt: Date | string
+  deliveryDate?: Date | string | null
   assignedTo?: { name: string } | null
 }
 
@@ -293,8 +294,13 @@ export function CommandesTableWithSelection({
                         paymentTermsDays={settings.paymentTermsDays}
                       />
                     )}
-                    <span className="ml-auto text-xs text-text-tertiary dark:text-text-tertiary-dark tabular-nums">
+                    <span className="ml-auto text-xs text-text-tertiary dark:text-text-tertiary-dark tabular-nums text-right">
                       {new Date(order.createdAt).toLocaleDateString('fr-CH')}
+                      {order.deliveryDate && (
+                        <span className="block text-[11px] font-medium text-primary-text">
+                          Livr. {new Date(order.deliveryDate).toLocaleDateString('fr-CH')}
+                        </span>
+                      )}
                     </span>
                   </div>
                   {order.assignedTo && (
@@ -422,7 +428,12 @@ export function CommandesTableWithSelection({
                       )}
                     </td>
                     <td className="px-4 py-3 text-text-secondary dark:text-text-secondary-dark">
-                      {new Date(order.createdAt).toLocaleDateString('fr-CH')}
+                      <div>{new Date(order.createdAt).toLocaleDateString('fr-CH')}</div>
+                      {order.deliveryDate && (
+                        <div className="text-[11px] font-medium text-primary-text mt-0.5">
+                          Livr. {new Date(order.deliveryDate).toLocaleDateString('fr-CH')}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )

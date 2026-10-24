@@ -43,7 +43,7 @@ export default async function FacturePage({
     prisma.order.findUnique({
       where: { id },
       include: {
-        customer: { select: { customerNumber: true } },
+        customer: { select: { customerNumber: true, isPro: true, proRatePercent: true } },
         items: {
           include: {
             product: {
@@ -114,7 +114,9 @@ export default async function FacturePage({
           <FactureControls
             orderId={order.id}
             clientType={order.clientType}
-            proRatePercent={settings.proRatePercent}
+            proRatePercent={
+              order.proRatePercent ?? order.customer?.proRatePercent ?? settings.proRatePercent
+            }
           />
         )}
 

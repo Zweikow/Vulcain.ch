@@ -22,6 +22,7 @@ export interface CreateManualOrderInput {
     npa: string
     city: string
     isPro: boolean
+    proRatePercent?: number | null
   }
   items: Array<{
     productId: string
@@ -54,6 +55,11 @@ export async function createManualOrder(input: CreateManualOrderInput) {
     const order = await prisma.$transaction(async (tx) => {
       // 1. Client : création ou mise à jour de la fiche
       const isPro = input.customer.isPro
+      const proRate =
+        isPro && input.customer.proRatePercent !== undefined
+          ? input.customer.proRatePercent
+          : undefined
+
       const customer = await tx.customer.upsert({
         where: { email: input.customer.email },
         update: {
@@ -64,6 +70,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           npa: input.customer.npa,
           city: input.customer.city,
           isPro,
+          ...(proRate !== undefined ? { proRatePercent: proRate } : {}),
         },
         create: {
           email: input.customer.email,
@@ -74,6 +81,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           npa: input.customer.npa,
           city: input.customer.city,
           isPro,
+          proRatePercent: proRate ?? null,
         },
       })
 
@@ -168,7 +176,9 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           numero,
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
-          proRatePercent: isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null,
+          proRatePercent: isPro
+            ? (input.customer.proRatePercent ?? customer.proRatePercent ?? settings.proRatePercent)
+            : null,
           clientName: `${input.customer.firstName} ${input.customer.lastName}`.trim(),
           clientEmail: input.customer.email,
           clientPhone: input.customer.phone || null,

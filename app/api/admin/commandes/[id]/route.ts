@@ -15,6 +15,7 @@ const patchSchema = z.object({
   trackingNumber: z.string().nullable().optional(),
   carrier: z.string().nullable().optional(),
   isPickup: z.boolean().optional(),
+  deliveryDate: z.string().nullable().optional(),
 })
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -56,7 +57,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: 'Statut invalide' }, { status: 422 })
   }
 
-  const { status, assignedToId, trackingNumber, carrier, isPickup } = result.data
+  const { status, assignedToId, trackingNumber, carrier, isPickup, deliveryDate } = result.data
 
   // If assignedToId is provided and status is not explicitly sent, default to EN_PREPARATION
   let newStatus = status
@@ -77,6 +78,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(trackingNumber !== undefined ? { trackingNumber: trackingNumber?.trim() || null } : {}),
         ...(carrier !== undefined ? { carrier: carrier?.trim() || 'DPD' } : {}),
         ...(isPickup !== undefined ? { isPickup } : {}),
+        ...(deliveryDate !== undefined
+          ? { deliveryDate: deliveryDate ? new Date(deliveryDate) : null }
+          : {}),
       },
       select: {
         id: true,

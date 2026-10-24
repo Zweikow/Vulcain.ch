@@ -214,6 +214,7 @@ export function CreateOrderForm({
   )
   const [customShippingCHF, setCustomShippingCHF] = useState<string>('0.00')
   const [status, setStatus] = useState<OrderStatus>('A_TRAITER')
+  const [deliveryDate, setDeliveryDate] = useState('')
   const [message, setMessage] = useState('')
   const [notifyCustomer, setNotifyCustomer] = useState(false)
   const [allowNegativeStock, setAllowNegativeStock] = useState(false)
@@ -345,8 +346,9 @@ export function CreateOrderForm({
 
       const freeUnits = sets * promo.getFreeQuantity
       const paidUnits = line.quantity - freeUnits
+      const effectiveRate = customProRate ?? settings.proRatePercent
       const unitPrice = isPro
-        ? proUnitPriceCents(line.listPriceCents, settings.proRatePercent)
+        ? proUnitPriceCents(line.listPriceCents, effectiveRate)
         : line.listPriceCents
 
       const newLines: OrderLineItem[] = []
@@ -385,9 +387,8 @@ export function CreateOrderForm({
     if (!prod) return
 
     const qty = Math.max(1, addQuantity)
-    const unitPrice = isPro
-      ? proUnitPriceCents(prod.priceCents, settings.proRatePercent)
-      : prod.priceCents
+    const effectiveRate = customProRate ?? settings.proRatePercent
+    const unitPrice = isPro ? proUnitPriceCents(prod.priceCents, effectiveRate) : prod.priceCents
 
     const promo = prod.promotions?.[0]
     const bpu = prod.bottlesPerUnit || 1
@@ -561,6 +562,7 @@ export function CreateOrderForm({
           npa,
           city,
           isPro,
+          proRatePercent: isPro ? (customProRate ?? undefined) : undefined,
         },
         items: lines.map((l) => ({
           productId: l.productId,
@@ -571,6 +573,7 @@ export function CreateOrderForm({
         shippingOption,
         customShippingCents: calculatedShippingCents,
         status,
+        deliveryDate: deliveryDate || undefined,
         message: message || undefined,
         notifyCustomer,
         allowNegativeStock,
@@ -891,24 +894,65 @@ export function CreateOrderForm({
         </div>
 
         {/* Option Client Pro */}
-        <div className="mt-4 pt-4 border-t border-border dark:border-border-dark flex items-center justify-between">
+        <div className="mt-4 pt-4 border-t border-border dark:border-border-dark flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <span className="text-sm font-semibold text-text-primary dark:text-text-primary-dark">
-              Tarif Professionnel (Pro)
-            </span>
-            <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
-              Applique la remise pro de {settings.proRatePercent}% sur les produits éligibles
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-text-primary dark:text-text-primary-dark">
+                Tarif Professionnel (Pro)
+              </span>
+              {isPro && customProRate !== null && (
+                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  Taux sur mesure {customProRate}%
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-0.5">
+              Applique la remise pro de {customProRate ?? settings.proRatePercent}% sur les produits
+              éligibles
             </p>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isPro}
-              onChange={(e) => handleTogglePro(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
+          <div className="flex items-center gap-3">
+            {isPro && (
+              <div className="flex items-center gap-1.5 bg-bg-page dark:bg-bg-page-dark px-2.5 py-1 rounded-lg border border-border dark:border-border-dark">
+                <label className="text-xs text-text-secondary dark:text-text-secondary-dark font-medium whitespace-nowrap">
+                  Remise pro :
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={customProRate ?? settings.proRatePercent}
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    if (raw === '') {
+                      setCustomProRate(null)
+                      updateLinesForPro(true, settings.proRatePercent)
+                    } else {
+                      const num = parseInt(raw, 10)
+                      if (!isNaN(num)) {
+                        const clamped = Math.min(100, Math.max(0, num))
+                        setCustomProRate(clamped)
+                        updateLinesForPro(true, clamped)
+                      }
+                    }
+                  }}
+                  className="input-field py-0.5 px-1.5 text-xs w-14 font-mono font-bold text-right"
+                />
+                <span className="text-xs text-text-secondary dark:text-text-secondary-dark font-semibold">
+                  %
+                </span>
+              </div>
+            )}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPro}
+                onChange={(e) => handleTogglePro(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -1280,7 +1324,7 @@ export function CreateOrderForm({
                           isPro &&
                           line.listPriceCents > line.unitPriceCents && (
                             <div className="text-[11px] text-primary-text">
-                              Tarif Pro ({settings.proRatePercent}% remise)
+                              Tarif Pro ({customProRate ?? settings.proRatePercent}% remise)
                             </div>
                           )
                         )}
@@ -1483,6 +1527,18 @@ export function CreateOrderForm({
               <option value="EN_PREPARATION">En préparation</option>
               <option value="EXPEDIEE">Expédiée / Remise au client</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+              Date de livraison convenue / souhaitée
+            </label>
+            <input
+              type="date"
+              value={deliveryDate}
+              onChange={(e) => setDeliveryDate(e.target.value)}
+              className="input-field w-full text-sm font-medium"
+            />
           </div>
 
           <div className="sm:col-span-2">
