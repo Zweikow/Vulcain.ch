@@ -23,7 +23,7 @@ stages:
 # Validation systématique (TypeScript, Prisma, Tests & Build Next.js)
 validate:
   stage: test
-  image: node:20
+  image: node:24
   rules:
     - if: '$ACTION != null && $ACTION != "none"'
       when: never
@@ -43,7 +43,7 @@ validate:
 # Audit de sécurité des dépendances (DevSecOps)
 security_audit:
   stage: test
-  image: node:20
+  image: node:24
   allow_failure: true
   rules:
     - if: '$ACTION != null && $ACTION != "none"'
@@ -62,7 +62,7 @@ security_audit:
 # Déploiement automatique sur l'environnement Dev
 deploy_dev:
   stage: deploy
-  image: node:20
+  image: node:24
   rules:
     - if: '$ACTION != null && $ACTION != "none"'
       when: never
@@ -81,7 +81,7 @@ deploy_dev:
 # Déploiement automatique sur l'environnement Sandbox
 deploy_sandbox:
   stage: deploy
-  image: node:20
+  image: node:24
   rules:
     - if: '$ACTION != null && $ACTION != "none"'
       when: never
@@ -101,7 +101,7 @@ deploy_sandbox:
 # Déploiement contrôlé sur l'environnement Production
 deploy_production:
   stage: deploy
-  image: node:20
+  image: node:24
   rules:
     - if: '$ACTION != null && $ACTION != "none"'
       when: never
@@ -240,7 +240,7 @@ rds:snapshot:
 # 5. Détruire complètement l'infrastructure Sandbox sur AWS (SST remove)
 sandbox:teardown:
   stage: finops
-  image: node:20
+  image: node:24
   rules:
     - if: '$ACTION == "teardown_sandbox"'
       when: on_success
