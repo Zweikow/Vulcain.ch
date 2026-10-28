@@ -84,6 +84,12 @@ export default $config({
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
         UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || '',
         UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+        // Paiement en ligne PostFinance Checkout : variables GitLab CI, portée par
+        // environnement (dev / sandbox / production), comme DATABASE_URL
+        PFC_ENABLED: process.env.PFC_ENABLED || 'false',
+        PFC_SPACE_ID: process.env.PFC_SPACE_ID || '',
+        PFC_USER_ID: process.env.PFC_USER_ID || '',
+        PFC_AUTH_KEY: process.env.PFC_AUTH_KEY || '',
         AUTH_TRUST_HOST: 'true',
         AUTH_URL: domain ? `https://${domain.name}` : '',
         NEXT_PUBLIC_COMMIT_SHA:
