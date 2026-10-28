@@ -1,5 +1,6 @@
 import { ClientType, OrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { countedOrderWhere } from '@/lib/order-status'
 import { getSettings } from '@/lib/settings'
 import { getInvoicePaymentStatus } from '@/lib/money'
 
@@ -134,7 +135,8 @@ function buildBuckets(periode: Periode, since: Date): { start: Date; end: Date; 
 export async function getDashboard(periode: Periode): Promise<DashboardData> {
   const since = periodStart(periode)
   const previousSince = periodStart(periode, since) // période précédente de même longueur
-  const notCancelled = { status: { not: OrderStatus.ANNULEE } }
+  // Ni annulées, ni en attente d'un paiement en ligne pas encore reçu
+  const notCancelled = countedOrderWhere
   const urgentBefore = new Date(Date.now() + 2 * 24 * 3600 * 1000)
 
   const [

@@ -65,6 +65,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     newStatus = OrderStatus.EN_PREPARATION
   }
 
+  // Une commande en attente de paiement en ligne n'avance qu'à la confirmation
+  // du paiement par le webhook PostFinance.
+  if (newStatus) {
+    const current = await prisma.order.findUnique({ where: { id }, select: { status: true } })
+    if (current?.status === OrderStatus.EN_ATTENTE_PAIEMENT) {
+      return NextResponse.json(
+        {
+          error:
+            'Commande en attente de paiement en ligne : son statut avance à la confirmation du paiement',
+        },
+        { status: 409 }
+      )
+    }
+  }
+
   const shippedAt = newStatus === OrderStatus.EXPEDIEE ? new Date() : null
 
   let order

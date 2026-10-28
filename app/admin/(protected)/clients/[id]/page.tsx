@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { isCountedOrder } from '@/lib/order-status'
 import { formatCHF } from '@/lib/money'
 import { getSettings } from '@/lib/settings'
 import { currentUser } from '@/lib/guards'
@@ -57,9 +58,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
   const sortedAscOrders = [...customer.orders].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   )
-  const firstOrder = sortedAscOrders.find((o) => o.status !== 'ANNULEE') ?? null
+  const firstOrder = sortedAscOrders.find((o) => isCountedOrder(o.status)) ?? null
 
-  const validOrders = customer.orders.filter((o) => o.status !== 'ANNULEE')
+  const validOrders = customer.orders.filter((o) => isCountedOrder(o.status))
   const totalSpent = validOrders.reduce((sum, o) => sum + o.totalCents, 0)
   const unpaidOrders = validOrders.filter((o) => !o.paidAt)
   const unpaidAmount = unpaidOrders.reduce((sum, o) => sum + o.totalCents, 0)

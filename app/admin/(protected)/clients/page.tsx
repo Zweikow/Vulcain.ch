@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
+import { countedOrderWhere, isCountedOrder } from '@/lib/order-status'
 import { formatCHF, getInvoicePaymentStatus } from '@/lib/money'
 import { getSettings } from '@/lib/settings'
 import { currentUser } from '@/lib/guards'
@@ -40,7 +41,7 @@ export default async function ClientsPage({
       orders: {
         some: {
           paidAt: null,
-          status: { not: 'ANNULEE' },
+          ...countedOrderWhere,
         },
       },
     })
@@ -96,7 +97,7 @@ export default async function ClientsPage({
           orders: {
             some: {
               paidAt: null,
-              status: { not: 'ANNULEE' },
+              ...countedOrderWhere,
             },
           },
         },
@@ -121,7 +122,7 @@ export default async function ClientsPage({
   // Chiffres et statut de facturation de chaque client, partagés par le
   // tableau (ordinateur) et les cartes (mobile)
   const rows = customers.map((c) => {
-    const validOrders = c.orders.filter((o) => o.status !== 'ANNULEE')
+    const validOrders = c.orders.filter((o) => isCountedOrder(o.status))
     const totalSpent = validOrders.reduce((sum, o) => sum + o.totalCents, 0)
     const hasUnpaid = validOrders.some((o) => !o.paidAt)
     const hasOverdue = validOrders.some((o) => {

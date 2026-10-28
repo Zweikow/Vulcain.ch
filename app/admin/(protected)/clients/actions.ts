@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { countedOrderWhere } from '@/lib/order-status'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { recordAudit } from '@/lib/audit'
@@ -36,9 +37,7 @@ export interface CreateCustomerInput {
   notes?: string | null
 }
 
-export async function createCustomerAction(
-  input: CreateCustomerInput
-): Promise<{
+export async function createCustomerAction(input: CreateCustomerInput): Promise<{
   success: boolean
   error?: string
   customer?: { id: string; customerNumber: number }
@@ -227,7 +226,9 @@ export async function updateCustomerAction(
         where: {
           customerId: id,
           clientType: ClientType.PRIVE,
-          status: { not: 'ANNULEE' },
+          // Une commande payée ou en attente de paiement en ligne garde son prix
+          ...countedOrderWhere,
+          paymentMode: 'FACTURE',
         },
         orderBy: { createdAt: 'asc' },
         select: { id: true, numero: true },
