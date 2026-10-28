@@ -65,6 +65,24 @@ export function chfInputToCents(value: string | number): number {
   return Math.round(n * 100)
 }
 
+/**
+ * Centimes vers le montant décimal exigé par l'API PostFinance Checkout
+ * (1250 → 12.5). Seule conversion vers un nombre à virgule, à la frontière du
+ * SDK : aucun calcul ne se fait sur la valeur rendue, et un centime entier a
+ * toujours une écriture décimale exacte à deux chiffres.
+ */
+export function centsToApiAmount(cents: number): number {
+  if (!Number.isInteger(cents)) {
+    throw new Error(`Montant non entier en centimes : ${cents}`)
+  }
+  return Number((cents / 100).toFixed(2))
+}
+
+/** Montant décimal renvoyé par l'API PostFinance Checkout → centimes entiers. */
+export function apiAmountToCents(amount: number): number {
+  return Math.round(amount * 100)
+}
+
 export type InvoicePaymentStatus = {
   isPaid: boolean
   paidAt: Date | null
