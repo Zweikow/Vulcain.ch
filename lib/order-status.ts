@@ -8,6 +8,7 @@ import { OrderStatus, type Prisma } from '@prisma/client'
 export const UNCOUNTED_ORDER_STATUSES: OrderStatus[] = [
   OrderStatus.ANNULEE,
   OrderStatus.EN_ATTENTE_PAIEMENT,
+  OrderStatus.A_VERIFIER,
 ]
 
 export const countedOrderWhere = {

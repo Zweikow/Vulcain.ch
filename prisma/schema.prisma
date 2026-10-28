@@ -56,6 +56,10 @@ enum AuditAction {
   PAIEMENT_CONFIRME
   PAIEMENT_ECHOUE
   PAIEMENT_ANOMALIE // montant différent, encaissement refusé, paiement après annulation : à vérifier
+  PAIEMENT_A_VERIFIER // mode utilisé différent du mode choisi, ou transaction remplacée payée
+  MODE_PAIEMENT_CHANGE // le client a changé de mode de paiement avant de payer
+  FACTURE_ACCEPTEE // contrôle de solvabilité PowerPay accepté
+  FACTURE_ENCAISSEE // encaissement PowerPay déclenché à l'expédition
 }
 
 /**
@@ -175,6 +179,12 @@ model Order {
   // Jeton aléatoire des pages publiques /paiement/<jeton> : l'id cuid n'est pas un secret
   paymentToken   String?     @unique
   paymentTransactions PaymentTransaction[]
+  // Mode précis choisi sur le formulaire (null : facture Drinkcider ou commande
+  // sans choix de mode). Le serveur limite la transaction à ce seul mode.
+  paymentChoice  PaymentChoice?
+  invoiceFeeCents Int        @default(0) // supplément facture PowerPay, compris dans totalCents
+  invoiceAcceptedAt DateTime? // solvabilité acceptée par PowerPay : « acceptée sur facture »
+  invoiceUnavailable Boolean @default(false) // facture PowerPay refusée ou abandonnée pour cette commande
   proRatePercent Int? // Taux effectif appliqué figé lors de la commande
   reminderCount  Int         @default(0)
   lastReminderAt DateTime?
@@ -251,6 +261,9 @@ enum OrderStatus {
   // Commande payable en ligne, paiement pas encore confirmé par PostFinance :
   // hors des écrans de travail et des statistiques jusqu'à la confirmation.
   EN_ATTENTE_PAIEMENT
+  // Paiement reçu mais incohérent (mode utilisé différent du mode choisi,
+  // transaction remplacée payée) : bloquée jusqu'à la décision de l'exploitant.
+  A_VERIFIER
   A_TRAITER
   EN_PREPARATION
   EXPEDIEE
@@ -260,6 +273,16 @@ enum OrderStatus {
 enum PaymentMode {
   FACTURE // facture à 30 jours : pros, commandes saisies au back-office, paiement en ligne désactivé
   EN_LIGNE // Payment Page PostFinance Checkout, payée avant préparation
+}
+
+// Mode précis choisi par le client sur le formulaire. Sa correspondance avec les
+// configurations de modes PostFinance vient de la variable PFC_PAYMENT_MODES.
+enum PaymentChoice {
+  CARTE
+  POSTFINANCE_CARD
+  POSTFINANCE_PAY
+  TWINT
+  FACTURE // facture PowerPay (MF Group), avec supplément
 }
 
 // Une tentative de paiement PostFinance Checkout. Une commande peut en compter
@@ -275,6 +298,9 @@ model PaymentTransaction {
   amountCents   Int // montant demandé, figé à la création de la transaction
   paymentMethod String? // libellé du moyen utilisé (ex. TWINT), sans numéro ni compte
   failureReason String? // motif d'échec lisible renvoyé par PostFinance
+  paymentChoice PaymentChoice? // mode auquel la transaction est limitée
+  paymentMethodConfigurationId BigInt? // configuration réellement utilisée, relue chez PostFinance
+  supersededAt  DateTime? // remplacée par une transaction plus récente : n'est plus l'active
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   authorizedAt  DateTime?
@@ -350,6 +376,7 @@ model Setting {
   // Boutique fermée : la page d'accueil affiche un avis de maintenance et
   // POST /api/commandes refuse toute commande. L'admin reste accessible.
   maintenanceMode  Boolean @default(false)
+  invoiceFeeCents  Int     @default(500) // supplément facture PowerPay, même TVA que la commande
 }
 
 // Compteur de numérotation par série et par année — incrément atomique en

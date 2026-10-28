@@ -15,11 +15,13 @@ export async function advanceStatus(orderId: string) {
   if (!session) return
 
   const order = await prisma.order.findUnique({ where: { id: orderId } })
-  // En attente de paiement en ligne : seul le webhook PostFinance la fait avancer
+  // En attente de paiement en ligne : seul le webhook PostFinance la fait avancer.
+  // À vérifier : l'exploitant tranche depuis la fiche commande, jamais en un clic ici.
   if (
     !order ||
     order.status === OrderStatus.EXPEDIEE ||
-    order.status === OrderStatus.EN_ATTENTE_PAIEMENT
+    order.status === OrderStatus.EN_ATTENTE_PAIEMENT ||
+    order.status === OrderStatus.A_VERIFIER
   )
     return
 

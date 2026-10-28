@@ -5,6 +5,10 @@ const CONFIG: Record<OrderStatus, { label: string; className: string }> = {
     label: 'Paiement en attente',
     className: 'bg-[#F1F3F5] dark:bg-[#26303a] text-[#495057] dark:text-[#ADB5BD]',
   },
+  A_VERIFIER: {
+    label: 'À vérifier',
+    className: 'bg-[#FDF2F2] dark:bg-[#3a1f1f] text-[#C62828] dark:text-[#EF5350] font-semibold',
+  },
   A_TRAITER: {
     label: 'À traiter',
     className: 'bg-[#FFF8E1] dark:bg-[#3d2a0a] text-text-warning dark:text-[#FF9800]',
@@ -32,6 +36,7 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   EN_ATTENTE_PAIEMENT: 'Paiement en attente',
+  A_VERIFIER: 'À vérifier',
   A_TRAITER: 'À traiter',
   EN_PREPARATION: 'En préparation',
   EXPEDIEE: 'Expédiée',

@@ -96,4 +96,8 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
   PAIEMENT_CONFIRME: 'Paiement en ligne confirmé',
   PAIEMENT_ECHOUE: 'Paiement en ligne échoué',
   PAIEMENT_ANOMALIE: 'Paiement en ligne à vérifier',
+  PAIEMENT_A_VERIFIER: 'Commande à vérifier',
+  MODE_PAIEMENT_CHANGE: 'Mode de paiement changé',
+  FACTURE_ACCEPTEE: 'Acceptée sur facture PowerPay',
+  FACTURE_ENCAISSEE: 'Facture PowerPay encaissée',
 }
