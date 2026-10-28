@@ -70,6 +70,7 @@ deploy_dev:
   script:
     - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - 'if [ "$PFC_ENABLED" = "true" ] && { [ -z "$PFC_SPACE_ID" ] || [ -z "$PFC_USER_ID" ] || [ -z "$PFC_AUTH_KEY" ]; }; then echo "ERREUR : PFC_ENABLED vaut true mais PFC_SPACE_ID, PFC_USER_ID ou PFC_AUTH_KEY est absente ou vide." >&2; exit 1; fi'
+    - 'if [ "$PFC_MODE_CHOICE_ENABLED" = "true" ] && [ -z "$PFC_PAYMENT_MODES" ]; then echo "ERREUR : PFC_MODE_CHOICE_ENABLED vaut true mais PFC_PAYMENT_MODES est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement automatique sur AWS (Dev) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
@@ -90,6 +91,7 @@ deploy_sandbox:
   script:
     - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - 'if [ "$PFC_ENABLED" = "true" ] && { [ -z "$PFC_SPACE_ID" ] || [ -z "$PFC_USER_ID" ] || [ -z "$PFC_AUTH_KEY" ]; }; then echo "ERREUR : PFC_ENABLED vaut true mais PFC_SPACE_ID, PFC_USER_ID ou PFC_AUTH_KEY est absente ou vide." >&2; exit 1; fi'
+    - 'if [ "$PFC_MODE_CHOICE_ENABLED" = "true" ] && [ -z "$PFC_PAYMENT_MODES" ]; then echo "ERREUR : PFC_MODE_CHOICE_ENABLED vaut true mais PFC_PAYMENT_MODES est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement automatique sur AWS (Sandbox) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
@@ -112,6 +114,7 @@ deploy_production:
   script:
     - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est obligatoire pour le déploiement mais elle est absente ou vide." >&2; exit 1; fi'
     - 'if [ "$PFC_ENABLED" = "true" ] && { [ -z "$PFC_SPACE_ID" ] || [ -z "$PFC_USER_ID" ] || [ -z "$PFC_AUTH_KEY" ]; }; then echo "ERREUR : PFC_ENABLED vaut true mais PFC_SPACE_ID, PFC_USER_ID ou PFC_AUTH_KEY est absente ou vide." >&2; exit 1; fi'
+    - 'if [ "$PFC_MODE_CHOICE_ENABLED" = "true" ] && [ -z "$PFC_PAYMENT_MODES" ]; then echo "ERREUR : PFC_MODE_CHOICE_ENABLED vaut true mais PFC_PAYMENT_MODES est absente ou vide." >&2; exit 1; fi'
     - echo "Déploiement manuel sur AWS (Production) en cours..."
     - export NEXT_PUBLIC_COMMIT_SHA=$CI_COMMIT_SHORT_SHA
     - npm ci
