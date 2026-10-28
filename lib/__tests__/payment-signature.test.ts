@@ -81,6 +81,15 @@ describe('Signature des webhooks PostFinance (ECDSA réelle)', () => {
     await expect(verifyWebhookSignature(header('AAAA', freshKeyId()), body)).resolves.toBe(false)
   })
 
+  it('rejette une clé inconnue (réponse vide de l’API), sans la garder en mémoire', async () => {
+    // Comportement observé sur le space de test : 200 avec un corps vide
+    fetchKey.mockResolvedValue('')
+    const keyId = freshKeyId()
+    await expect(verifyWebhookSignature(header(signWith(body), keyId), body)).resolves.toBe(false)
+    await expect(verifyWebhookSignature(header(signWith(body), keyId), body)).resolves.toBe(false)
+    expect(fetchKey).toHaveBeenCalledTimes(2)
+  })
+
   it('rejette une clé inconnue de PostFinance (404)', async () => {
     fetchKey.mockRejectedValueOnce(new ResponseError(new Response('', { status: 404 })))
     await expect(verifyWebhookSignature(header(signWith(body), freshKeyId()), body)).resolves.toBe(
