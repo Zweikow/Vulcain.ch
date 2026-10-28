@@ -11,10 +11,13 @@ import { OrderCancel } from '@/components/admin/OrderCancel'
 import { AssignSelect } from '@/components/admin/AssignSelect'
 import OrderEmailActions from '@/components/admin/OrderEmailActions'
 import { OrderPaymentPanel } from '@/components/admin/OrderPaymentPanel'
+import { OrderOnlinePaymentPanel } from '@/components/admin/OrderOnlinePaymentPanel'
 import { OrderProToggle } from '@/components/admin/OrderProToggle'
 import { OrderDeliveryDateControl } from '@/components/admin/OrderDeliveryDateControl'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
+import { getSiteUrl } from '@/lib/site'
+import { transactionStateLabel } from '@/lib/payments/states'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -30,6 +33,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         emailLogs: {
           orderBy: { sentAt: 'desc' },
         },
+        paymentTransactions: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     }),
     prisma.user.findMany({
@@ -43,6 +49,9 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
   const canManage = user ? can.manageCustomers(user.role) || can.seeFinancials(user.role) : false
 
   if (!order) notFound()
+
+  const onlinePayment = order.paymentMode === 'EN_LIGNE'
+  const awaitingPayment = order.status === 'EN_ATTENTE_PAIEMENT'
 
   return (
     <div className="max-w-3xl">
@@ -99,28 +108,64 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       {/* Statut, Assignation & Date de livraison — masqués sur une commande annulée, qui ne progresse plus */}
       {order.status !== 'ANNULEE' && (
         <div className="card p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatusSelect orderId={order.id} currentStatus={order.status} />
-          <AssignSelect orderId={order.id} currentAssigneeId={order.assignedToId} users={users} />
+          {awaitingPayment ? (
+            // Ni statut ni assignation avant la confirmation du paiement en ligne
+            <p className="sm:col-span-2 text-sm text-text-secondary dark:text-text-secondary-dark">
+              En attente du paiement en ligne : la commande passera « À traiter » dès sa
+              confirmation par PostFinance.
+            </p>
+          ) : (
+            <>
+              <StatusSelect orderId={order.id} currentStatus={order.status} />
+              <AssignSelect
+                orderId={order.id}
+                currentAssigneeId={order.assignedToId}
+                users={users}
+              />
+            </>
+          )}
           <OrderDeliveryDateControl orderId={order.id} initialDeliveryDate={order.deliveryDate} />
         </div>
       )}
 
       {/* Suivi du paiement & Facture */}
-      <OrderPaymentPanel
-        orderId={order.id}
-        orderNumero={order.numero}
-        invoiceNumber={order.invoiceNumber}
-        totalCents={order.totalCents}
-        clientName={order.clientName}
-        clientEmail={order.clientEmail}
-        paidAt={order.paidAt}
-        paymentMethod={order.paymentMethod}
-        invoicedAt={order.invoicedAt}
-        createdAt={order.createdAt}
-        reminderCount={order.reminderCount}
-        lastReminderAt={order.lastReminderAt}
-        paymentTermsDays={settings.paymentTermsDays}
-      />
+      {onlinePayment ? (
+        <OrderOnlinePaymentPanel
+          orderId={order.id}
+          totalCents={order.totalCents}
+          paidAt={order.paidAt ? order.paidAt.toISOString() : null}
+          paymentMethod={order.paymentMethod}
+          invoiceNumber={order.invoiceNumber}
+          awaitingPayment={awaitingPayment}
+          paymentLink={order.paymentToken ? `${getSiteUrl()}/paiement/${order.paymentToken}` : null}
+          attempts={order.paymentTransactions.map((t) => ({
+            transactionId: t.transactionId.toString(),
+            state: t.state,
+            stateLabel: transactionStateLabel(t.state),
+            amountCents: t.amountCents,
+            paymentMethod: t.paymentMethod,
+            failureReason: t.failureReason,
+            createdAt: t.createdAt.toISOString(),
+          }))}
+          canVerify={user ? can.manageOrders(user.role) : false}
+        />
+      ) : (
+        <OrderPaymentPanel
+          orderId={order.id}
+          orderNumero={order.numero}
+          invoiceNumber={order.invoiceNumber}
+          totalCents={order.totalCents}
+          clientName={order.clientName}
+          clientEmail={order.clientEmail}
+          paidAt={order.paidAt}
+          paymentMethod={order.paymentMethod}
+          invoicedAt={order.invoicedAt}
+          createdAt={order.createdAt}
+          reminderCount={order.reminderCount}
+          lastReminderAt={order.lastReminderAt}
+          paymentTermsDays={settings.paymentTermsDays}
+        />
+      )}
 
       {/* Infos client */}
       <div className="card p-5 mb-4">
@@ -169,7 +214,8 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
               proRatePercent={
                 order.proRatePercent ?? order.customer?.proRatePercent ?? settings.proRatePercent
               }
-              canManage={canManage}
+              // Montant d'une commande en ligne figé par la transaction PostFinance
+              canManage={canManage && !onlinePayment}
             />
           </dd>
 

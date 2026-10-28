@@ -1,8 +1,15 @@
-import { OrderStatus, StockMovementReason } from '@prisma/client'
+import { OrderStatus, PaymentMode, StockMovementReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export type CancelResult =
-  { ok: true; stockRestored: boolean; creditNoteNeeded: boolean } | { ok: false; error: string }
+  | {
+      ok: true
+      stockRestored: boolean
+      creditNoteNeeded: boolean
+      /** Payée en ligne : le remboursement se fait dans le back-office PostFinance. */
+      refundNeeded: boolean
+    }
+  | { ok: false; error: string }
 
 /**
  * Annule une commande. Une commande n'est jamais supprimée par cette voie : son
@@ -44,6 +51,15 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
       })
     }
 
+    // Commande en ligne jamais payée : l'utilisation du code promo, comptée à
+    // la commande, est rendue avec le stock.
+    if (order.status === OrderStatus.EN_ATTENTE_PAIEMENT && !order.paidAt && order.promoCode) {
+      await tx.discountCode.updateMany({
+        where: { code: order.promoCode, usedCount: { gt: 0 } },
+        data: { usedCount: { decrement: 1 } },
+      })
+    }
+
     await tx.order.update({
       where: { id: orderId },
       data: {
@@ -58,6 +74,7 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
       stockRestored,
       // Une facture émise reste due tant qu'un avoir ne l'annule pas.
       creditNoteNeeded: order.invoiceNumber !== null,
+      refundNeeded: order.paymentMode === PaymentMode.EN_LIGNE && order.paidAt !== null,
     }
   })
 }
@@ -70,9 +87,15 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
 export async function deleteOrder(orderId: string): Promise<{ ok: boolean; error?: string }> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { status: true, invoiceNumber: true },
+    select: { status: true, invoiceNumber: true, paidAt: true },
   })
   if (!order) return { ok: false, error: 'Commande introuvable' }
+  if (order.paidAt) {
+    return {
+      ok: false,
+      error: 'Une commande payée ne peut pas être supprimée : le paiement doit rester traçable',
+    }
+  }
   if (order.invoiceNumber) {
     return {
       ok: false,
