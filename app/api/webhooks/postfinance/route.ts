@@ -38,8 +38,14 @@ function outcomeLabel(result: SyncResult): string {
       return `ignorée : ${result.detail}`
     case 'payee':
       return result.newlyPaid ? `${result.numero} payée` : `${result.numero} déjà payée`
+    case 'acceptee':
+      return result.newlyAccepted
+        ? `${result.numero} acceptée sur facture`
+        : `${result.numero} déjà acceptée sur facture`
     case 'anomalie':
       return `${result.numero} : anomalie, voir le journal`
+    case 'a_verifier':
+      return `${result.numero} : à vérifier, voir le journal`
     default:
       return `${result.numero} : ${result.state}`
   }

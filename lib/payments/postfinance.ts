@@ -108,6 +108,8 @@ export type TransactionSnapshot = {
   authorizationAmountCents: number | null
   /** Libellé du moyen de paiement (ex. TWINT), sans aucune donnée de carte. */
   paymentMethod: string | null
+  /** Configuration de mode réellement utilisée : vérifiée contre le mode choisi */
+  paymentMethodConfigurationId: number | null
   /** Motif d'échec lisible, quand PostFinance en fournit un. */
   failureMessage: string | null
   authorizedOn: Date | null
@@ -136,6 +138,14 @@ function paymentMethodLabel(transaction: Transaction): string | null {
   return connector.name ?? null
 }
 
+function paymentMethodConfigurationIdOf(transaction: Transaction): number | null {
+  const connector = transaction.paymentConnectorConfiguration
+  if (!connector || typeof connector !== 'object') return null
+  const method = connector.paymentMethodConfiguration
+  const id = method && typeof method === 'object' ? method.id : method
+  return typeof id === 'number' && id > 0 ? id : null
+}
+
 // L'API v2 ne détaille les objets liés que sur demande : sans expand, le moyen de
 // paiement (TWINT, Visa) ne revient pas dans la transaction.
 const PAYMENT_METHOD_EXPAND = new Set([
@@ -160,6 +170,7 @@ export async function readTransaction(transactionId: number): Promise<Transactio
         ? apiAmountToCents(transaction.authorizationAmount)
         : null,
     paymentMethod: paymentMethodLabel(transaction),
+    paymentMethodConfigurationId: paymentMethodConfigurationIdOf(transaction),
     failureMessage:
       transaction.userFailureMessage ?? localized(transaction.failureReason?.description) ?? null,
     authorizedOn: transaction.authorizedOn ?? null,

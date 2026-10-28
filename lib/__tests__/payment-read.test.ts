@@ -18,7 +18,8 @@ const paid = {
   deliveryDecisionMadeOn: new Date('2026-10-28T15:25:33.067Z'),
   paymentConnectorConfiguration: {
     name: 'Wallee All-in-One - TWINT',
-    paymentMethodConfiguration: { name: 'TWINT', resolvedTitle: { 'fr-CH': 'TWINT' } },
+    // ID factice : les vrais sont propres à chaque space
+    paymentMethodConfiguration: { id: 14, name: 'TWINT', resolvedTitle: { 'fr-CH': 'TWINT' } },
   },
 } as unknown as Transaction
 
@@ -39,6 +40,7 @@ describe('Relecture d’une transaction PostFinance', () => {
       currency: 'CHF',
       authorizationAmountCents: 9640,
       paymentMethod: 'TWINT',
+      paymentMethodConfigurationId: 14,
       completedOn: new Date('2026-10-28T15:25:32.950Z'),
     })
   })

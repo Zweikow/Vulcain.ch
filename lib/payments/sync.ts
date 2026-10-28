@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { formatCHF } from '@/lib/money'
 import { recordAudit, recordSystemAudit } from '@/lib/audit'
 import { notifyOrderPlaced } from '@/lib/notifications'
-import { readTransaction } from '@/lib/payments/postfinance'
+import { readTransaction, type TransactionSnapshot } from '@/lib/payments/postfinance'
+import { choiceOfConfiguration } from '@/lib/payments/modes'
+import { PAYMENT_CHOICE_LABELS, type PaymentChoiceValue } from '@/lib/payments/choices'
 import {
   FINAL_TRANSACTION_STATES,
   paymentStatusOf,
@@ -18,8 +20,13 @@ import {
  * « Vérifier auprès de PostFinance » du back-office.
  *
  * Idempotente : rejouer la même notification ne change rien. La commande ne
- * passe « payée » qu'une fois (mise à jour conditionnelle sur paidAt nul), et
- * les emails de confirmation ne partent qu'à ce moment-là.
+ * passe « payée » (ou « acceptée sur facture ») qu'une fois, par une mise à
+ * jour conditionnelle, et les emails ne partent qu'à ce moment-là.
+ *
+ * Double vérification avant toute confirmation : la transaction doit être la
+ * transaction active de la commande, payée dans le mode choisi, pour le bon
+ * montant. Au moindre écart, une commande en attente passe « à vérifier » :
+ * jamais confirmée en silence.
  */
 
 export type SyncOrigin = 'webhook' | 'admin'
@@ -27,8 +34,53 @@ export type SyncOrigin = 'webhook' | 'admin'
 export type SyncResult =
   | { outcome: 'ignoree'; detail: string }
   | { outcome: 'payee'; orderId: string; numero: string; newlyPaid: boolean }
+  | { outcome: 'acceptee'; orderId: string; numero: string; newlyAccepted: boolean }
   | { outcome: 'en_cours' | 'echouee'; orderId: string; numero: string; state: string }
-  | { outcome: 'anomalie'; orderId: string; numero: string; detail: string }
+  | { outcome: 'anomalie' | 'a_verifier'; orderId: string; numero: string; detail: string }
+
+// Facture PowerPay : la solvabilité acceptée (AUTHORIZED) suffit à lancer la
+// commande ; l'encaissement, puis FULFILL, viennent à l'expédition.
+const INVOICE_ACCEPTED_STATES = ['AUTHORIZED', 'COMPLETED', 'FULFILL']
+
+const choiceLabel = (choice: PaymentChoiceValue | null | undefined) =>
+  choice ? PAYMENT_CHOICE_LABELS[choice] : 'inconnu'
+
+type AttemptToCheck = {
+  amountCents: number
+  paymentChoice: PaymentChoiceValue | null
+  supersededAt: Date | null
+}
+
+/** Écart qui interdit de confirmer la commande, ou null si tout concorde. */
+export function paymentInconsistency(
+  transactionId: bigint,
+  attempt: AttemptToCheck,
+  order: { totalCents: number; paymentChoice: PaymentChoiceValue | null },
+  remote: Pick<TransactionSnapshot, 'currency' | 'authorizationAmountCents'>,
+  usedChoice: PaymentChoiceValue | null
+): string | null {
+  if (attempt.supersededAt) {
+    return `Transaction ${transactionId} remplacée par une plus récente, mais payée : rembourser depuis le back-office PostFinance`
+  }
+  if (attempt.paymentChoice) {
+    if (usedChoice !== attempt.paymentChoice) {
+      return `Mode utilisé (${choiceLabel(usedChoice)}) différent du mode choisi (${choiceLabel(attempt.paymentChoice)}) pour la transaction ${transactionId}`
+    }
+    if (order.paymentChoice !== attempt.paymentChoice) {
+      return `Mode de la transaction ${transactionId} (${choiceLabel(attempt.paymentChoice)}) différent du mode de la commande (${choiceLabel(order.paymentChoice)})`
+    }
+  } else if (usedChoice === 'FACTURE') {
+    return `Facture PowerPay utilisée sans avoir été choisie, donc sans supplément (transaction ${transactionId})`
+  }
+  if (
+    remote.currency !== 'CHF' ||
+    remote.authorizationAmountCents !== attempt.amountCents ||
+    attempt.amountCents !== order.totalCents
+  ) {
+    return `Montant payé (${remote.authorizationAmountCents === null ? 'inconnu' : formatCHF(remote.authorizationAmountCents)} ${remote.currency ?? ''}) différent de la commande (${formatCHF(order.totalCents)}) pour la transaction ${transactionId}`
+  }
+  return null
+}
 
 export async function syncPaymentTransaction(
   transactionId: bigint | number,
@@ -41,7 +93,17 @@ export async function syncPaymentTransaction(
       id: true,
       state: true,
       amountCents: true,
-      order: { select: { id: true, numero: true, status: true, totalCents: true } },
+      paymentChoice: true,
+      supersededAt: true,
+      order: {
+        select: {
+          id: true,
+          numero: true,
+          status: true,
+          totalCents: true,
+          paymentChoice: true,
+        },
+      },
     },
   })
   // Transaction d'un autre environnement partageant le même space (ou d'une
@@ -52,6 +114,9 @@ export async function syncPaymentTransaction(
   const remote = await readTransaction(Number(id))
   const { order } = attempt
   const status = paymentStatusOf(remote.state)
+  const usedChoice = choiceOfConfiguration(remote.paymentMethodConfigurationId)
+  const invoice = attempt.paymentChoice === 'FACTURE' || usedChoice === 'FACTURE'
+  const settled = invoice ? INVOICE_ACCEPTED_STATES.includes(remote.state) : status === 'PAYE'
 
   const target = { type: AuditTargetType.COMMANDE, id: order.id, label: order.numero }
   const audit = (action: AuditAction, detail: string) =>
@@ -66,6 +131,9 @@ export async function syncPaymentTransaction(
     data: {
       state: remote.state,
       ...(remote.paymentMethod ? { paymentMethod: remote.paymentMethod.slice(0, 100) } : {}),
+      ...(remote.paymentMethodConfigurationId
+        ? { paymentMethodConfigurationId: BigInt(remote.paymentMethodConfigurationId) }
+        : {}),
       ...(remote.failureMessage ? { failureReason: remote.failureMessage.slice(0, 300) } : {}),
       ...(remote.authorizedOn ? { authorizedAt: remote.authorizedOn } : {}),
       ...(remote.completedOn ? { completedAt: remote.completedOn } : {}),
@@ -77,23 +145,99 @@ export async function syncPaymentTransaction(
   const stateChanged = updated.count === 1 && attempt.state !== remote.state
   const ref = { orderId: order.id, numero: order.numero }
 
-  if (status === 'PAYE') {
-    if (
-      remote.currency !== 'CHF' ||
-      remote.authorizationAmountCents !== attempt.amountCents ||
-      attempt.amountCents !== order.totalCents
-    ) {
-      const detail = `Montant payé (${remote.authorizationAmountCents === null ? 'inconnu' : formatCHF(remote.authorizationAmountCents)} ${remote.currency ?? ''}) différent de la commande (${formatCHF(order.totalCents)}) : commande non validée, à vérifier dans PostFinance (transaction ${id})`
-      if (stateChanged) await audit(AuditAction.PAIEMENT_ANOMALIE, detail)
-      return { outcome: 'anomalie', ...ref, detail }
-    }
-
+  if (settled) {
     if (order.status === OrderStatus.ANNULEE) {
       const detail = `Paiement reçu sur une commande annulée : rembourser le client depuis le back-office PostFinance (transaction ${id})`
       if (stateChanged) await audit(AuditAction.PAIEMENT_ANOMALIE, detail)
       return { outcome: 'anomalie', ...ref, detail }
     }
 
+    // 2. Double vérification : transaction active, mode choisi, montant exact
+    const problem = paymentInconsistency(id, attempt, order, remote, usedChoice)
+    if (problem) {
+      const flagged = await prisma.order.updateMany({
+        where: { id: order.id, status: OrderStatus.EN_ATTENTE_PAIEMENT },
+        data: { status: OrderStatus.A_VERIFIER },
+      })
+      if (flagged.count === 1) {
+        await audit(AuditAction.PAIEMENT_A_VERIFIER, problem)
+        return { outcome: 'a_verifier', ...ref, detail: problem }
+      }
+      // Commande déjà confirmée par sa transaction active : second paiement à rembourser
+      if (stateChanged) await audit(AuditAction.PAIEMENT_ANOMALIE, problem)
+      return { outcome: 'anomalie', ...ref, detail: problem }
+    }
+
+    if (invoice) return confirmInvoice()
+    return confirmPayment()
+  }
+
+  if (status === 'ECHOUE') {
+    if (invoice) {
+      // Refus de solvabilité ou abandon : indiscernables chez PostFinance. La
+      // facture est retirée pour cette commande, les autres modes restent.
+      await prisma.order.updateMany({
+        where: {
+          id: order.id,
+          status: OrderStatus.EN_ATTENTE_PAIEMENT,
+          invoiceAcceptedAt: null,
+          invoiceUnavailable: false,
+        },
+        data: { invoiceUnavailable: true },
+      })
+    }
+    if (stateChanged) {
+      await audit(
+        AuditAction.PAIEMENT_ECHOUE,
+        invoice
+          ? `Transaction ${id} : facture PowerPay non aboutie (refus ou abandon), facture retirée pour la commande`
+          : `Transaction ${id} : ${remote.failureMessage ?? transactionStateLabel(remote.state)}`
+      )
+    }
+    return { outcome: 'echouee', ...ref, state: remote.state }
+  }
+
+  if (status === 'REFUSE') {
+    const detail = `PostFinance déconseille la livraison (DECLINE) pour la transaction ${id} : ne pas expédier, vérifier le remboursement dans le back-office PostFinance`
+    if (stateChanged) await audit(AuditAction.PAIEMENT_ANOMALIE, detail)
+    return { outcome: 'anomalie', ...ref, detail }
+  }
+
+  return { outcome: 'en_cours', ...ref, state: remote.state }
+
+  async function confirmInvoice(): Promise<SyncResult> {
+    const { count } = await prisma.order.updateMany({
+      where: {
+        id: order.id,
+        status: OrderStatus.EN_ATTENTE_PAIEMENT,
+        invoiceAcceptedAt: null,
+        paidAt: null,
+      },
+      data: {
+        status: OrderStatus.A_TRAITER,
+        invoiceAcceptedAt: remote.authorizedOn ?? new Date(),
+        paymentMethod: 'Facture (PowerPay)',
+      },
+    })
+    if (count === 1) {
+      await audit(
+        AuditAction.FACTURE_ACCEPTEE,
+        `${formatCHF(order.totalCents)} - solvabilité acceptée par PowerPay - transaction ${id}`
+      )
+      // Confirmation au client et notification à la cidrerie : seulement maintenant
+      await notifyOrderPlaced(order.id)
+    }
+    // Encaissée à l'expédition : la facture est réglée par MF Group
+    if (remote.state === 'FULFILL') {
+      await prisma.order.updateMany({
+        where: { id: order.id, paidAt: null, invoiceAcceptedAt: { not: null } },
+        data: { paidAt: remote.completedOn ?? remote.decisionOn ?? new Date() },
+      })
+    }
+    return { outcome: 'acceptee', ...ref, newlyAccepted: count === 1 }
+  }
+
+  async function confirmPayment(): Promise<SyncResult> {
     const paymentMethod = remote.paymentMethod
       ? `Paiement en ligne (${remote.paymentMethod.slice(0, 60)})`
       : 'Paiement en ligne'
@@ -119,7 +263,7 @@ export async function syncPaymentTransaction(
     // Déjà payée : rejeu de la même notification, ou second paiement réussi
     // pour la même commande (deux onglets ouverts, par exemple).
     const otherPaid = await prisma.paymentTransaction.count({
-      where: { orderId: order.id, id: { not: attempt.id }, state: 'FULFILL' },
+      where: { orderId: order.id, id: { not: attempt!.id }, state: 'FULFILL' },
     })
     if (otherPaid > 0) {
       const detail = `Second paiement reçu pour une commande déjà payée : rembourser la transaction ${id} depuis le back-office PostFinance`
@@ -128,22 +272,4 @@ export async function syncPaymentTransaction(
     }
     return { outcome: 'payee', ...ref, newlyPaid: false }
   }
-
-  if (status === 'ECHOUE') {
-    if (stateChanged) {
-      await audit(
-        AuditAction.PAIEMENT_ECHOUE,
-        `Transaction ${id} : ${remote.failureMessage ?? transactionStateLabel(remote.state)}`
-      )
-    }
-    return { outcome: 'echouee', ...ref, state: remote.state }
-  }
-
-  if (status === 'REFUSE') {
-    const detail = `PostFinance déconseille la livraison (DECLINE) pour la transaction ${id} : ne pas expédier, vérifier le remboursement dans le back-office PostFinance`
-    if (stateChanged) await audit(AuditAction.PAIEMENT_ANOMALIE, detail)
-    return { outcome: 'anomalie', ...ref, detail }
-  }
-
-  return { outcome: 'en_cours', ...ref, state: remote.state }
 }

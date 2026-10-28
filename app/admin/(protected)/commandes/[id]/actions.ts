@@ -217,8 +217,14 @@ function syncMessage(result: SyncResult): string {
       return result.newlyPaid
         ? 'Paiement confirmé par PostFinance : commande passée « À traiter », emails envoyés.'
         : 'Paiement déjà enregistré.'
+    case 'acceptee':
+      return result.newlyAccepted
+        ? 'Facture PowerPay acceptée : commande passée « À traiter », emails envoyés.'
+        : 'Acceptation sur facture déjà enregistrée.'
     case 'anomalie':
       return `À vérifier : ${result.detail}`
+    case 'a_verifier':
+      return `Commande passée « À vérifier » : ${result.detail}`
     case 'echouee':
       return `Dernière tentative ${transactionStateLabel(result.state).toLowerCase()} : le client peut réessayer depuis son lien de paiement.`
     case 'en_cours':
