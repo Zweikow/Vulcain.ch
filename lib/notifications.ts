@@ -58,6 +58,9 @@ async function loadOrder(orderId: string): Promise<MailOrder | null> {
     trackingNumber: order.trackingNumber,
     carrier: order.carrier,
     isPickup: order.isPickup,
+    paidAt: order.paidAt,
+    paymentMethod: order.paymentMethod,
+    paymentMode: order.paymentMode,
     items: order.items.map((i) => ({
       productName: i.productName,
       quantity: i.quantity,

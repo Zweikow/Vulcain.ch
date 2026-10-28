@@ -30,6 +30,10 @@ export type MailOrder = {
   trackingNumber?: string | null
   carrier?: string | null
   isPickup?: boolean
+  /** Paiement déjà reçu : en ligne via PostFinance, ou enregistré au back-office */
+  paidAt?: Date | null
+  paymentMethod?: string | null
+  paymentMode?: 'FACTURE' | 'EN_LIGNE'
   items: {
     productName: string
     quantity: number
@@ -62,6 +66,21 @@ function escapeHtml(value: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+/** Commande payée en ligne à la commande (PostFinance Checkout). */
+function paidOnline(order: MailOrder): boolean {
+  return order.paymentMode === 'EN_LIGNE' && Boolean(order.paidAt)
+}
+
+/** « le 28 octobre 2026, paiement en ligne (TWINT) » */
+function paymentReceipt(order: MailOrder): string {
+  const parts: string[] = []
+  if (order.paidAt) parts.push(`le ${longDate.format(order.paidAt)}`)
+  if (order.paymentMethod) {
+    parts.push(order.paymentMethod.charAt(0).toLowerCase() + order.paymentMethod.slice(1))
+  }
+  return parts.join(', ')
 }
 
 function getDpdTrackingUrl(trackingNumber: string): string {
@@ -217,8 +236,13 @@ export function orderConfirmation(order: MailOrder, settings: MailSettings): Mai
     <p style="margin:16px 0 10px;"><strong>Modalités de préparation & de paiement :</strong></p>
     <ul style="margin:0 0 16px;padding-left:20px;color:#555;">
       <li style="margin-bottom:6px;">Votre commande est préparée sous ${settings.prepDays} jours ouvrés avec le plus grand soin.</li>
-      <li style="margin-bottom:6px;">Le paiement s'effectue <strong>sur facture à 30 jours</strong> avec bulletin QR suisse : aucune carte bancaire n'a été débitée.</li>
-      <li>Votre facture officielle vous sera transmise avec les coordonnées de paiement.</li>
+      ${
+        paidOnline(order)
+          ? `<li style="margin-bottom:6px;">Votre paiement de <strong>${formatCHF(order.totalCents)}</strong> a bien été reçu ${escapeHtml(paymentReceipt(order))}.</li>
+      <li>Votre facture acquittée vous sera transmise à l'expédition.</li>`
+          : `<li style="margin-bottom:6px;">Le paiement s'effectue <strong>sur facture à 30 jours</strong> avec bulletin QR suisse : aucune carte bancaire n'a été débitée.</li>
+      <li>Votre facture officielle vous sera transmise avec les coordonnées de paiement.</li>`
+      }
     </ul>
 
     <p style="margin:20px 0 0;">Cidricolement,</p>
@@ -234,7 +258,11 @@ ${itemsText(order)}
 ${order.isPickup ? 'Retrait convenu à la cave (Les Paccots).' : `Livraison à :\n${order.clientName}\n${order.address}\n${order.npa} ${order.city}`}
 
 Votre commande est préparée sous ${settings.prepDays} jours ouvrés.
-Le paiement se fait sur facture à 30 jours (bulletin QR officiel).
+${
+  paidOnline(order)
+    ? `Votre paiement de ${formatCHF(order.totalCents)} a bien été reçu ${paymentReceipt(order)}.`
+    : 'Le paiement se fait sur facture à 30 jours (bulletin QR officiel).'
+}
 
 Cidricolement,
 ${settings.contactName}
@@ -271,6 +299,9 @@ export function shopNotification(
     order.message
       ? `<strong>Message client :</strong> <em>${escapeHtml(order.message)}</em>`
       : null,
+    paidOnline(order)
+      ? `<strong>Paiement :</strong> reçu ${escapeHtml(paymentReceipt(order))}, la commande peut être préparée`
+      : null,
   ].filter(Boolean) as string[]
 
   const resolvedAdminUrl = adminUrl || `${getSiteUrl()}/admin/commandes/${order.id || ''}`
@@ -306,7 +337,7 @@ Email : ${order.clientEmail}
 Téléphone : ${order.clientPhone || 'Non renseigné'}
 Adresse : ${order.address}, ${order.npa} ${order.city}
 Mode : ${order.isPickup ? 'Retrait à la cave' : 'Expédition colis'}
-${order.message ? `Message client : ${order.message}\n` : ''}
+${paidOnline(order) ? `Paiement : reçu ${paymentReceipt(order)}\n` : ''}${order.message ? `Message client : ${order.message}\n` : ''}
 Articles :
 ${itemsText(order)}
 
@@ -347,7 +378,10 @@ export function shippingNotice(order: MailOrder, settings: MailSettings): MailMe
         Contact : ${escapeHtml(settings.contactEmail)}
       </div>
 
-      <p style="margin:16px 0 8px;"><strong>Rappel pour le règlement :</strong></p>
+      ${
+        order.paidAt
+          ? `<p style="margin:16px 0 8px;"><strong>Règlement :</strong> votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${escapeHtml(paymentReceipt(order))}. Aucun paiement n'est attendu.</p>`
+          : `<p style="margin:16px 0 8px;"><strong>Rappel pour le règlement :</strong></p>
       <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin-bottom:16px;">
         ${order.invoiceNumber ? `Facture : <strong style="font-family:monospace;">${order.invoiceNumber}</strong><br>` : ''}
         Montant total : <strong>${formatCHF(order.totalCents)}</strong><br>
@@ -355,7 +389,8 @@ export function shippingNotice(order: MailOrder, settings: MailSettings): MailMe
         Bénéficiaire : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (Bertrand Baeriswyl)<br>
         ${reference ? `Référence : <span style="font-family:monospace;">${reference}</span><br>` : ''}
         Échéance de paiement : <strong>${longDate.format(due)}</strong>
-      </div>
+      </div>`
+      }
 
       <p style="margin:16px 0 0;">Au plaisir de vous accueillir,</p>
       <p style="margin:4px 0 0;font-weight:600;color:#153243;">${escapeHtml(settings.contactName)}</p>`
@@ -369,10 +404,14 @@ ${SITE_CONFIG.name}
 ${settings.companyAddress}
 ${settings.companyZipCity}
 
-Règlement de votre commande :
+${
+  order.paidAt
+    ? `Votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
+    : `Règlement de votre commande :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
-Échéance : ${longDate.format(due)}
+Échéance : ${longDate.format(due)}`
+}
 
 Cidricolement,
 ${settings.contactName}`
@@ -408,7 +447,13 @@ ${settings.contactName}`
         Votre colis a été pris en charge pour acheminement à votre adresse.
       </div>`
 
-  const paymentBlock = `
+  const paymentBlock = order.paidAt
+    ? `
+    <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
+      <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
+      Votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${escapeHtml(paymentReceipt(order))}. Aucun paiement n'est attendu.
+    </div>`
+    : `
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
       <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
       ${order.invoiceNumber ? `Numéro de facture : <strong style="font-family:monospace;">${order.invoiceNumber}</strong><br>` : ''}
@@ -434,10 +479,14 @@ ${settings.contactName}`
 
 Votre commande ${order.numero} vient d'être expédiée !
 ${order.trackingNumber ? `Transporteur : ${order.carrier || 'DPD'}\nNuméro de colis : ${order.trackingNumber}\nSuivi : ${trackingUrl || 'En cours'}\n` : ''}
-Règlement :
+${
+  order.paidAt
+    ? `Règlement : commande déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}.`
+    : `Règlement :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
-Échéance : ${longDate.format(due)}
+Échéance : ${longDate.format(due)}`
+}
 
 Bonne dégustation.
 ${settings.contactName}
@@ -468,20 +517,25 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
 
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:16px;font-size:13px;margin:16px 0;">
       <div style="font-size:16px;font-weight:700;color:#153243;margin-bottom:8px;">
-        Facture n° ${order.invoiceNumber || order.numero}
+        Facture n° ${order.invoiceNumber || order.numero}${order.paidAt ? ' (acquittée)' : ''}
       </div>
-      Montant à régler : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
+      ${
+        order.paidAt
+          ? `Montant réglé : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong>, reçu ${escapeHtml(paymentReceipt(order))}.<br>
+      Aucun paiement n'est attendu.`
+          : `Montant à régler : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
       Échéance : <strong>${longDate.format(due)}</strong> (Net 30 jours)<br>
       IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
       Créancier : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (Bertrand Baeriswyl)<br>
-      ${reference ? `Référence QR : <span style="font-family:monospace;">${reference}</span><br>` : ''}
+      ${reference ? `Référence QR : <span style="font-family:monospace;">${reference}</span><br>` : ''}`
+      }
     </div>
 
     ${itemsHtml(order)}
 
     <div style="margin:24px 0;text-align:center;">
       <a href="${invoiceUrl}" style="background:#153243;color:#FFFFFF;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:8px;display:inline-block;font-size:14px;">
-        Consulter la facture A4 avec QR-bulletin de paiement →
+        ${order.paidAt ? 'Consulter la facture acquittée →' : 'Consulter la facture A4 avec QR-bulletin de paiement →'}
       </a>
     </div>
 
@@ -494,10 +548,14 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
 Voici votre facture pour la commande ${order.numero}.
 
 Facture n° : ${order.invoiceNumber || order.numero}
-Montant : ${formatCHF(order.totalCents)}
+${
+  order.paidAt
+    ? `Montant réglé : ${formatCHF(order.totalCents)}, reçu ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
+    : `Montant : ${formatCHF(order.totalCents)}
 Échéance : ${longDate.format(due)}
 IBAN : ${settings.iban}
-Bénéficiaire : ${SITE_CONFIG.legalName}
+Bénéficiaire : ${SITE_CONFIG.legalName}`
+}
 
 Lien de consultation : ${invoiceUrl}
 
@@ -610,7 +668,11 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
   const body = `
     <p style="margin:0 0 14px;font-size:15px;">Bonjour <strong>${escapeHtml(order.clientName)}</strong>,</p>
     <p style="margin:0 0 14px;">Votre commande <strong style="font-family:monospace;color:#153243;">${order.numero}</strong> a bien été annulée.</p>
-    <p style="margin:0 0 14px;">Elle ne sera pas préparée et aucun montant ne vous sera facturé.</p>
+    <p style="margin:0 0 14px;">${
+      paidOnline(order)
+        ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
+        : 'Elle ne sera pas préparée et aucun montant ne vous sera facturé.'
+    }</p>
     ${
       invoiced
         ? `<div style="background:#FAF9F5;border-left:4px solid #E67E22;padding:12px;border-radius:4px;margin:14px 0;font-size:13px;">
@@ -624,7 +686,11 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
 
   const text = `Bonjour ${order.clientName},
 
-Votre commande ${order.numero} a bien été annulée. Elle ne sera pas préparée et rien ne vous sera facturé.
+Votre commande ${order.numero} a bien été annulée. ${
+    paidOnline(order)
+      ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
+      : 'Elle ne sera pas préparée et rien ne vous sera facturé.'
+  }
 ${invoiced ? `La facture ${order.invoiceNumber} sera annulée par note de crédit.` : ''}
 
 Cidricolement,
