@@ -112,6 +112,18 @@ export function buildPaymentLines(
   return lines
 }
 
+/** Ligne du supplément facture PowerPay, compris dans le total de la commande. */
+export function invoiceFeeLine(amountCents: number): PaymentLine {
+  return {
+    uniqueId: 'supplement-facture',
+    type: 'FEE',
+    name: 'Supplément facture',
+    quantity: 1,
+    amountCents,
+    shippingRequired: false,
+  }
+}
+
 /**
  * Lignes au format du SDK : montants décimaux TTC. Aucune ligne de taxe tant
  * que la cidrerie n'est pas assujettie à la TVA (Setting.vatSubject) ; le jour

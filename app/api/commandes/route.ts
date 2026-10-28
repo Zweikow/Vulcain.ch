@@ -14,10 +14,12 @@ import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
 import { getSettings, isMaintenanceMode } from '@/lib/settings'
-import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
+import { proUnitPriceCents, shippingCentsFor, orderTotalsFor, formatCHF } from '@/lib/money'
 import { recordCustomerAudit } from '@/lib/audit'
 import { findAndValidateDiscountCode } from '@/lib/discount-codes'
 import { isOnlinePaymentEnabled } from '@/lib/payments/config'
+import { checkPaymentChoice, isModeChoiceEnabled } from '@/lib/payments/modes'
+import { PAYMENT_CHOICE_LABELS, type PaymentChoiceValue } from '@/lib/payments/choices'
 import { newPaymentToken, paymentPagePath, startOnlinePayment } from '@/lib/payments/checkout'
 
 class OrderConflictError extends Error {}
@@ -84,6 +86,23 @@ export async function POST(request: NextRequest) {
   // Paiement en ligne derrière le drapeau PFC_ENABLED : désactivé, la commande
   // sur facture reste exactement celle d'avant.
   const onlinePayment = isOnlinePaymentEnabled()
+  // Choix du mode sur le formulaire (PFC_MODE_CHOICE_ENABLED) : le mode reçu est
+  // validé ici, jamais cru sur parole. Un mode inconnu ou coupé est refusé.
+  const modeChoice = onlinePayment && isModeChoiceEnabled()
+  if (modeChoice) {
+    const check = checkPaymentChoice(data.paymentChoice)
+    if (!check.ok) {
+      return NextResponse.json(
+        {
+          error:
+            check.reason === 'inconnu'
+              ? 'Choisissez un mode de paiement.'
+              : "Ce mode de paiement n'est pas disponible. Choisissez-en un autre.",
+        },
+        { status: 422 }
+      )
+    }
+  }
 
   try {
     const order = await prisma.$transaction(async (tx) => {
@@ -112,8 +131,10 @@ export async function POST(request: NextRequest) {
       })
       const isPro = customer.isPro
       const effectiveProRate = isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null
-      // Les professionnels restent sur facture à 30 jours
+      // Les professionnels restent sur facture à 30 jours, sans choix de mode
       const payOnline = onlinePayment && !isPro
+      const paymentChoice =
+        payOnline && modeChoice ? (data.paymentChoice as PaymentChoiceValue) : null
 
       const products = await tx.product.findMany({
         where: {
@@ -266,8 +287,12 @@ export async function POST(request: NextRequest) {
       }
 
       const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
-      const totalCents = subtotalCents + shippingCents
-      const vatCents = orderVatCents(totalCents, settings)
+      // Supplément facture PowerPay compris, même TVA que la commande
+      const { invoiceFeeCents, totalCents, vatCents } = orderTotalsFor(
+        { subtotalCents, shippingCents },
+        paymentChoice,
+        settings
+      )
 
       // Décrément conditionnel : échoue si une commande concurrente a vidé le stock.
       for (const item of data.items) {
@@ -292,6 +317,7 @@ export async function POST(request: NextRequest) {
                 status: OrderStatus.EN_ATTENTE_PAIEMENT,
                 paymentMode: PaymentMode.EN_LIGNE,
                 paymentToken: newPaymentToken(),
+                paymentChoice,
               }
             : {}),
           customerId: customer.id,
@@ -308,6 +334,7 @@ export async function POST(request: NextRequest) {
           promoCode: promoCodeToSave,
           promoDiscountCents,
           shippingCents,
+          invoiceFeeCents,
           totalCents,
           vatCents,
           deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
@@ -316,7 +343,14 @@ export async function POST(request: NextRequest) {
             create: orderItemsToCreate,
           },
         },
-        select: { id: true, numero: true, totalCents: true, paymentMode: true, paymentToken: true },
+        select: {
+          id: true,
+          numero: true,
+          totalCents: true,
+          paymentMode: true,
+          paymentToken: true,
+          paymentChoice: true,
+        },
       })
 
       await tx.stockMovement.createMany({
@@ -338,7 +372,7 @@ export async function POST(request: NextRequest) {
       AuditAction.COMMANDE_CREEE,
       { type: 'COMMANDE', id: order.id, label: order.numero },
       awaitingPayment
-        ? `${formatCHF(order.totalCents)} - paiement en ligne en attente`
+        ? `${formatCHF(order.totalCents)} - paiement en ligne en attente${order.paymentChoice ? ` (${PAYMENT_CHOICE_LABELS[order.paymentChoice]})` : ''}`
         : formatCHF(order.totalCents)
     )
 

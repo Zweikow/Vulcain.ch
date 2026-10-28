@@ -35,6 +35,29 @@ export function shippingCentsFor(
   return settings.shippingCents
 }
 
+/** Supplément facture PowerPay : seul mode de paiement qui en porte un (Setting). */
+export function invoiceFeeCentsFor(
+  paymentChoice: string | null | undefined,
+  settings: { invoiceFeeCents: number }
+): number {
+  return paymentChoice === 'FACTURE' ? settings.invoiceFeeCents : 0
+}
+
+/**
+ * Total d'une commande selon le mode de paiement : articles remises déduites,
+ * port, supplément facture. Le supplément suit la TVA de la commande. Sert à la
+ * prise de commande comme au changement de mode, pour un seul calcul.
+ */
+export function orderTotalsFor(
+  amounts: { subtotalCents: number; shippingCents: number },
+  paymentChoice: string | null | undefined,
+  settings: { invoiceFeeCents: number; vatSubject: boolean; vatRatePermille: number }
+): { invoiceFeeCents: number; totalCents: number; vatCents: number } {
+  const invoiceFeeCents = invoiceFeeCentsFor(paymentChoice, settings)
+  const totalCents = amounts.subtotalCents + amounts.shippingCents + invoiceFeeCents
+  return { invoiceFeeCents, totalCents, vatCents: orderVatCents(totalCents, settings) }
+}
+
 /** Format suisse : CHF 129.00 */
 export function formatCHF(cents: number): string {
   const sign = cents < 0 ? '-' : ''
