@@ -136,12 +136,20 @@ function paymentMethodLabel(transaction: Transaction): string | null {
   return connector.name ?? null
 }
 
+// L'API v2 ne détaille les objets liés que sur demande : sans expand, le moyen de
+// paiement (TWINT, Visa) ne revient pas dans la transaction.
+const PAYMENT_METHOD_EXPAND = new Set([
+  'paymentConnectorConfiguration',
+  'paymentConnectorConfiguration.paymentMethodConfiguration',
+])
+
 /** Relit l'état d'une transaction : seule source de vérité pour marquer une commande payée. */
 export async function readTransaction(transactionId: number): Promise<TransactionSnapshot> {
   const { config, transactions } = getClients()
   const transaction = await transactions.getPaymentTransactionsId({
     id: transactionId,
     space: config.spaceId,
+    expand: PAYMENT_METHOD_EXPAND,
   })
   return {
     id: transaction.id ?? transactionId,
