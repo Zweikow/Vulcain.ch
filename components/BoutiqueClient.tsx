@@ -22,6 +22,7 @@ interface BoutiqueClientProps {
   products: Product[]
   settings: PublicSettings
   categories?: string[]
+  onlinePayment?: boolean
 }
 
 function normalizeText(text: string): string {
@@ -36,6 +37,7 @@ export default function BoutiqueClient({
   products,
   settings,
   categories: propCategories,
+  onlinePayment = false,
 }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromoCode | null>(null)
@@ -431,6 +433,7 @@ export default function BoutiqueClient({
                 items={cart}
                 settings={settings}
                 appliedPromo={appliedPromo}
+                onlinePayment={onlinePayment}
                 onSubmit={handleOrder}
               />
             </div>

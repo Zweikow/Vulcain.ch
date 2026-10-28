@@ -6,6 +6,7 @@ import JsonLd from '@/components/JsonLd'
 import BoutiqueClient from '@/components/BoutiqueClient'
 import MaintenancePage from '@/components/MaintenancePage'
 import { SITE_CONFIG } from '@/lib/site'
+import { isOnlinePaymentEnabled } from '@/lib/payments/config'
 
 // Catalogue lu en base a chaque requete - un produit desactive disparait aussitot.
 export const dynamic = 'force-dynamic'
@@ -86,6 +87,7 @@ export default async function Home() {
         products={products}
         settings={settings}
         categories={dbCategories.map((c) => c.name)}
+        onlinePayment={isOnlinePaymentEnabled()}
       />
     </>
   )

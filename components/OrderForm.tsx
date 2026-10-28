@@ -14,10 +14,18 @@ interface OrderFormProps {
   items: CartItem[]
   settings: PublicSettings
   appliedPromo?: AppliedPromoCode | null
+  /** Paiement en ligne PostFinance actif : redirection vers la Payment Page après la commande */
+  onlinePayment?: boolean
   onSubmit: (customer: CustomerInfo, orderId: string, totalCents: number) => void
 }
 
-export default function OrderForm({ items, settings, appliedPromo, onSubmit }: OrderFormProps) {
+export default function OrderForm({
+  items,
+  settings,
+  appliedPromo,
+  onlinePayment = false,
+  onSubmit,
+}: OrderFormProps) {
   const [form, setForm] = useState<CustomerInfo>({
     firstName: '',
     lastName: '',
@@ -147,7 +155,12 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
         return
       }
 
-      const { orderId, totalCents } = await res.json()
+      const { orderId, totalCents, redirectUrl } = await res.json()
+      if (redirectUrl) {
+        // Paiement en ligne : la commande est enregistrée, place à la Payment Page
+        window.location.assign(redirectUrl)
+        return
+      }
       onSubmit(form, orderId, totalCents ?? estimatedTotalCents)
     } finally {
       setSending(false)
@@ -412,10 +425,21 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
             ) : (
               <span className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span>Confirmer et commander sur facture</span>
+                <span>
+                  {onlinePayment
+                    ? 'Commander et payer en ligne'
+                    : 'Confirmer et commander sur facture'}
+                </span>
               </span>
             )}
           </Button>
+          {onlinePayment && (
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              Vous serez dirigé vers la page de paiement sécurisée de PostFinance : carte,
+              PostFinance Card, PostFinance Pay ou TWINT. Les clients professionnels reçoivent une
+              facture à 30 jours.
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

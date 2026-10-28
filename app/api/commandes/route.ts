@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { AuditAction, ClientType, StockMovementReason } from '@prisma/client'
+import {
+  AuditAction,
+  ClientType,
+  OrderStatus,
+  PaymentMode,
+  StockMovementReason,
+} from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
 import { notifyOrderPlaced } from '@/lib/notifications'
@@ -11,6 +17,8 @@ import { getSettings, isMaintenanceMode } from '@/lib/settings'
 import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
 import { recordCustomerAudit } from '@/lib/audit'
 import { findAndValidateDiscountCode } from '@/lib/discount-codes'
+import { isOnlinePaymentEnabled } from '@/lib/payments/config'
+import { newPaymentToken, paymentPagePath, startOnlinePayment } from '@/lib/payments/checkout'
 
 class OrderConflictError extends Error {}
 
@@ -73,6 +81,9 @@ export async function POST(request: NextRequest) {
   // stock conditionnel, numérotation atomique par année.
   const data = result.data
   const settings = await getSettings()
+  // Paiement en ligne derrière le drapeau PFC_ENABLED : désactivé, la commande
+  // sur facture reste exactement celle d'avant.
+  const onlinePayment = isOnlinePaymentEnabled()
 
   try {
     const order = await prisma.$transaction(async (tx) => {
@@ -101,6 +112,8 @@ export async function POST(request: NextRequest) {
       })
       const isPro = customer.isPro
       const effectiveProRate = isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null
+      // Les professionnels restent sur facture à 30 jours
+      const payOnline = onlinePayment && !isPro
 
       const products = await tx.product.findMany({
         where: {
@@ -274,6 +287,13 @@ export async function POST(request: NextRequest) {
       const created = await tx.order.create({
         data: {
           numero,
+          ...(payOnline
+            ? {
+                status: OrderStatus.EN_ATTENTE_PAIEMENT,
+                paymentMode: PaymentMode.EN_LIGNE,
+                paymentToken: newPaymentToken(),
+              }
+            : {}),
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
           proRatePercent: effectiveProRate,
@@ -296,7 +316,7 @@ export async function POST(request: NextRequest) {
             create: orderItemsToCreate,
           },
         },
-        select: { id: true, numero: true, totalCents: true },
+        select: { id: true, numero: true, totalCents: true, paymentMode: true, paymentToken: true },
       })
 
       await tx.stockMovement.createMany({
@@ -311,16 +331,31 @@ export async function POST(request: NextRequest) {
       return created
     })
 
+    const awaitingPayment =
+      order.paymentMode === PaymentMode.EN_LIGNE && order.paymentToken !== null
+
     await recordCustomerAudit(
       AuditAction.COMMANDE_CREEE,
       { type: 'COMMANDE', id: order.id, label: order.numero },
-      formatCHF(order.totalCents)
+      awaitingPayment
+        ? `${formatCHF(order.totalCents)} - paiement en ligne en attente`
+        : formatCHF(order.totalCents)
     )
 
-    // Confirmation au client et notification à la cidrerie. N'échoue jamais :
-    // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
-    // est indisponible.
-    await notifyOrderPlaced(order.id)
+    // Paiement en ligne : redirection vers la Payment Page PostFinance. Les
+    // emails ne partiront qu'une fois le paiement confirmé par le webhook. Si
+    // PostFinance ne répond pas, le client atterrit sur la page de sa commande
+    // et peut relancer le paiement sans la recréer.
+    let redirectUrl: string | null = null
+    if (awaitingPayment) {
+      const payment = await startOnlinePayment(order.id)
+      redirectUrl = payment.ok ? payment.paymentPageUrl : paymentPagePath(order.paymentToken!)
+    } else {
+      // Confirmation au client et notification à la cidrerie. N'échoue jamais :
+      // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
+      // est indisponible.
+      await notifyOrderPlaced(order.id)
+    }
 
     // Revalidation des fiches produits commandees et de la boutique
     try {
@@ -339,7 +374,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { orderId: order.numero, totalCents: order.totalCents },
+      { orderId: order.numero, totalCents: order.totalCents, redirectUrl },
       { status: 201 }
     )
   } catch (e) {
