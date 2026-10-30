@@ -15,6 +15,14 @@ export type MailMessage = {
   html: string
   text: string
   replyTo?: string
+  /** Pièces jointes, par exemple la facture POWERPAY avec l'avis d'expédition */
+  attachments?: MailAttachment[]
+}
+
+export type MailAttachment = {
+  fileName: string
+  contentType: string
+  data: Uint8Array
 }
 
 export type SendMailResult = {
@@ -70,6 +78,16 @@ export async function sendMail(message: MailMessage): Promise<SendMailResult> {
               Html: { Data: message.html, Charset: 'UTF-8' },
               Text: { Data: message.text, Charset: 'UTF-8' },
             },
+            ...(message.attachments?.length
+              ? {
+                  Attachments: message.attachments.map((attachment) => ({
+                    FileName: attachment.fileName,
+                    ContentType: attachment.contentType,
+                    ContentDisposition: 'ATTACHMENT' as const,
+                    RawContent: attachment.data,
+                  })),
+                }
+              : {}),
           },
         },
       })

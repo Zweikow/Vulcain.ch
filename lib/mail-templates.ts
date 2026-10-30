@@ -34,6 +34,10 @@ export type MailOrder = {
   paidAt?: Date | null
   paymentMethod?: string | null
   paymentMode?: 'FACTURE' | 'EN_LIGNE'
+  /** Supplément facture PowerPay, compris dans le total */
+  invoiceFeeCents?: number
+  /** Solvabilité acceptée par PowerPay : le client règle MF Group, pas la cidrerie */
+  invoiceAcceptedAt?: Date | null
   items: {
     productName: string
     quantity: number
@@ -71,6 +75,11 @@ function escapeHtml(value: string): string {
 /** Commande payée en ligne à la commande (PostFinance Checkout). */
 function paidOnline(order: MailOrder): boolean {
   return order.paymentMode === 'EN_LIGNE' && Boolean(order.paidAt)
+}
+
+/** Commande sur facture PowerPay : le client règle MF Group, jamais Drinkcider. */
+function powerPayOrder(order: MailOrder): boolean {
+  return Boolean(order.invoiceAcceptedAt)
 }
 
 /** « le 28 octobre 2026, paiement en ligne (TWINT) » */
@@ -179,6 +188,14 @@ function itemsHtml(order: MailOrder): string {
         <td style="padding:8px 0;text-align:right;color:#555;">${shippingText}</td>
       </tr>
       ${
+        order.invoiceFeeCents
+          ? `<tr>
+              <td colspan="2" style="padding:4px 0;color:#555;">Supplément facture</td>
+              <td style="padding:4px 0;text-align:right;color:#555;">${formatCHF(order.invoiceFeeCents)}</td>
+            </tr>`
+          : ''
+      }
+      ${
         order.discountCents > 0
           ? `<tr>
               <td colspan="2" style="padding:4px 0;color:#27AE60;">${order.promoCode ? `Remise code promo (${escapeHtml(order.promoCode)})` : 'Remise professionnelle'}</td>
@@ -202,6 +219,8 @@ function itemsText(order: MailOrder): string {
   lines.push(
     `  Frais de port — ${order.isPickup ? 'Retrait à la cave' : order.shippingCents === 0 ? 'offerts' : formatCHF(order.shippingCents)}`
   )
+  if (order.invoiceFeeCents)
+    lines.push(`  Supplément facture : ${formatCHF(order.invoiceFeeCents)}`)
   if (order.discountCents > 0) {
     const discountLabel = order.promoCode ? `Remise code promo (${order.promoCode})` : 'Remise pro'
     lines.push(`  ${discountLabel} — -${formatCHF(order.discountCents)}`)
@@ -237,10 +256,13 @@ export function orderConfirmation(order: MailOrder, settings: MailSettings): Mai
     <ul style="margin:0 0 16px;padding-left:20px;color:#555;">
       <li style="margin-bottom:6px;">Votre commande est préparée sous ${settings.prepDays} jours ouvrés avec le plus grand soin.</li>
       ${
-        paidOnline(order)
-          ? `<li style="margin-bottom:6px;">Votre paiement de <strong>${formatCHF(order.totalCents)}</strong> a bien été reçu ${escapeHtml(paymentReceipt(order))}.</li>
+        powerPayOrder(order)
+          ? `<li style="margin-bottom:6px;">Votre commande est <strong>acceptée sur facture POWERPAY</strong> : aucun montant n'a été débité.</li>
+      <li>La facture POWERPAY de <strong>${formatCHF(order.totalCents)}</strong> vous sera envoyée par email avec l'avis d'expédition. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.</li>`
+          : paidOnline(order)
+            ? `<li style="margin-bottom:6px;">Votre paiement de <strong>${formatCHF(order.totalCents)}</strong> a bien été reçu ${escapeHtml(paymentReceipt(order))}.</li>
       <li>Votre facture acquittée vous sera transmise à l'expédition.</li>`
-          : `<li style="margin-bottom:6px;">Le paiement s'effectue <strong>sur facture à 30 jours</strong> avec bulletin QR suisse : aucune carte bancaire n'a été débitée.</li>
+            : `<li style="margin-bottom:6px;">Le paiement s'effectue <strong>sur facture à 30 jours</strong> avec bulletin QR suisse : aucune carte bancaire n'a été débitée.</li>
       <li>Votre facture officielle vous sera transmise avec les coordonnées de paiement.</li>`
       }
     </ul>
@@ -259,9 +281,11 @@ ${order.isPickup ? 'Retrait convenu à la cave (Les Paccots).' : `Livraison à :
 
 Votre commande est préparée sous ${settings.prepDays} jours ouvrés.
 ${
-  paidOnline(order)
-    ? `Votre paiement de ${formatCHF(order.totalCents)} a bien été reçu ${paymentReceipt(order)}.`
-    : 'Le paiement se fait sur facture à 30 jours (bulletin QR officiel).'
+  powerPayOrder(order)
+    ? `Votre commande est acceptée sur facture POWERPAY : aucun montant n'a été débité. La facture de ${formatCHF(order.totalCents)} vous sera envoyée par email avec l'avis d'expédition. Elle se règle auprès de MF Group.`
+    : paidOnline(order)
+      ? `Votre paiement de ${formatCHF(order.totalCents)} a bien été reçu ${paymentReceipt(order)}.`
+      : 'Le paiement se fait sur facture à 30 jours (bulletin QR officiel).'
 }
 
 Cidricolement,
@@ -299,9 +323,11 @@ export function shopNotification(
     order.message
       ? `<strong>Message client :</strong> <em>${escapeHtml(order.message)}</em>`
       : null,
-    paidOnline(order)
-      ? `<strong>Paiement :</strong> reçu ${escapeHtml(paymentReceipt(order))}, la commande peut être préparée`
-      : null,
+    powerPayOrder(order)
+      ? `<strong>Paiement :</strong> acceptée sur facture PowerPay (non encaissée), la commande peut être préparée. L'encaissement se déclenche au passage à « Expédiée ».`
+      : paidOnline(order)
+        ? `<strong>Paiement :</strong> reçu ${escapeHtml(paymentReceipt(order))}, la commande peut être préparée`
+        : null,
   ].filter(Boolean) as string[]
 
   const resolvedAdminUrl = adminUrl || `${getSiteUrl()}/admin/commandes/${order.id || ''}`
@@ -337,7 +363,7 @@ Email : ${order.clientEmail}
 Téléphone : ${order.clientPhone || 'Non renseigné'}
 Adresse : ${order.address}, ${order.npa} ${order.city}
 Mode : ${order.isPickup ? 'Retrait à la cave' : 'Expédition colis'}
-${paidOnline(order) ? `Paiement : reçu ${paymentReceipt(order)}\n` : ''}${order.message ? `Message client : ${order.message}\n` : ''}
+${powerPayOrder(order) ? 'Paiement : acceptée sur facture PowerPay, encaissement au passage à « Expédiée »\n' : paidOnline(order) ? `Paiement : reçu ${paymentReceipt(order)}\n` : ''}${order.message ? `Message client : ${order.message}\n` : ''}
 Articles :
 ${itemsText(order)}
 
@@ -354,7 +380,20 @@ ${resolvedAdminUrl}`
 }
 
 /** 3. Avis d'expédition ou mise à disposition pour retrait. */
-export function shippingNotice(order: MailOrder, settings: MailSettings): MailMessage {
+export function shippingNotice(
+  order: MailOrder,
+  settings: MailSettings,
+  options: { powerPayInvoiceAttached?: boolean } = {}
+): MailMessage {
+  const powerPay = powerPayOrder(order)
+  const powerPayText = options.powerPayInvoiceAttached
+    ? `Votre facture POWERPAY de ${formatCHF(order.totalCents)} est jointe à cet email. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
+    : `Votre facture POWERPAY de ${formatCHF(order.totalCents)} vous sera transmise séparément. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
+  const powerPayBlock = `
+    <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
+      <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
+      ${powerPayText}
+    </div>`
   const due = new Date()
   due.setDate(due.getDate() + settings.paymentTermsDays)
   const reference = order.invoiceNumber
@@ -379,9 +418,11 @@ export function shippingNotice(order: MailOrder, settings: MailSettings): MailMe
       </div>
 
       ${
-        order.paidAt
-          ? `<p style="margin:16px 0 8px;"><strong>Règlement :</strong> votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${escapeHtml(paymentReceipt(order))}. Aucun paiement n'est attendu.</p>`
-          : `<p style="margin:16px 0 8px;"><strong>Rappel pour le règlement :</strong></p>
+        powerPay
+          ? powerPayBlock
+          : order.paidAt
+            ? `<p style="margin:16px 0 8px;"><strong>Règlement :</strong> votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${escapeHtml(paymentReceipt(order))}. Aucun paiement n'est attendu.</p>`
+            : `<p style="margin:16px 0 8px;"><strong>Rappel pour le règlement :</strong></p>
       <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin-bottom:16px;">
         ${order.invoiceNumber ? `Facture : <strong style="font-family:monospace;">${order.invoiceNumber}</strong><br>` : ''}
         Montant total : <strong>${formatCHF(order.totalCents)}</strong><br>
@@ -405,9 +446,11 @@ ${settings.companyAddress}
 ${settings.companyZipCity}
 
 ${
-  order.paidAt
-    ? `Votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
-    : `Règlement de votre commande :
+  powerPay
+    ? powerPayText
+    : order.paidAt
+      ? `Votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
+      : `Règlement de votre commande :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
 Échéance : ${longDate.format(due)}`
@@ -447,13 +490,15 @@ ${settings.contactName}`
         Votre colis a été pris en charge pour acheminement à votre adresse.
       </div>`
 
-  const paymentBlock = order.paidAt
-    ? `
+  const paymentBlock = powerPay
+    ? powerPayBlock
+    : order.paidAt
+      ? `
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
       <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
       Votre commande est déjà réglée, ${formatCHF(order.totalCents)} reçus ${escapeHtml(paymentReceipt(order))}. Aucun paiement n'est attendu.
     </div>`
-    : `
+      : `
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
       <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
       ${order.invoiceNumber ? `Numéro de facture : <strong style="font-family:monospace;">${order.invoiceNumber}</strong><br>` : ''}
@@ -480,9 +525,11 @@ ${settings.contactName}`
 Votre commande ${order.numero} vient d'être expédiée !
 ${order.trackingNumber ? `Transporteur : ${order.carrier || 'DPD'}\nNuméro de colis : ${order.trackingNumber}\nSuivi : ${trackingUrl || 'En cours'}\n` : ''}
 ${
-  order.paidAt
-    ? `Règlement : commande déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}.`
-    : `Règlement :
+  powerPay
+    ? `Règlement : ${powerPayText}`
+    : order.paidAt
+      ? `Règlement : commande déjà réglée, ${formatCHF(order.totalCents)} reçus ${paymentReceipt(order)}.`
+      : `Règlement :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
 Échéance : ${longDate.format(due)}`
@@ -503,6 +550,7 @@ ${SITE_CONFIG.name}`
 
 /** 4. Envoi de la facture officielle au client. */
 export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMessage {
+  const powerPay = powerPayOrder(order)
   const siteUrl = getSiteUrl()
   const invoiceUrl = `${siteUrl}/facture/${order.id || ''}`
   const due = new Date()
@@ -517,13 +565,16 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
 
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:16px;font-size:13px;margin:16px 0;">
       <div style="font-size:16px;font-weight:700;color:#153243;margin-bottom:8px;">
-        Facture n° ${order.invoiceNumber || order.numero}${order.paidAt ? ' (acquittée)' : ''}
+        Facture n° ${order.invoiceNumber || order.numero}${powerPay ? ' (règlement via POWERPAY)' : order.paidAt ? ' (acquittée)' : ''}
       </div>
       ${
-        order.paidAt
-          ? `Montant réglé : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong>, reçu ${escapeHtml(paymentReceipt(order))}.<br>
+        powerPay
+          ? `Montant : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
+      Ce montant se règle auprès de MF Group, avec la facture POWERPAY transmise avec l'avis d'expédition. Merci de ne rien verser à ${escapeHtml(SITE_CONFIG.name)}.`
+          : order.paidAt
+            ? `Montant réglé : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong>, reçu ${escapeHtml(paymentReceipt(order))}.<br>
       Aucun paiement n'est attendu.`
-          : `Montant à régler : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
+            : `Montant à régler : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
       Échéance : <strong>${longDate.format(due)}</strong> (Net 30 jours)<br>
       IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
       Créancier : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (Bertrand Baeriswyl)<br>
@@ -535,7 +586,7 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
 
     <div style="margin:24px 0;text-align:center;">
       <a href="${invoiceUrl}" style="background:#153243;color:#FFFFFF;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:8px;display:inline-block;font-size:14px;">
-        ${order.paidAt ? 'Consulter la facture acquittée →' : 'Consulter la facture A4 avec QR-bulletin de paiement →'}
+        ${powerPay ? 'Consulter la facture →' : order.paidAt ? 'Consulter la facture acquittée →' : 'Consulter la facture A4 avec QR-bulletin de paiement →'}
       </a>
     </div>
 
@@ -549,9 +600,11 @@ Voici votre facture pour la commande ${order.numero}.
 
 Facture n° : ${order.invoiceNumber || order.numero}
 ${
-  order.paidAt
-    ? `Montant réglé : ${formatCHF(order.totalCents)}, reçu ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
-    : `Montant : ${formatCHF(order.totalCents)}
+  powerPay
+    ? `Montant : ${formatCHF(order.totalCents)}. Ce montant se règle auprès de MF Group, avec la facture POWERPAY transmise avec l'avis d'expédition. Merci de ne rien verser à ${SITE_CONFIG.name}.`
+    : order.paidAt
+      ? `Montant réglé : ${formatCHF(order.totalCents)}, reçu ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
+      : `Montant : ${formatCHF(order.totalCents)}
 Échéance : ${longDate.format(due)}
 IBAN : ${settings.iban}
 Bénéficiaire : ${SITE_CONFIG.legalName}`
@@ -669,9 +722,11 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
     <p style="margin:0 0 14px;font-size:15px;">Bonjour <strong>${escapeHtml(order.clientName)}</strong>,</p>
     <p style="margin:0 0 14px;">Votre commande <strong style="font-family:monospace;color:#153243;">${order.numero}</strong> a bien été annulée.</p>
     <p style="margin:0 0 14px;">${
-      paidOnline(order)
-        ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
-        : 'Elle ne sera pas préparée et aucun montant ne vous sera facturé.'
+      powerPayOrder(order)
+        ? 'Elle ne sera pas préparée. La facture POWERPAY correspondante est annulée : merci de ne pas la régler.'
+        : paidOnline(order)
+          ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
+          : 'Elle ne sera pas préparée et aucun montant ne vous sera facturé.'
     }</p>
     ${
       invoiced
@@ -687,9 +742,11 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
   const text = `Bonjour ${order.clientName},
 
 Votre commande ${order.numero} a bien été annulée. ${
-    paidOnline(order)
-      ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
-      : 'Elle ne sera pas préparée et rien ne vous sera facturé.'
+    powerPayOrder(order)
+      ? 'Elle ne sera pas préparée. La facture POWERPAY correspondante est annulée : merci de ne pas la régler.'
+      : paidOnline(order)
+        ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
+        : 'Elle ne sera pas préparée et rien ne vous sera facturé.'
   }
 ${invoiced ? `La facture ${order.invoiceNumber} sera annulée par note de crédit.` : ''}
 
