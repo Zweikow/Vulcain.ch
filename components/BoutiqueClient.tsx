@@ -9,6 +9,8 @@ import OrderForm from '@/components/OrderForm'
 import ConfirmationModal from '@/components/ConfirmationModal'
 import ProductDetailModal from '@/components/ProductDetailModal'
 import { CartItem, CustomerInfo, Product, AppliedPromoCode } from '@/types'
+import { invoiceFeeCentsFor } from '@/lib/money'
+import type { PaymentChoiceValue } from '@/lib/payments/choices'
 import { PublicSettings } from '@/lib/settings'
 import { Spotlight } from '@/components/ui/spotlight'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +25,8 @@ interface BoutiqueClientProps {
   settings: PublicSettings
   categories?: string[]
   onlinePayment?: boolean
+  /** Modes proposés sur le formulaire ; vide : le mode se choisit sur la Payment Page */
+  paymentChoices?: PaymentChoiceValue[]
 }
 
 function normalizeText(text: string): string {
@@ -38,8 +42,12 @@ export default function BoutiqueClient({
   settings,
   categories: propCategories,
   onlinePayment = false,
+  paymentChoices = [],
 }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
+  // Mode choisi : remonté ici pour que le panier affiche le supplément aussitôt
+  const [paymentChoice, setPaymentChoice] = useState<PaymentChoiceValue | null>(null)
+  const invoiceFeeCents = invoiceFeeCentsFor(paymentChoice, settings)
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromoCode | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -434,6 +442,9 @@ export default function BoutiqueClient({
                 settings={settings}
                 appliedPromo={appliedPromo}
                 onlinePayment={onlinePayment}
+                paymentChoices={paymentChoices}
+                paymentChoice={paymentChoice}
+                onPaymentChoiceChange={setPaymentChoice}
                 onSubmit={handleOrder}
               />
             </div>
@@ -445,6 +456,8 @@ export default function BoutiqueClient({
               items={cart}
               settings={settings}
               appliedPromo={appliedPromo}
+              invoiceFeeCents={invoiceFeeCents}
+              onlinePayment={onlinePayment}
               onApplyPromo={handleApplyPromo}
               onRemovePromo={handleRemovePromo}
               onCheckout={() => {}}
@@ -460,6 +473,8 @@ export default function BoutiqueClient({
             items={cart}
             settings={settings}
             appliedPromo={appliedPromo}
+            invoiceFeeCents={invoiceFeeCents}
+            onlinePayment={onlinePayment}
             onApplyPromo={handleApplyPromo}
             onRemovePromo={handleRemovePromo}
             onCheckout={() => {}}

@@ -27,6 +27,10 @@ interface CartProps {
   items: CartItem[]
   settings: PublicSettings
   appliedPromo?: AppliedPromoCode | null
+  /** Supplément du mode de paiement choisi (facture PowerPay), compris dans le total */
+  invoiceFeeCents?: number
+  /** Paiement en ligne actif : le bas du panier n'annonce plus de QR-facture */
+  onlinePayment?: boolean
   onApplyPromo?: (_code: string) => Promise<{ ok: boolean; error?: string }>
   onRemovePromo?: () => void
   onCheckout?: () => void
@@ -38,6 +42,8 @@ export default function Cart({
   items,
   settings,
   appliedPromo,
+  invoiceFeeCents = 0,
+  onlinePayment = false,
   onApplyPromo,
   onRemovePromo,
   onCheckout,
@@ -124,7 +130,7 @@ export default function Cart({
 
   const isFreeShipping = hasItems && subtotalCents >= settings.francoCents
   const shippingCents = hasItems && !isFreeShipping ? settings.shippingCents : 0
-  const totalCents = subtotalCents + shippingCents
+  const totalCents = subtotalCents + shippingCents + invoiceFeeCents
   const missingForFranco = Math.max(0, settings.francoCents - subtotalCents)
   const shippingProgress = Math.min(100, Math.round((subtotalCents / settings.francoCents) * 100))
 
@@ -386,6 +392,13 @@ export default function Cart({
               </span>
             </div>
 
+            {invoiceFeeCents > 0 && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Supplément facture</span>
+                <span className="tabular font-medium">{formatCHF(invoiceFeeCents)}</span>
+              </div>
+            )}
+
             <Separator className="my-1" />
 
             <div className="flex justify-between items-baseline text-base font-bold text-foreground">
@@ -418,7 +431,10 @@ export default function Cart({
 
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
             <ShieldCheck className="w-3.5 h-3.5 text-primary-text shrink-0" />
-            <span>Facture QR-bill suisse &amp; emballage anti-casse</span>
+            <span>
+              {onlinePayment ? 'Paiement sécurisé' : 'Facture QR-bill suisse'} &amp; emballage
+              anti-casse
+            </span>
           </div>
         </CardFooter>
       )}
