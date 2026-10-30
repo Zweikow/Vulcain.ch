@@ -129,6 +129,54 @@ describe('Changement de mode avant paiement', () => {
     })
   })
 
+  const invoiceAttempt = (state = 'PENDING') => ({
+    paymentChoice: 'FACTURE',
+    invoiceFeeCents: 500,
+    totalCents: 6300,
+    paymentTransactions: [{ transactionId: BigInt(555), state, paymentChoice: 'FACTURE' }],
+  })
+
+  it('formulaire PowerPay soumis sans acceptation (PROCESSING) : facture retirée', async () => {
+    mocks.order = pending(invoiceAttempt())
+    mocks.readTransaction.mockResolvedValue({ id: 555, state: 'PROCESSING' })
+    expect(await changePaymentChoice('o1', 'FACTURE')).toEqual({
+      ok: false,
+      reason: 'mode_indisponible',
+    })
+    expect(mocks.order).toMatchObject({ invoiceUnavailable: true, totalCents: 6300 })
+    expect(await changePaymentChoice('o1', 'TWINT')).toEqual({ ok: true })
+    expect(mocks.order).toMatchObject({
+      paymentChoice: 'TWINT',
+      invoiceFeeCents: 0,
+      totalCents: 5800,
+    })
+  })
+
+  it('échec pas encore annoncé par le webhook : facture retirée de la même façon', async () => {
+    mocks.order = pending(invoiceAttempt())
+    mocks.readTransaction.mockResolvedValue({ id: 555, state: 'FAILED' })
+    expect(await changePaymentChoice('o1', 'TWINT')).toEqual({ ok: true })
+    expect(mocks.order).toMatchObject({ invoiceUnavailable: true, paymentChoice: 'TWINT' })
+  })
+
+  it('formulaire PowerPay seulement ouvert (CONFIRMED) : la facture reste proposée', async () => {
+    mocks.order = pending(invoiceAttempt())
+    mocks.readTransaction.mockResolvedValue({ id: 555, state: 'CONFIRMED' })
+    expect(await changePaymentChoice('o1', 'TWINT')).toEqual({ ok: true })
+    expect(mocks.order).toMatchObject({ invoiceUnavailable: false, paymentChoice: 'TWINT' })
+  })
+
+  it('TWINT ouvert (PROCESSING dès l’ouverture) : la facture reste proposée', async () => {
+    mocks.order = pending({
+      paymentTransactions: [
+        { transactionId: BigInt(555), state: 'PENDING', paymentChoice: 'TWINT' },
+      ],
+    })
+    mocks.readTransaction.mockResolvedValue({ id: 555, state: 'PROCESSING' })
+    expect(await changePaymentChoice('o1', 'FACTURE')).toEqual({ ok: true })
+    expect(mocks.order).toMatchObject({ invoiceUnavailable: false, totalCents: 6300 })
+  })
+
   it('mode inconnu : rejeté, rien n’est modifié', async () => {
     mocks.order = pending()
     expect(await changePaymentChoice('o1', 'BITCOIN')).toEqual({

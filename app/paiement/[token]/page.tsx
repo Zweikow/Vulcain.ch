@@ -20,7 +20,7 @@ import { getSettings } from '@/lib/settings'
 import { isSettlingTransactionState } from '@/lib/payments/states'
 import { PAYMENT_CHOICE_LABELS } from '@/lib/payments/choices'
 import { availablePaymentChoices, isModeChoiceEnabled } from '@/lib/payments/modes'
-import { markInvoiceUnavailableAfterReturn } from '@/lib/payments/checkout'
+import { markInvoiceUnavailable } from '@/lib/payments/checkout'
 
 // Page personnelle : lue en base à chaque visite, jamais indexée
 export const dynamic = 'force-dynamic'
@@ -99,7 +99,7 @@ export default async function PaymentPage({
   // commande (le webhook d'échec fait de même) : cela ne fait que retirer une
   // option, jamais payer.
   if (retour === 'echec' && order.paymentChoice === 'FACTURE' && !order.invoiceUnavailable) {
-    if (await markInvoiceUnavailableAfterReturn(order.id)) order = (await findOrder()) ?? order
+    if (await markInvoiceUnavailable(order.id)) order = (await findOrder()) ?? order
   }
 
   const latestState = order.paymentTransactions[0]?.state ?? null

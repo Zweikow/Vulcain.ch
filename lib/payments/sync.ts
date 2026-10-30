@@ -173,9 +173,12 @@ export async function syncPaymentTransaction(
   }
 
   if (status === 'ECHOUE') {
-    if (invoice) {
-      // Refus de solvabilité ou abandon : indiscernables chez PostFinance. La
-      // facture est retirée pour cette commande, les autres modes restent.
+    // Refus de solvabilité ou abandon : indiscernables chez PostFinance. La
+    // facture est retirée pour cette commande, les autres modes restent. Une
+    // tentative déjà remplacée ne retire rien : elle expire d'elle-même après un
+    // changement de mode, sans que le client ait échoué.
+    const invoiceAttemptFailed = invoice && !attempt.supersededAt
+    if (invoiceAttemptFailed) {
       await prisma.order.updateMany({
         where: {
           id: order.id,
@@ -189,7 +192,7 @@ export async function syncPaymentTransaction(
     if (stateChanged) {
       await audit(
         AuditAction.PAIEMENT_ECHOUE,
-        invoice
+        invoiceAttemptFailed
           ? `Transaction ${id} : facture PowerPay non aboutie (refus ou abandon), facture retirée pour la commande`
           : `Transaction ${id} : ${remote.failureMessage ?? transactionStateLabel(remote.state)}`
       )

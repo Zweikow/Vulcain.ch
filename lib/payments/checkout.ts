@@ -26,6 +26,7 @@ import {
   isFinalTransactionState,
   isReusableTransactionState,
   isSettlingTransactionState,
+  paymentStatusOf,
 } from '@/lib/payments/states'
 
 /** Jeton des pages publiques /paiement/<jeton> : 32 caractères aléatoires. */
@@ -252,11 +253,21 @@ export async function changePaymentChoice(
   if (!check.ok) return { ok: false, reason: 'mode_indisponible' }
   const newChoice = choice as PaymentChoiceValue
 
-  // Paiement en cours d'encaissement sur la transaction active : on attend
   const active = order.paymentTransactions[0]
   if (active && !isFinalTransactionState(active.state)) {
     const remote = await readTransaction(Number(active.transactionId))
+    // Paiement en cours d'encaissement sur la transaction active : on attend
     if (isSettlingTransactionState(remote.state)) return { ok: false, reason: 'en_cours' }
+    // Formulaire PowerPay soumis sans acceptation : la transaction reste en
+    // PROCESSING, sans webhook. C'est un refus : la facture est retirée avant que
+    // cette tentative ne soit remplacée, comme après un échec déjà constaté.
+    if (
+      active.paymentChoice === 'FACTURE' &&
+      (remote.state === 'PROCESSING' || paymentStatusOf(remote.state) === 'ECHOUE')
+    ) {
+      await markInvoiceUnavailable(order.id)
+      if (newChoice === 'FACTURE') return { ok: false, reason: 'mode_indisponible' }
+    }
   }
 
   const settings = await getSettings()
@@ -283,12 +294,13 @@ export async function changePaymentChoice(
 }
 
 /**
- * Retour du client sur l'adresse d'échec après une tentative par facture :
- * refus de solvabilité ou abandon, PostFinance ne permet pas de les
- * distinguer. La facture est retirée pour cette commande ; le webhook d'échec
- * fait de même quand il arrive. Ne fait que retirer une option, jamais payer.
+ * Tentative par facture non aboutie (retour du client sur l'adresse d'échec,
+ * changement de mode après un refus) : refus de solvabilité ou abandon,
+ * PostFinance ne permet pas de les distinguer. La facture est retirée pour cette
+ * commande ; le webhook d'échec fait de même quand il arrive. Ne fait que
+ * retirer une option, jamais payer.
  */
-export async function markInvoiceUnavailableAfterReturn(orderId: string): Promise<boolean> {
+export async function markInvoiceUnavailable(orderId: string): Promise<boolean> {
   const { count } = await prisma.order.updateMany({
     where: {
       id: orderId,

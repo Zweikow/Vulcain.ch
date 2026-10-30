@@ -391,6 +391,21 @@ describe('Facture PowerPay (lot B)', () => {
     expect(auditActions()).toEqual(['PAIEMENT_ECHOUE'])
   })
 
+  it('tentative déjà remplacée qui expire : la facture reste proposée', async () => {
+    seed(
+      { paymentChoice: 'TWINT', totalCents: 5800 },
+      { paymentChoice: 'FACTURE', amountCents: 6300, supersededAt: new Date() }
+    )
+    mocks.readTransaction.mockResolvedValue(
+      remote('FAILED', { paymentMethodConfigurationId: null, failureMessage: 'Délai dépassé' })
+    )
+    const result = await syncPaymentTransaction(BigInt(1001), 'webhook')
+    expect(result).toMatchObject({ outcome: 'echouee' })
+    expect(order().status).toBe('EN_ATTENTE_PAIEMENT')
+    expect(order().invoiceUnavailable).toBe(false)
+    expect(mocks.recordSystemAudit.mock.calls[0][2]).toContain('Délai dépassé')
+  })
+
   it('montant facturé sans le supplément : à vérifier', async () => {
     invoiceOrder()
     mocks.readTransaction.mockResolvedValue(
