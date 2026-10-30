@@ -26,3 +26,12 @@ export const PAYMENT_CHOICE_LABELS: Record<PaymentChoiceValue, string> = {
 export function isPaymentChoice(value: unknown): value is PaymentChoiceValue {
   return typeof value === 'string' && (PAYMENT_CHOICES as readonly string[]).includes(value)
 }
+
+/** Mode de paiement d'une commande, pour l'admin et les documents. */
+export function paymentModeLabel(order: {
+  paymentMode: string
+  paymentChoice?: PaymentChoiceValue | null
+}): string {
+  if (order.paymentChoice) return PAYMENT_CHOICE_LABELS[order.paymentChoice]
+  return order.paymentMode === 'EN_LIGNE' ? 'Paiement en ligne' : 'Facture Drinkcider'
+}

@@ -5,6 +5,7 @@ import { getSettings } from '@/lib/settings'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { FacturesTable, FactureItem } from '@/components/admin/FacturesTable'
+import { unpaidOrderWhere } from '@/lib/order-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,7 @@ export default async function FacturesPage({
     prisma.order.count({
       where: {
         ...baseCondition,
-        paidAt: null,
+        ...unpaidOrderWhere,
         createdAt: { lt: overdueCutoff },
       },
     }),
@@ -74,9 +75,9 @@ export default async function FacturesPage({
   if (currentFilter === 'PAYEE') {
     andClauses.push({ paidAt: { not: null } })
   } else if (currentFilter === 'EN_ATTENTE') {
-    andClauses.push({ paidAt: null, createdAt: { gte: overdueCutoff } })
+    andClauses.push({ ...unpaidOrderWhere, createdAt: { gte: overdueCutoff } })
   } else if (currentFilter === 'EN_RETARD') {
-    andClauses.push({ paidAt: null, createdAt: { lt: overdueCutoff } })
+    andClauses.push({ ...unpaidOrderWhere, createdAt: { lt: overdueCutoff } })
   }
 
   const q = rawQ?.trim() || ''

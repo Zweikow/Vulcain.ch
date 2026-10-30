@@ -8,6 +8,7 @@ import { OrderStatus } from '@prisma/client'
 import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
+import { paymentModeLabel, type PaymentChoiceValue } from '@/lib/payments/choices'
 import { TruckIcon } from '@/components/admin/AdminIcons'
 import { getDefaultPlanzerDates } from '@/lib/planzer'
 
@@ -20,6 +21,9 @@ export interface OrderRowData {
   status: OrderStatus
   paidAt: Date | string | null
   paymentMethod: string | null
+  paymentMode: string
+  paymentChoice: PaymentChoiceValue | null
+  invoiceAcceptedAt: Date | string | null
   invoicedAt: Date | string | null
   reminderCount: number
   createdAt: Date | string
@@ -284,10 +288,14 @@ export function CommandesTableWithSelection({
                   </span>
                   <div className="flex flex-wrap items-center gap-2 mt-1.5">
                     <StatusBadge status={order.status} />
+                    <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                      {paymentModeLabel(order)}
+                    </span>
                     {showMoney && (
                       <PaymentStatusBadge
                         paidAt={order.paidAt ? new Date(order.paidAt) : null}
                         paymentMethod={order.paymentMethod}
+                        invoiceAcceptedAt={order.invoiceAcceptedAt}
                         invoicedAt={order.invoicedAt ? new Date(order.invoicedAt) : null}
                         createdAt={new Date(order.createdAt)}
                         reminderCount={order.reminderCount}
@@ -411,6 +419,7 @@ export function CommandesTableWithSelection({
                           <PaymentStatusBadge
                             paidAt={order.paidAt ? new Date(order.paidAt) : null}
                             paymentMethod={order.paymentMethod}
+                            invoiceAcceptedAt={order.invoiceAcceptedAt}
                             invoicedAt={order.invoicedAt ? new Date(order.invoicedAt) : null}
                             createdAt={new Date(order.createdAt)}
                             reminderCount={order.reminderCount}
@@ -421,6 +430,9 @@ export function CommandesTableWithSelection({
                     )}
                     <td className="px-4 py-3">
                       <StatusBadge status={order.status} />
+                      <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark mt-1">
+                        {paymentModeLabel(order)}
+                      </div>
                       {order.assignedTo && (
                         <div className="text-xs text-text-tertiary dark:text-text-tertiary-dark mt-1">
                           Prep: {order.assignedTo.name}

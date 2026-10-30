@@ -121,6 +121,7 @@ export async function sendPaymentReminderAction(
   const guard = await assertCapability(can.manageInvoices)
   if (!guard.ok) return { success: false, error: guard.error }
 
+  if (await isOnlineOrder(orderId)) return { success: false, error: ONLINE_PAYMENT_ERROR }
   const result = await sendPaymentReminderNotification(orderId, customNote)
 
   if (result.success) {

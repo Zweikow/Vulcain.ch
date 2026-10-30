@@ -7,7 +7,7 @@ import { can } from '@/lib/permissions'
 import { SearchCommandes } from '@/components/admin/SearchCommandes'
 import { Suspense } from 'react'
 import { CommandesTableWithSelection } from '@/components/admin/CommandesTableWithSelection'
-import { countedOrderWhere } from '@/lib/order-status'
+import { countedOrderWhere, unpaidOrderWhere } from '@/lib/order-status'
 
 type FilterValue = 'TOUTES' | OrderStatus | 'IMPAYEES' | 'EN_RETARD'
 
@@ -42,10 +42,10 @@ export default async function CommandesPage({
   const andConditions: any[] = []
 
   if (statut === 'IMPAYEES') {
-    andConditions.push({ paidAt: null, ...countedOrderWhere })
+    andConditions.push({ ...unpaidOrderWhere, ...countedOrderWhere })
   } else if (statut === 'EN_RETARD') {
     andConditions.push({
-      paidAt: null,
+      ...unpaidOrderWhere,
       ...countedOrderWhere,
       OR: [
         { invoicedAt: { lte: thirtyDaysAgo } },
@@ -87,6 +87,9 @@ export default async function CommandesPage({
         status: true,
         paidAt: true,
         paymentMethod: true,
+        paymentMode: true,
+        paymentChoice: true,
+        invoiceAcceptedAt: true,
         invoicedAt: true,
         reminderCount: true,
         createdAt: true,
@@ -98,10 +101,10 @@ export default async function CommandesPage({
       by: ['status'],
       _count: { _all: true },
     }),
-    prisma.order.count({ where: { paidAt: null, ...countedOrderWhere } }),
+    prisma.order.count({ where: { ...unpaidOrderWhere, ...countedOrderWhere } }),
     prisma.order.count({
       where: {
-        paidAt: null,
+        ...unpaidOrderWhere,
         ...countedOrderWhere,
         OR: [
           { invoicedAt: { lte: thirtyDaysAgo } },

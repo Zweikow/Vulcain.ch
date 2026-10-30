@@ -15,6 +15,15 @@ export const countedOrderWhere = {
   status: { notIn: UNCOUNTED_ORDER_STATUSES },
 } satisfies Prisma.OrderWhereInput
 
+/**
+ * Règlement attendu par Drinkcider : ni payée, ni acceptée sur facture PowerPay
+ * (MF Group encaisse et relance lui-même ces factures, jamais la cidrerie).
+ */
+export const unpaidOrderWhere = {
+  paidAt: null,
+  invoiceAcceptedAt: null,
+} satisfies Prisma.OrderWhereInput
+
 export function isCountedOrder(status: OrderStatus): boolean {
   return !UNCOUNTED_ORDER_STATUSES.includes(status)
 }

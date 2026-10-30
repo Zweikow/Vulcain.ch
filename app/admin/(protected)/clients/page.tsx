@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
-import { countedOrderWhere, isCountedOrder } from '@/lib/order-status'
+import { countedOrderWhere, isCountedOrder, unpaidOrderWhere } from '@/lib/order-status'
 import { formatCHF, getInvoicePaymentStatus } from '@/lib/money'
 import { getSettings } from '@/lib/settings'
 import { currentUser } from '@/lib/guards'
@@ -40,7 +40,7 @@ export default async function ClientsPage({
     andConditions.push({
       orders: {
         some: {
-          paidAt: null,
+          ...unpaidOrderWhere,
           ...countedOrderWhere,
         },
       },
@@ -96,7 +96,7 @@ export default async function ClientsPage({
         where: {
           orders: {
             some: {
-              paidAt: null,
+              ...unpaidOrderWhere,
               ...countedOrderWhere,
             },
           },

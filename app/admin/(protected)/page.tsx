@@ -43,6 +43,7 @@ const EMPTY: DashboardData = {
   productCount: 0,
   buckets: [],
   alerts: [],
+  ordersToVerify: [],
   topSales: [],
 }
 
@@ -309,14 +310,17 @@ export default async function DashboardPage({
             </h2>
             {data.overdueInvoiceCount > 0 ||
             data.alerts.length > 0 ||
+            data.ordersToVerify.length > 0 ||
             data.missingTrackingCount > 0 ? (
               <span className="rounded-full bg-[#FDF2F2] px-2 py-0.5 text-xs font-semibold text-[#C62828] dark:bg-[#2a1717] dark:text-[#EF5350]">
                 {(data.overdueInvoiceCount > 0 ? 1 : 0) +
                   data.alerts.length +
+                  data.ordersToVerify.length +
                   (data.missingTrackingCount > 0 ? 1 : 0)}{' '}
                 action
                 {(data.overdueInvoiceCount > 0 ? 1 : 0) +
                   data.alerts.length +
+                  data.ordersToVerify.length +
                   (data.missingTrackingCount > 0 ? 1 : 0) >
                 1
                   ? 's'
@@ -324,6 +328,37 @@ export default async function DashboardPage({
               </span>
             ) : null}
           </div>
+
+          {/* Commandes à vérifier : paiement reçu mais incohérent, bloquées jusqu'à décision */}
+          {data.ordersToVerify.length > 0 && (
+            <div
+              role="alert"
+              className="rounded-lg border border-[#C62828]/20 bg-[#FDF2F2] p-3 text-sm dark:bg-[#2a1717]"
+            >
+              <div className="flex items-center gap-1.5 text-[#C62828] dark:text-[#EF5350] font-semibold">
+                <AlertCircleIcon className="w-4 h-4" />
+                {data.ordersToVerify.length} commande{data.ordersToVerify.length > 1 ? 's' : ''} à
+                vérifier
+              </div>
+              <ul className="mt-2 space-y-1.5 border-t border-[#C62828]/10 pt-2 text-xs">
+                {data.ordersToVerify.map((order) => (
+                  <li key={order.id}>
+                    <Link
+                      href={`/admin/commandes/${order.id}`}
+                      className="flex items-center justify-between text-text-primary dark:text-text-primary-dark hover:underline"
+                    >
+                      <span className="truncate max-w-[160px]">
+                        {order.clientName} ({order.numero})
+                      </span>
+                      <span className="font-semibold tabular ml-2 shrink-0">
+                        {formatCHF(order.totalCents)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* 1. Alerte factures en retard (> 30j) */}
           {data.overdueInvoiceCount > 0 && (
