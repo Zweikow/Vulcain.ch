@@ -273,3 +273,102 @@ export async function syncPaymentTransaction(
     return { outcome: 'payee', ...ref, newlyPaid: false }
   }
 }
+
+export type AcceptPaymentResult = { ok: true; message: string } | { ok: false; error: string }
+
+/**
+ * Décision de l'exploitant sur une commande « à vérifier » : il accepte le
+ * paiement reçu, après contrôle dans PostFinance. Le paiement doit exister et
+ * porter sur le montant exact de la commande. Sinon, la seule issue est
+ * d'annuler la commande et de rembourser le client.
+ */
+export async function acceptPaymentToVerify(orderId: string): Promise<AcceptPaymentResult> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      numero: true,
+      status: true,
+      totalCents: true,
+      paymentChoice: true,
+      paymentTransactions: {
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, transactionId: true, state: true, paymentChoice: true },
+      },
+    },
+  })
+  if (!order) return { ok: false, error: 'Commande introuvable' }
+  if (order.status !== OrderStatus.A_VERIFIER) {
+    return { ok: false, error: "Cette commande n'est pas à vérifier." }
+  }
+
+  for (const attempt of order.paymentTransactions) {
+    const remote = await readTransaction(Number(attempt.transactionId))
+    const usedChoice = choiceOfConfiguration(remote.paymentMethodConfigurationId)
+    const invoice = attempt.paymentChoice === 'FACTURE' || usedChoice === 'FACTURE'
+    const settled = invoice
+      ? INVOICE_ACCEPTED_STATES.includes(remote.state)
+      : remote.state === 'FULFILL'
+    if (
+      !settled ||
+      remote.currency !== 'CHF' ||
+      remote.authorizationAmountCents !== order.totalCents
+    ) {
+      continue
+    }
+
+    const paymentMethod = invoice
+      ? 'Facture (PowerPay)'
+      : remote.paymentMethod
+        ? `Paiement en ligne (${remote.paymentMethod.slice(0, 60)})`
+        : 'Paiement en ligne'
+    const accepted = await prisma.$transaction(async (tx) => {
+      const { count } = await tx.order.updateMany({
+        where: { id: order.id, status: OrderStatus.A_VERIFIER },
+        data: {
+          status: OrderStatus.A_TRAITER,
+          paymentMethod,
+          paymentChoice: usedChoice ?? attempt.paymentChoice ?? order.paymentChoice,
+          ...(invoice
+            ? {
+                invoiceAcceptedAt: remote.authorizedOn ?? new Date(),
+                ...(remote.state === 'FULFILL'
+                  ? { paidAt: remote.completedOn ?? remote.decisionOn ?? new Date() }
+                  : {}),
+              }
+            : { paidAt: remote.completedOn ?? remote.decisionOn ?? new Date() }),
+        },
+      })
+      if (count === 0) return false
+      // Le paiement accepté devient la transaction active de la commande
+      await tx.paymentTransaction.updateMany({
+        where: { orderId: order.id, id: { not: attempt.id }, supersededAt: null },
+        data: { supersededAt: new Date() },
+      })
+      await tx.paymentTransaction.update({
+        where: { id: attempt.id },
+        data: { supersededAt: null, state: remote.state },
+      })
+      return true
+    })
+    if (!accepted) return { ok: false, error: 'Cette commande a déjà été traitée.' }
+
+    await recordAudit(
+      invoice ? AuditAction.FACTURE_ACCEPTEE : AuditAction.PAIEMENT_CONFIRME,
+      { type: AuditTargetType.COMMANDE, id: order.id, label: order.numero },
+      `Accepté après vérification - ${formatCHF(order.totalCents)} - ${paymentMethod} - transaction ${attempt.transactionId}`
+    )
+    await notifyOrderPlaced(order.id)
+    return {
+      ok: true,
+      message: 'Paiement accepté : commande passée « À traiter », emails envoyés.',
+    }
+  }
+
+  return {
+    ok: false,
+    error:
+      'Aucun paiement au montant exact de la commande chez PostFinance : annulez la commande et remboursez le client depuis le back-office PostFinance.',
+  }
+}

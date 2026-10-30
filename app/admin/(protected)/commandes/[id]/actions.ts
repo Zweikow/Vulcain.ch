@@ -9,7 +9,7 @@ import { can } from '@/lib/permissions'
 import { cancelOrder, deleteOrder } from '@/lib/cancellation'
 import { notifyOrderCancelled } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
-import { syncPaymentTransaction, type SyncResult } from '@/lib/payments/sync'
+import { acceptPaymentToVerify, syncPaymentTransaction, type SyncResult } from '@/lib/payments/sync'
 import { describePostFinanceError } from '@/lib/payments/postfinance'
 import { isFinalTransactionState, transactionStateLabel } from '@/lib/payments/states'
 
@@ -54,6 +54,7 @@ export async function cancelOrderAction(
     result.stockRestored ? 'stock rendu' : 'stock non rendu (commande déjà expédiée)',
     result.creditNoteNeeded ? 'un avoir reste à établir' : null,
     result.refundNeeded ? 'remboursement à faire dans le back-office PostFinance' : null,
+    result.voidNeeded ? 'autorisation PowerPay à annuler dans le back-office PostFinance' : null,
     notifyCustomer ? 'client prévenu par email' : null,
   ].filter(Boolean)
 
@@ -234,6 +235,22 @@ function syncMessage(result: SyncResult): string {
   }
 }
 
+/** Décision sur une commande « à vérifier » : accepter le paiement reçu. */
+export async function acceptPaymentToVerifyAction(
+  orderId: string
+): Promise<{ error?: string; message?: string }> {
+  const guard = await assertCapability(can.manageOrders)
+  if (!guard.ok) return { error: guard.error }
+  try {
+    const result = await acceptPaymentToVerify(orderId)
+    if (!result.ok) return { error: result.error }
+    revalidate(orderId)
+    return { message: result.message }
+  } catch (error) {
+    return { error: `PostFinance injoignable : ${await describePostFinanceError(error)}` }
+  }
+}
+
 /**
  * Secours si un webhook manque (écouteur désactivé, panne) : relit chez
  * PostFinance les tentatives non terminées de la commande, par le même chemin
@@ -265,6 +282,8 @@ export async function verifyOnlinePaymentAction(
     revalidate(orderId)
     const decisive =
       results.find((r) => r.outcome === 'payee' && r.newlyPaid) ??
+      results.find((r) => r.outcome === 'acceptee' && r.newlyAccepted) ??
+      results.find((r) => r.outcome === 'a_verifier') ??
       results.find((r) => r.outcome === 'anomalie') ??
       results[0]
     return { message: syncMessage(decisive) }

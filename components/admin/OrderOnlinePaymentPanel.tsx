@@ -2,7 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { verifyOnlinePaymentAction } from '@/app/admin/(protected)/commandes/[id]/actions'
+import {
+  acceptPaymentToVerifyAction,
+  verifyOnlinePaymentAction,
+} from '@/app/admin/(protected)/commandes/[id]/actions'
 import { formatCHF } from '@/lib/money'
 import { CheckIcon, CoinsIcon } from '@/components/admin/AdminIcons'
 
@@ -14,6 +17,10 @@ export type OnlinePaymentAttempt = {
   paymentMethod: string | null
   failureReason: string | null
   createdAt: string
+  /** Mode auquel la transaction est limitée */
+  choiceLabel: string | null
+  /** Remplacée par une transaction plus récente : plus la transaction active */
+  superseded: boolean
 }
 
 interface OrderOnlinePaymentPanelProps {
@@ -26,6 +33,14 @@ interface OrderOnlinePaymentPanelProps {
   paymentLink: string | null
   attempts: OnlinePaymentAttempt[]
   canVerify: boolean
+  /** Mode choisi par le client (null : mode choisi sur la Payment Page) */
+  choiceLabel: string | null
+  invoiceFeeCents: number
+  /** Acceptée sur facture PowerPay : encaissement à l'expédition */
+  invoiceAcceptedAt: string | null
+  toVerify: boolean
+  /** Écart constaté par le webhook, repris du journal */
+  verificationReason: string | null
 }
 
 const dateTime = new Intl.DateTimeFormat('fr-CH', {
@@ -49,6 +64,11 @@ export function OrderOnlinePaymentPanel({
   paymentLink,
   attempts,
   canVerify,
+  choiceLabel,
+  invoiceFeeCents,
+  invoiceAcceptedAt,
+  toVerify,
+  verificationReason,
 }: OrderOnlinePaymentPanelProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -64,6 +84,18 @@ export function OrderOnlinePaymentPanel({
       if (res.error) setFeedback({ type: 'error', message: res.error })
       else {
         setFeedback({ type: 'success', message: res.message ?? 'Vérification effectuée.' })
+        router.refresh()
+      }
+    })
+  }
+
+  const acceptPayment = () => {
+    setFeedback(null)
+    startTransition(async () => {
+      const res = await acceptPaymentToVerifyAction(orderId)
+      if (res.error) setFeedback({ type: 'error', message: res.error })
+      else {
+        setFeedback({ type: 'success', message: res.message ?? 'Paiement accepté.' })
         router.refresh()
       }
     })
@@ -91,14 +123,31 @@ export function OrderOnlinePaymentPanel({
             </h2>
           </div>
           <p className="text-xs text-text-secondary dark:text-text-secondary-dark mt-0.5">
-            Payé à la commande · Montant :{' '}
+            {choiceLabel ? `Mode : ${choiceLabel}` : 'Payé à la commande'} · Montant :{' '}
             <strong className="tabular">{formatCHF(totalCents)}</strong>
+            {invoiceFeeCents > 0 && (
+              <>
+                {' '}
+                (dont supplément facture{' '}
+                <span className="tabular">{formatCHF(invoiceFeeCents)}</span>)
+              </>
+            )}
             {invoiceNumber ? ` · Facture ${invoiceNumber}` : ''}
           </p>
         </div>
-        {paidAt ? (
+        {toVerify ? (
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-pill bg-[#FDF2F2] dark:bg-[#3a1f1f] text-[#C62828] dark:text-[#EF5350]">
+            À vérifier
+          </span>
+        ) : invoiceAcceptedAt && !paidAt ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-pill bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300">
+            <CheckIcon className="w-3 h-3" /> Acceptée sur facture le{' '}
+            {new Date(invoiceAcceptedAt).toLocaleDateString('fr-CH')}
+          </span>
+        ) : paidAt ? (
           <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-pill bg-[#E8F5E9] dark:bg-[#1e3326] text-text-success dark:text-[#81C784]">
-            <CheckIcon className="w-3 h-3" /> Payée le{' '}
+            <CheckIcon className="w-3 h-3" />{' '}
+            {invoiceAcceptedAt ? 'Réglée via PowerPay le' : 'Payée le'}{' '}
             {new Date(paidAt).toLocaleDateString('fr-CH')}
           </span>
         ) : (
@@ -123,6 +172,39 @@ export function OrderOnlinePaymentPanel({
 
       <div className="mt-4 space-y-3 text-xs text-text-secondary dark:text-text-secondary-dark">
         {paidAt && paymentMethod && <p>Moyen de paiement : {paymentMethod}</p>}
+        {invoiceAcceptedAt && !paidAt && (
+          <p>
+            Solvabilité acceptée par PowerPay. L&apos;encaissement se déclenche au passage à «
+            Expédiée », et la facture POWERPAY part alors avec l&apos;avis d&apos;expédition. MF
+            Group suit le paiement et les rappels.
+          </p>
+        )}
+        {toVerify && (
+          <div
+            role="alert"
+            className="rounded-md border border-[#C62828]/20 bg-[#FDF2F2] dark:bg-[#2a1717] p-3 text-text-primary dark:text-text-primary-dark"
+          >
+            <p className="font-semibold text-[#C62828] dark:text-[#EF5350]">
+              Paiement reçu mais incohérent : commande bloquée
+            </p>
+            {verificationReason && <p className="mt-1">{verificationReason}</p>}
+            <p className="mt-1">
+              Contrôlez la transaction dans le back-office PostFinance. Acceptez ce paiement
+              s&apos;il est correct. Sinon, annulez la commande plus bas et remboursez le client
+              depuis le back-office PostFinance.
+            </p>
+            {canVerify && (
+              <button
+                type="button"
+                onClick={acceptPayment}
+                disabled={isPending}
+                className="btn-primary text-sm mt-2 disabled:opacity-50"
+              >
+                {isPending ? 'En cours…' : 'Accepter ce paiement'}
+              </button>
+            )}
+          </div>
+        )}
         {awaitingPayment && (
           <p>
             La commande passera « À traiter » dès que PostFinance confirmera le paiement. Elle
@@ -151,6 +233,8 @@ export function OrderOnlinePaymentPanel({
                   <td className="py-1.5 pr-2">
                     {a.stateLabel}
                     {a.paymentMethod ? ` · ${a.paymentMethod}` : ''}
+                    {a.choiceLabel && !a.paymentMethod ? ` · ${a.choiceLabel}` : ''}
+                    {a.superseded ? ' · remplacée' : ''}
                     {a.failureReason ? (
                       <span className="block text-text-tertiary dark:text-text-tertiary-dark">
                         {a.failureReason}

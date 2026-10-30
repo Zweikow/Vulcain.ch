@@ -8,6 +8,7 @@ import { issueInvoice } from '@/lib/invoices'
 import { notifyOrderShipped, sendInvoiceEmail } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
 import { STATUS_LABELS } from '@/components/admin/StatusBadge'
+import { completeInvoiceBeforeShipping } from '@/lib/payments/completion'
 
 const patchSchema = z.object({
   status: z.enum(['A_TRAITER', 'EN_PREPARATION', 'EXPEDIEE']).optional(),
@@ -78,6 +79,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         { status: 409 }
       )
     }
+    if (current?.status === OrderStatus.A_VERIFIER) {
+      return NextResponse.json(
+        {
+          error:
+            'Commande à vérifier : acceptez le paiement depuis le panneau de paiement, ou annulez la commande',
+        },
+        { status: 409 }
+      )
+    }
+  }
+
+  // Facture PowerPay : l'encaissement précède l'expédition, et peut la bloquer
+  if (newStatus === OrderStatus.EXPEDIEE) {
+    const completion = await completeInvoiceBeforeShipping(id)
+    if (!completion.ok) return NextResponse.json({ error: completion.error }, { status: 409 })
   }
 
   const shippedAt = newStatus === OrderStatus.EXPEDIEE ? new Date() : null

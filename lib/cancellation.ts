@@ -8,6 +8,8 @@ export type CancelResult =
       creditNoteNeeded: boolean
       /** Payée en ligne : le remboursement se fait dans le back-office PostFinance. */
       refundNeeded: boolean
+      /** Acceptée sur facture, pas encore encaissée : autorisation à annuler chez PostFinance. */
+      voidNeeded: boolean
     }
   | { ok: false; error: string }
 
@@ -53,7 +55,9 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
 
     // Commande en ligne jamais payée : l'utilisation du code promo, comptée à
     // la commande, est rendue avec le stock.
-    if (order.status === OrderStatus.EN_ATTENTE_PAIEMENT && !order.paidAt && order.promoCode) {
+    const neverConfirmed =
+      order.status === OrderStatus.EN_ATTENTE_PAIEMENT || order.status === OrderStatus.A_VERIFIER
+    if (neverConfirmed && !order.paidAt && order.promoCode) {
       await tx.discountCode.updateMany({
         where: { code: order.promoCode, usedCount: { gt: 0 } },
         data: { usedCount: { decrement: 1 } },
@@ -74,7 +78,12 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
       stockRestored,
       // Une facture émise reste due tant qu'un avoir ne l'annule pas.
       creditNoteNeeded: order.invoiceNumber !== null,
-      refundNeeded: order.paymentMode === PaymentMode.EN_LIGNE && order.paidAt !== null,
+      // À vérifier : de l'argent a été reçu, même si la commande n'a pas été confirmée
+      refundNeeded:
+        order.paymentMode === PaymentMode.EN_LIGNE &&
+        (order.paidAt !== null || order.status === OrderStatus.A_VERIFIER),
+      // Acceptée sur facture, pas encore encaissée : l'autorisation PowerPay reste ouverte
+      voidNeeded: order.invoiceAcceptedAt !== null && order.paidAt === null,
     }
   })
 }
@@ -87,10 +96,19 @@ export async function cancelOrder(orderId: string, reason: string): Promise<Canc
 export async function deleteOrder(orderId: string): Promise<{ ok: boolean; error?: string }> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { status: true, invoiceNumber: true, paidAt: true },
+    select: {
+      status: true,
+      invoiceNumber: true,
+      paidAt: true,
+      paymentTransactions: {
+        where: { state: { in: ['AUTHORIZED', 'COMPLETED', 'FULFILL'] } },
+        take: 1,
+        select: { id: true },
+      },
+    },
   })
   if (!order) return { ok: false, error: 'Commande introuvable' }
-  if (order.paidAt) {
+  if (order.paidAt || order.paymentTransactions?.length > 0) {
     return {
       ok: false,
       error: 'Une commande payée ne peut pas être supprimée : le paiement doit rester traçable',

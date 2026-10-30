@@ -153,6 +153,15 @@ const PAYMENT_METHOD_EXPAND = new Set([
   'paymentConnectorConfiguration.paymentMethodConfiguration',
 ])
 
+/** Encaissement différé (facture PowerPay), déclenché à l'expédition. */
+export async function completeTransactionOnline(transactionId: number): Promise<void> {
+  const { config, transactions } = getClients()
+  await transactions.postPaymentTransactionsIdCompleteOnline({
+    id: transactionId,
+    space: config.spaceId,
+  })
+}
+
 /** Relit l'état d'une transaction : seule source de vérité pour marquer une commande payée. */
 export async function readTransaction(transactionId: number): Promise<TransactionSnapshot> {
   const { config, transactions } = getClients()

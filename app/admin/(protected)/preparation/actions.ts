@@ -8,9 +8,10 @@ import { issueInvoice } from '@/lib/invoices'
 import { notifyOrderShipped, sendInvoiceEmail } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
+import { completeInvoiceBeforeShipping } from '@/lib/payments/completion'
 
 // Flux à trois statuts : À traiter → En préparation → Expédiée (DESIGN.md §3).
-export async function advanceStatus(orderId: string) {
+export async function advanceStatus(orderId: string): Promise<{ error?: string } | void> {
   const session = await auth()
   if (!session) return
 
@@ -26,6 +27,12 @@ export async function advanceStatus(orderId: string) {
     return
 
   const shipping = order.status === OrderStatus.EN_PREPARATION
+
+  // Facture PowerPay : l'encaissement précède l'expédition, et peut la bloquer
+  if (shipping) {
+    const completion = await completeInvoiceBeforeShipping(orderId)
+    if (!completion.ok) return { error: completion.error }
+  }
 
   await prisma.order.update({
     where: { id: orderId },

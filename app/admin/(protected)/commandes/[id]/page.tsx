@@ -18,6 +18,7 @@ import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { getSiteUrl } from '@/lib/site'
 import { transactionStateLabel } from '@/lib/payments/states'
+import { PAYMENT_CHOICE_LABELS } from '@/lib/payments/choices'
 
 export default async function TicketPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -52,6 +53,16 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
 
   const onlinePayment = order.paymentMode === 'EN_LIGNE'
   const awaitingPayment = order.status === 'EN_ATTENTE_PAIEMENT'
+  const toVerify = order.status === 'A_VERIFIER'
+  // Ni préparation, ni facture, ni email avant un paiement confirmé
+  const notConfirmed = awaitingPayment || toVerify
+  const verification = toVerify
+    ? await prisma.auditLog.findFirst({
+        where: { targetId: order.id, action: 'PAIEMENT_A_VERIFIER' },
+        orderBy: { createdAt: 'desc' },
+        select: { detail: true },
+      })
+    : null
 
   return (
     <div className="max-w-3xl">
@@ -91,16 +102,18 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {!order.isPickup && (
+          {!order.isPickup && !notConfirmed && (
             <PlanzerExportButton
               orderId={order.id}
               orderNumero={order.numero}
               isPickup={order.isPickup}
             />
           )}
-          <Link href={`/admin/commandes/${order.id}/facture`} className="btn-primary text-sm">
-            Voir la facture
-          </Link>
+          {!notConfirmed && (
+            <Link href={`/admin/commandes/${order.id}/facture`} className="btn-primary text-sm">
+              Voir la facture
+            </Link>
+          )}
           <PrintButton />
         </div>
       </div>
@@ -108,11 +121,12 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
       {/* Statut, Assignation & Date de livraison — masqués sur une commande annulée, qui ne progresse plus */}
       {order.status !== 'ANNULEE' && (
         <div className="card p-5 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {awaitingPayment ? (
+          {notConfirmed ? (
             // Ni statut ni assignation avant la confirmation du paiement en ligne
             <p className="sm:col-span-2 text-sm text-text-secondary dark:text-text-secondary-dark">
-              En attente du paiement en ligne : la commande passera « À traiter » dès sa
-              confirmation par PostFinance.
+              {toVerify
+                ? 'À vérifier : la commande ne peut pas avancer tant que le paiement n’est pas accepté dans le panneau ci-dessous.'
+                : 'En attente du paiement en ligne : la commande passera « À traiter » dès sa confirmation par PostFinance.'}
             </p>
           ) : (
             <>
@@ -137,6 +151,11 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           paymentMethod={order.paymentMethod}
           invoiceNumber={order.invoiceNumber}
           awaitingPayment={awaitingPayment}
+          choiceLabel={order.paymentChoice ? PAYMENT_CHOICE_LABELS[order.paymentChoice] : null}
+          invoiceFeeCents={order.invoiceFeeCents}
+          invoiceAcceptedAt={order.invoiceAcceptedAt ? order.invoiceAcceptedAt.toISOString() : null}
+          toVerify={toVerify}
+          verificationReason={verification?.detail ?? null}
           paymentLink={order.paymentToken ? `${getSiteUrl()}/paiement/${order.paymentToken}` : null}
           attempts={order.paymentTransactions.map((t) => ({
             transactionId: t.transactionId.toString(),
@@ -146,6 +165,8 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             paymentMethod: t.paymentMethod,
             failureReason: t.failureReason,
             createdAt: t.createdAt.toISOString(),
+            choiceLabel: t.paymentChoice ? PAYMENT_CHOICE_LABELS[t.paymentChoice] : null,
+            superseded: t.supersededAt !== null,
           }))}
           canVerify={user ? can.manageOrders(user.role) : false}
         />
@@ -343,6 +364,19 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
                 {order.shippingCents === 0 ? 'Offerts' : formatCHF(order.shippingCents)}
               </td>
             </tr>
+            {order.invoiceFeeCents > 0 && (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-4 py-2 text-right text-text-secondary dark:text-text-secondary-dark"
+                >
+                  Supplément facture
+                </td>
+                <td className="px-4 py-2 text-right text-text-primary dark:text-text-primary-dark">
+                  {formatCHF(order.invoiceFeeCents)}
+                </td>
+              </tr>
+            )}
             <tr className="border-t border-border dark:border-border-dark">
               <td
                 colSpan={3}
@@ -372,18 +406,20 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
         </table>
       </div>
 
-      <div className="mb-6">
-        <OrderEmailActions
-          orderId={order.id}
-          orderNumber={order.numero}
-          clientEmail={order.clientEmail}
-          trackingNumber={order.trackingNumber}
-          carrier={order.carrier}
-          isPickup={order.isPickup}
-          deliveryDate={order.deliveryDate}
-          emailLogs={order.emailLogs}
-        />
-      </div>
+      {!notConfirmed && (
+        <div className="mb-6">
+          <OrderEmailActions
+            orderId={order.id}
+            orderNumber={order.numero}
+            clientEmail={order.clientEmail}
+            trackingNumber={order.trackingNumber}
+            carrier={order.carrier}
+            isPickup={order.isPickup}
+            deliveryDate={order.deliveryDate}
+            emailLogs={order.emailLogs}
+          />
+        </div>
+      )}
 
       <OrderCancel
         orderId={order.id}
