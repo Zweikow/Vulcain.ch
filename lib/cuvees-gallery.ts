@@ -92,12 +92,12 @@ export const CUVEE_GALLERY_MAP: Record<string, GalleryImage[]> = {
     { url: '/packshots/poire-comment-2022-dos.jpg', label: 'Contre-étiquette' },
   ],
   // Heftig (Berne) : photos studio du producteur, une bouteille par cuvée
-  'heftig-engishofer': [{ url: '/packshots/heftig-engishofer.jpg', label: 'Bouteille' }],
+  'heftig-engishofer': [{ url: '/packshots/heftig/engishofer.jpg', label: 'Bouteille' }],
   'heftig-schoner-von-boskoop': [
-    { url: '/packshots/heftig-schoner-von-boskoop.jpg', label: 'Bouteille' },
+    { url: '/packshots/heftig/schoner-von-boskoop.jpg', label: 'Bouteille' },
   ],
-  'heftig-cuvee-heftig': [{ url: '/packshots/heftig-cuvee-heftig.jpg', label: 'Bouteille' }],
-  'heftig-poire': [{ url: '/packshots/heftig-poire.jpg', label: 'Bouteille' }],
+  'heftig-cuvee-heftig': [{ url: '/packshots/heftig/cuvee-heftig.jpg', label: 'Bouteille' }],
+  'heftig-poire': [{ url: '/packshots/heftig/poire.jpg', label: 'Bouteille' }],
   'belle-brutale-2017': [
     { url: '/packshots/belle-brutale-2017-duo.jpg', label: 'Deux bouteilles (face et dos)' },
     { url: '/packshots/belle-brutale-2017-face.jpg', label: 'Étiquette' },
