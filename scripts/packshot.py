@@ -150,7 +150,9 @@ def white_balance(rgb, alpha):
     if len(pixels) < 1000:
         return rgb
     lum = pixels.mean(axis=1)
-    bright = pixels[lum > np.percentile(lum, 40)]  # le mur éclairé, pas les ombres
+    bright = pixels[lum >= np.percentile(lum, 40)]  # le mur éclairé, pas les ombres
+    if bright.mean() > 250:
+        return rgb  # fond studio déjà blanc pur : rien à corriger
     mean = bright.mean(axis=0)
     gains = mean.mean() / mean
     gains = 1 + 0.8 * (gains - 1)  # correction à 80 % : on garde un peu de chaleur
