@@ -111,6 +111,13 @@ export async function startOnlinePayment(orderId: string): Promise<StartPaymentR
       const remote = await readTransaction(Number(active.transactionId))
       if (isSettlingTransactionState(remote.state)) return { ok: false, reason: 'en_cours' }
       if (remote.state === 'DECLINE') return { ok: false, reason: 'refusee' }
+      // Facture refusée ou échouée : la page PowerPay n'est jamais rouverte, le
+      // client y relancerait une demande de solvabilité. La facture est retirée
+      // pour la commande, comme lors d'un changement de mode.
+      if (isFailedInvoiceAttempt(active, remote.state)) {
+        await markInvoiceUnavailable(order.id)
+        if (choice === 'FACTURE') return { ok: false, reason: 'mode_indisponible' }
+      }
       if (
         sameChoice &&
         isReusableTransactionState(remote.state) &&
@@ -258,13 +265,8 @@ export async function changePaymentChoice(
     const remote = await readTransaction(Number(active.transactionId))
     // Paiement en cours d'encaissement sur la transaction active : on attend
     if (isSettlingTransactionState(remote.state)) return { ok: false, reason: 'en_cours' }
-    // Formulaire PowerPay soumis sans acceptation : la transaction reste en
-    // PROCESSING, sans webhook. C'est un refus : la facture est retirée avant que
-    // cette tentative ne soit remplacée, comme après un échec déjà constaté.
-    if (
-      active.paymentChoice === 'FACTURE' &&
-      (remote.state === 'PROCESSING' || paymentStatusOf(remote.state) === 'ECHOUE')
-    ) {
+    // Facture refusée : retirée avant que cette tentative ne soit remplacée
+    if (isFailedInvoiceAttempt(active, remote.state)) {
       await markInvoiceUnavailable(order.id)
       if (newChoice === 'FACTURE') return { ok: false, reason: 'mode_indisponible' }
     }
@@ -294,8 +296,24 @@ export async function changePaymentChoice(
 }
 
 /**
+ * Tentative par facture qui n'aboutira pas : formulaire PowerPay soumis sans
+ * acceptation (la transaction reste en PROCESSING, sans webhook) ou transaction
+ * déjà échouée. Refus de solvabilité ou abandon, PostFinance ne les distingue
+ * pas.
+ */
+function isFailedInvoiceAttempt(
+  attempt: { paymentChoice: string | null },
+  remoteState: string
+): boolean {
+  return (
+    attempt.paymentChoice === 'FACTURE' &&
+    (remoteState === 'PROCESSING' || paymentStatusOf(remoteState) === 'ECHOUE')
+  )
+}
+
+/**
  * Tentative par facture non aboutie (retour du client sur l'adresse d'échec,
- * changement de mode après un refus) : refus de solvabilité ou abandon,
+ * changement de mode ou nouveau « Payer » après un refus) : refus de solvabilité ou abandon,
  * PostFinance ne permet pas de les distinguer. La facture est retirée pour cette
  * commande ; le webhook d'échec fait de même quand il arrive. Ne fait que
  * retirer une option, jamais payer.

@@ -25,11 +25,18 @@ const mocks = vi.hoisted(() => ({
   readTransaction: vi.fn(),
   superseded: vi.fn(),
   created: vi.fn(),
+  orderUpdated: vi.fn(),
 }))
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    order: { findUnique: async () => mocks.order },
+    order: {
+      findUnique: async () => mocks.order,
+      updateMany: async (args: unknown) => {
+        mocks.orderUpdated(args)
+        return { count: 1 }
+      },
+    },
     paymentTransaction: {
       updateMany: (args: unknown) => mocks.superseded(args),
       create: (args: unknown) => mocks.created(args),
@@ -100,6 +107,7 @@ describe('Ouverture du paiement : verrou du mode côté serveur', () => {
     mocks.readTransaction.mockReset()
     mocks.superseded.mockReset().mockResolvedValue({ count: 0 })
     mocks.created.mockReset().mockResolvedValue({})
+    mocks.orderUpdated.mockReset()
   })
 
   it('TWINT : transaction limitée aux IDs TWINT, encaissement immédiat, sans supplément', async () => {
@@ -184,5 +192,48 @@ describe('Ouverture du paiement : verrou du mode côté serveur', () => {
       paymentPageUrl: 'https://paiement.example/555',
     })
     expect(mocks.createTransaction).not.toHaveBeenCalled()
+  })
+
+  const refusedInvoice = (state: string) => {
+    mocks.order = orderWith({
+      paymentChoice: 'FACTURE',
+      invoiceFeeCents: 500,
+      totalCents: 6300,
+      paymentTransactions: [
+        {
+          id: 'a1',
+          transactionId: BigInt(555),
+          state: 'PENDING',
+          amountCents: 6300,
+          paymentChoice: 'FACTURE',
+        },
+      ],
+    })
+    mocks.readTransaction.mockResolvedValue({ id: 555, state })
+  }
+
+  it('facture refusée (PROCESSING) : la page PowerPay n’est pas rouverte, facture retirée', async () => {
+    refusedInvoice('PROCESSING')
+    expect(await startOnlinePayment('o1')).toEqual({ ok: false, reason: 'mode_indisponible' })
+    expect(mocks.createTransaction).not.toHaveBeenCalled()
+    expect(mocks.orderUpdated.mock.calls[0][0]).toMatchObject({
+      where: { id: 'o1', paymentChoice: 'FACTURE' },
+      data: { invoiceUnavailable: true },
+    })
+  })
+
+  it('facture échouée, webhook pas encore reçu : aucune nouvelle demande PowerPay', async () => {
+    refusedInvoice('FAILED')
+    expect(await startOnlinePayment('o1')).toEqual({ ok: false, reason: 'mode_indisponible' })
+    expect(mocks.createTransaction).not.toHaveBeenCalled()
+  })
+
+  it('formulaire PowerPay seulement ouvert (CONFIRMED) : la même page est rouverte', async () => {
+    refusedInvoice('CONFIRMED')
+    expect(await startOnlinePayment('o1')).toEqual({
+      ok: true,
+      paymentPageUrl: 'https://paiement.example/555',
+    })
+    expect(mocks.orderUpdated).not.toHaveBeenCalled()
   })
 })
