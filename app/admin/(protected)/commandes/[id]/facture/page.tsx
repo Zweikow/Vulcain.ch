@@ -12,6 +12,7 @@ import { PrintButton } from '@/components/admin/PrintButton'
 import { FactureLayoutSelect } from '@/components/admin/FactureLayoutSelect'
 import { requireCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
+import { paymentReference } from '@/lib/reference'
 
 const stamp = new Intl.DateTimeFormat('fr-CH', {
   day: '2-digit',
@@ -106,6 +107,11 @@ export default async function FacturePage({
           orderId={order.id}
           invoiceNumber={order.invoiceNumber}
           invoicedAt={order.invoicedAt}
+          reference={
+            order.invoiceNumber
+              ? paymentReference(settings.iban, order.invoiceNumber).formatted
+              : null
+          }
         />
 
         <StatusSelect orderId={order.id} currentStatus={order.status} />
