@@ -392,8 +392,8 @@ export default function OrderForm({
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Réservée aux particuliers. PowerPay (MF Group) contrôle votre solvabilité : la
                   page PostFinance vous demandera votre date de naissance, votre sexe et
-                  l&apos;acceptation de ses conditions. La facture vous sera envoyée par email avec
-                  l&apos;avis d&apos;expédition.
+                  l&apos;acceptation de ses conditions. MF Group vous enverra sa facture en fin de
+                  mois.
                 </p>
               )}
             </fieldset>

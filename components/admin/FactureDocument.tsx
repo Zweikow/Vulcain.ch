@@ -300,7 +300,7 @@ export function FactureDocument({
               )}
               {powerPay && (
                 <span className="inline-flex items-center gap-1 font-semibold text-[#153243] bg-[#F7F6F0] px-2 py-0.5 rounded border border-[#D8DEE6]">
-                  Règlement via POWERPAY
+                  Règlement via PowerPay
                 </span>
               )}
               {order.paidAt && !powerPay && (
@@ -803,7 +803,7 @@ export function FactureDocument({
           )}
           {powerPay && (
             <span className="inline-flex items-center gap-1 font-semibold text-[#153243] bg-[#F7F6F0] px-2 py-0.5 rounded border border-[#D8DEE6]">
-              Règlement via POWERPAY
+              Règlement via PowerPay
             </span>
           )}
           {order.paidAt && !powerPay && (
@@ -1019,10 +1019,10 @@ export function FactureDocument({
 function PowerPayNotice({ companyName }: { companyName: string }) {
   return (
     <div>
-      <p className="font-semibold">Règlement via POWERPAY</p>
+      <p className="font-semibold">Règlement via PowerPay</p>
       <p className="mt-0.5">
-        Ce montant se règle auprès de MF Group, avec la facture POWERPAY transmise avec l&apos;avis
-        d&apos;expédition. Merci de ne rien verser à {companyName}.
+        Ce montant se règle auprès de MF Group, qui vous enverra sa facture PowerPay en fin de mois.
+        Merci de ne rien verser à {companyName}.
       </p>
     </div>
   )

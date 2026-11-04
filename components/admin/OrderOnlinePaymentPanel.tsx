@@ -175,8 +175,8 @@ export function OrderOnlinePaymentPanel({
         {invoiceAcceptedAt && !paidAt && (
           <p>
             Solvabilité acceptée par PowerPay. L&apos;encaissement se déclenche au passage à «
-            Expédiée », et la facture POWERPAY part alors avec l&apos;avis d&apos;expédition. MF
-            Group suit le paiement et les rappels.
+            Expédiée ». MF Group envoie ensuite sa facture au client en fin de mois, puis suit le
+            paiement et les rappels.
           </p>
         )}
         {toVerify && (

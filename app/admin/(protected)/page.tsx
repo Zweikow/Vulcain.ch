@@ -475,6 +475,7 @@ export default async function DashboardPage({
           {/* Statut serein si aucune alerte */}
           {data.overdueInvoiceCount === 0 &&
             data.alerts.length === 0 &&
+            data.ordersToVerify.length === 0 &&
             data.missingTrackingCount === 0 && (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-bg-page/50 p-3 text-xs text-text-secondary dark:border-border-dark dark:bg-bg-page-dark/50 dark:text-text-secondary-dark">
                 <CheckIcon className="w-4 h-4 text-text-success shrink-0" />

@@ -75,7 +75,11 @@ describe('Décision sur une commande à vérifier', () => {
     mocks.readTransaction
       .mockResolvedValueOnce(remote({ state: 'FAILED', authorizationAmountCents: 5800 }))
       .mockResolvedValueOnce(remote())
-    expect((await acceptPaymentToVerify('o1')).ok).toBe(true)
+    mocks.notifyOrderPlaced.mockResolvedValue(true)
+    expect(await acceptPaymentToVerify('o1')).toEqual({
+      ok: true,
+      message: 'Paiement accepté : commande passée « À traiter », emails envoyés.',
+    })
     expect(mocks.orderUpdate.mock.calls[0][0].data).toMatchObject({
       status: 'A_TRAITER',
       paymentChoice: 'TWINT',
@@ -88,6 +92,14 @@ describe('Décision sur une commande à vérifier', () => {
     })
     expect(mocks.recordAudit.mock.calls[0][0]).toBe('PAIEMENT_CONFIRME')
     expect(mocks.notifyOrderPlaced).toHaveBeenCalledTimes(1)
+  })
+
+  it('emails non partis : le message ne prétend pas le contraire', async () => {
+    mocks.readTransaction.mockResolvedValue(remote())
+    mocks.notifyOrderPlaced.mockResolvedValue(false)
+    const result = await acceptPaymentToVerify('o1')
+    expect(result.ok && result.message).toContain("L'envoi des emails a échoué")
+    expect(result.ok && result.message).not.toContain('emails envoyés')
   })
 
   it('facture acceptée : acceptée sur facture, pas payée tant que non encaissée', async () => {

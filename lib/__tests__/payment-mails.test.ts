@@ -56,9 +56,11 @@ describe('Emails d’une commande acceptée sur facture PowerPay', () => {
       expect(content).toContain('Supplément facture')
       expect(content).toContain('CHF 5.00')
       expect(content).toContain('CHF 63.00')
-      expect(content).toContain('acceptée sur facture POWERPAY')
-      expect(content).toContain('MF Group')
+      expect(content).toContain('acceptée sur facture PowerPay')
+      expect(content).toContain('MF Group vous enverra sa facture PowerPay')
+      expect(content).toContain('en fin de mois')
       expect(content).not.toContain('facture à 30 jours')
+      expect(content).not.toMatch(/avis d(&apos;|'|’)expédition/)
     }
   })
 
@@ -70,44 +72,52 @@ describe('Emails d’une commande acceptée sur facture PowerPay', () => {
     }
   })
 
-  it('avis d’expédition : facture jointe, sans IBAN ni référence de la cidrerie', () => {
-    const mail = shippingNotice(settled, settings, { powerPayInvoiceAttached: true })
+  it('avis d’expédition : facture envoyée par MF Group en fin de mois, sans IBAN de la cidrerie', () => {
+    const mail = shippingNotice(settled, settings)
     for (const content of [mail.html, mail.text]) {
-      expect(content).toContain('est jointe à cet email')
+      expect(content).toContain(
+        'MF Group vous enverra sa facture PowerPay de CHF 63.00 en fin de mois'
+      )
       expect(content).not.toContain(settings.iban)
       expect(content).not.toContain('déjà réglée')
     }
   })
 
-  it('avis d’expédition sans la pièce jointe : le client est prévenu', () => {
-    const mail = shippingNotice(settled, settings)
-    expect(mail.text).toContain('transmise séparément')
-    expect(mail.text).not.toContain(settings.iban)
-  })
-
   it('retrait à la cave : même règle', () => {
-    const mail = shippingNotice({ ...settled, isPickup: true }, settings, {
-      powerPayInvoiceAttached: true,
-    })
-    expect(mail.html).toContain('est jointe à cet email')
-    expect(mail.html).not.toContain(settings.iban)
-    expect(mail.text).not.toContain(settings.iban)
+    const mail = shippingNotice({ ...settled, isPickup: true }, settings)
+    for (const content of [mail.html, mail.text]) {
+      expect(content).toContain('MF Group vous enverra sa facture PowerPay')
+      expect(content).not.toContain(settings.iban)
+    }
   })
 
-  it('facture Drinkcider : règlement via POWERPAY, ni IBAN ni « acquittée »', () => {
+  it('facture Drinkcider : règlement via PowerPay, ni IBAN ni « acquittée »', () => {
     const mail = invoiceEmail(settled, settings)
     for (const content of [mail.html, mail.text]) {
-      expect(content).toContain('MF Group')
+      expect(content).toContain('qui vous enverra sa facture PowerPay en fin de mois')
       expect(content).not.toContain(settings.iban)
       expect(content).not.toContain('acquittée')
     }
+    expect(mail.html).toContain('règlement via PowerPay')
     expect(mail.html).toContain('Supplément facture')
   })
 
-  it('annulation : la facture POWERPAY est annulée, aucun remboursement sur carte annoncé', () => {
+  it('annulation : MF Group ne facture rien, aucun remboursement sur carte annoncé', () => {
     const mail = orderCancellation(settled, settings)
-    expect(mail.text).toContain('facture POWERPAY')
-    expect(mail.text).not.toContain('remboursé')
+    for (const content of [mail.html, mail.text]) {
+      expect(content).toContain('MF Group ne vous facturera rien pour cette commande')
+      expect(content).not.toContain('remboursé')
+    }
+  })
+
+  it('aucun texte n’écrit plus la marque en capitales', () => {
+    const mails = [
+      orderConfirmation(powerPay, settings),
+      shippingNotice(settled, settings),
+      invoiceEmail(settled, settings),
+      orderCancellation(settled, settings),
+    ]
+    for (const mail of mails) expect(`${mail.html}${mail.text}`).not.toContain('POWERPAY')
   })
 })
 

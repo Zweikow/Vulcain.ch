@@ -9,7 +9,12 @@ import { can } from '@/lib/permissions'
 import { cancelOrder, deleteOrder } from '@/lib/cancellation'
 import { notifyOrderCancelled } from '@/lib/notifications'
 import { recordAudit } from '@/lib/audit'
-import { acceptPaymentToVerify, syncPaymentTransaction, type SyncResult } from '@/lib/payments/sync'
+import {
+  acceptPaymentToVerify,
+  emailsNote,
+  syncPaymentTransaction,
+  type SyncResult,
+} from '@/lib/payments/sync'
 import { describePostFinanceError } from '@/lib/payments/postfinance'
 import { isFinalTransactionState, transactionStateLabel } from '@/lib/payments/states'
 
@@ -216,11 +221,11 @@ function syncMessage(result: SyncResult): string {
   switch (result.outcome) {
     case 'payee':
       return result.newlyPaid
-        ? 'Paiement confirmé par PostFinance : commande passée « À traiter », emails envoyés.'
+        ? `Paiement confirmé par PostFinance : commande passée « À traiter »${emailsNote(result.emailsSent)}`
         : 'Paiement déjà enregistré.'
     case 'acceptee':
       return result.newlyAccepted
-        ? 'Facture PowerPay acceptée : commande passée « À traiter », emails envoyés.'
+        ? `Facture PowerPay acceptée : commande passée « À traiter »${emailsNote(result.emailsSent)}`
         : 'Acceptation sur facture déjà enregistrée.'
     case 'anomalie':
       return `À vérifier : ${result.detail}`

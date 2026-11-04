@@ -162,27 +162,6 @@ export async function completeTransactionOnline(transactionId: number): Promise<
   })
 }
 
-/**
- * Facture POWERPAY générée par la plateforme (livraison immédiate), en PDF.
- * Exige la génération des documents dans le connecteur et le droit de lire les
- * factures sur le rôle ; lève une erreur sinon.
- */
-export async function readInvoiceDocument(
-  transactionId: number
-): Promise<{ title: string | null; mimeType: string | null; data: Uint8Array }> {
-  const { config, transactions } = getClients()
-  const document = await transactions.getPaymentTransactionsIdInvoiceDocument({
-    id: transactionId,
-    space: config.spaceId,
-  })
-  if (!document.data) throw new Error('Document de facture vide')
-  return {
-    title: document.title ?? null,
-    mimeType: document.mimeType ?? null,
-    data: new Uint8Array(Buffer.from(document.data, 'base64')),
-  }
-}
-
 /** Relit l'état d'une transaction : seule source de vérité pour marquer une commande payée. */
 export async function readTransaction(transactionId: number): Promise<TransactionSnapshot> {
   const { config, transactions } = getClients()

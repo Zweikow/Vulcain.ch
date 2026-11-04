@@ -257,8 +257,8 @@ export function orderConfirmation(order: MailOrder, settings: MailSettings): Mai
       <li style="margin-bottom:6px;">Votre commande est préparée sous ${settings.prepDays} jours ouvrés avec le plus grand soin.</li>
       ${
         powerPayOrder(order)
-          ? `<li style="margin-bottom:6px;">Votre commande est <strong>acceptée sur facture POWERPAY</strong> : aucun montant n'a été débité.</li>
-      <li>La facture POWERPAY de <strong>${formatCHF(order.totalCents)}</strong> vous sera envoyée par email avec l'avis d'expédition. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.</li>`
+          ? `<li style="margin-bottom:6px;">Votre commande est <strong>acceptée sur facture PowerPay</strong> : aucun montant n'a été débité.</li>
+      <li>MF Group vous enverra sa facture PowerPay de <strong>${formatCHF(order.totalCents)}</strong> en fin de mois. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.</li>`
           : paidOnline(order)
             ? `<li style="margin-bottom:6px;">Votre paiement de <strong>${formatCHF(order.totalCents)}</strong> a bien été reçu ${escapeHtml(paymentReceipt(order))}.</li>
       <li>Votre facture acquittée vous sera transmise à l'expédition.</li>`
@@ -282,7 +282,7 @@ ${order.isPickup ? 'Retrait convenu à la cave (Les Paccots).' : `Livraison à :
 Votre commande est préparée sous ${settings.prepDays} jours ouvrés.
 ${
   powerPayOrder(order)
-    ? `Votre commande est acceptée sur facture POWERPAY : aucun montant n'a été débité. La facture de ${formatCHF(order.totalCents)} vous sera envoyée par email avec l'avis d'expédition. Elle se règle auprès de MF Group.`
+    ? `Votre commande est acceptée sur facture PowerPay : aucun montant n'a été débité. MF Group vous enverra sa facture PowerPay de ${formatCHF(order.totalCents)} en fin de mois. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
     : paidOnline(order)
       ? `Votre paiement de ${formatCHF(order.totalCents)} a bien été reçu ${paymentReceipt(order)}.`
       : 'Le paiement se fait sur facture à 30 jours (bulletin QR officiel).'
@@ -380,15 +380,10 @@ ${resolvedAdminUrl}`
 }
 
 /** 3. Avis d'expédition ou mise à disposition pour retrait. */
-export function shippingNotice(
-  order: MailOrder,
-  settings: MailSettings,
-  options: { powerPayInvoiceAttached?: boolean } = {}
-): MailMessage {
+export function shippingNotice(order: MailOrder, settings: MailSettings): MailMessage {
   const powerPay = powerPayOrder(order)
-  const powerPayText = options.powerPayInvoiceAttached
-    ? `Votre facture POWERPAY de ${formatCHF(order.totalCents)} est jointe à cet email. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
-    : `Votre facture POWERPAY de ${formatCHF(order.totalCents)} vous sera transmise séparément. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
+  // Remise mensuelle : MF Group envoie lui-même sa facture, le site n'en joint aucune
+  const powerPayText = `MF Group vous enverra sa facture PowerPay de ${formatCHF(order.totalCents)} en fin de mois. Elle se règle auprès de MF Group, aux conditions indiquées sur la facture.`
   const powerPayBlock = `
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:14px;font-size:13px;margin:18px 0;">
       <div style="font-weight:600;color:#153243;margin-bottom:6px;">Règlement de votre commande :</div>
@@ -565,12 +560,12 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
 
     <div style="background:#FAF9F5;border:1px solid #EAE7DC;border-radius:8px;padding:16px;font-size:13px;margin:16px 0;">
       <div style="font-size:16px;font-weight:700;color:#153243;margin-bottom:8px;">
-        Facture n° ${order.invoiceNumber || order.numero}${powerPay ? ' (règlement via POWERPAY)' : order.paidAt ? ' (acquittée)' : ''}
+        Facture n° ${order.invoiceNumber || order.numero}${powerPay ? ' (règlement via PowerPay)' : order.paidAt ? ' (acquittée)' : ''}
       </div>
       ${
         powerPay
           ? `Montant : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong><br>
-      Ce montant se règle auprès de MF Group, avec la facture POWERPAY transmise avec l'avis d'expédition. Merci de ne rien verser à ${escapeHtml(SITE_CONFIG.name)}.`
+      Ce montant se règle auprès de MF Group, qui vous enverra sa facture PowerPay en fin de mois. Merci de ne rien verser à ${escapeHtml(SITE_CONFIG.name)}.`
           : order.paidAt
             ? `Montant réglé : <strong style="font-size:15px;color:#153243;">${formatCHF(order.totalCents)}</strong>, reçu ${escapeHtml(paymentReceipt(order))}.<br>
       Aucun paiement n'est attendu.`
@@ -601,7 +596,7 @@ Voici votre facture pour la commande ${order.numero}.
 Facture n° : ${order.invoiceNumber || order.numero}
 ${
   powerPay
-    ? `Montant : ${formatCHF(order.totalCents)}. Ce montant se règle auprès de MF Group, avec la facture POWERPAY transmise avec l'avis d'expédition. Merci de ne rien verser à ${SITE_CONFIG.name}.`
+    ? `Montant : ${formatCHF(order.totalCents)}. Ce montant se règle auprès de MF Group, qui vous enverra sa facture PowerPay en fin de mois. Merci de ne rien verser à ${SITE_CONFIG.name}.`
     : order.paidAt
       ? `Montant réglé : ${formatCHF(order.totalCents)}, reçu ${paymentReceipt(order)}. Aucun paiement n'est attendu.`
       : `Montant : ${formatCHF(order.totalCents)}
@@ -723,7 +718,7 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
     <p style="margin:0 0 14px;">Votre commande <strong style="font-family:monospace;color:#153243;">${order.numero}</strong> a bien été annulée.</p>
     <p style="margin:0 0 14px;">${
       powerPayOrder(order)
-        ? 'Elle ne sera pas préparée. La facture POWERPAY correspondante est annulée : merci de ne pas la régler.'
+        ? 'Elle ne sera pas préparée, et MF Group ne vous facturera rien pour cette commande.'
         : paidOnline(order)
           ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
           : 'Elle ne sera pas préparée et aucun montant ne vous sera facturé.'
@@ -743,7 +738,7 @@ export function orderCancellation(order: MailOrder, settings: MailSettings): Mai
 
 Votre commande ${order.numero} a bien été annulée. ${
     powerPayOrder(order)
-      ? 'Elle ne sera pas préparée. La facture POWERPAY correspondante est annulée : merci de ne pas la régler.'
+      ? 'Elle ne sera pas préparée, et MF Group ne vous facturera rien pour cette commande.'
       : paidOnline(order)
         ? `Elle ne sera pas préparée. Le montant de ${formatCHF(order.totalCents)} payé en ligne vous sera remboursé sur le moyen de paiement utilisé.`
         : 'Elle ne sera pas préparée et rien ne vous sera facturé.'

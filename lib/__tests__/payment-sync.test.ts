@@ -283,6 +283,18 @@ describe('Double vérification du mode et de la transaction active (lot B)', () 
     })
   })
 
+  it('carte : moyen de paiement enregistré en français, pas sous le nom anglais de PostFinance', async () => {
+    seed({ paymentChoice: 'CARTE' }, { paymentChoice: 'CARTE' })
+    mocks.readTransaction.mockResolvedValue(
+      remote('FULFILL', { paymentMethod: 'Credit / Debit Card', paymentMethodConfigurationId: 11 })
+    )
+    expect(await syncPaymentTransaction(BigInt(1001), 'webhook')).toMatchObject({
+      outcome: 'payee',
+    })
+    expect(order().paymentMethod).toBe('Paiement en ligne (Carte de crédit/débit)')
+    expect(mocks.attempts[0].paymentMethod).toBe('Carte de crédit/débit')
+  })
+
   it('mode utilisé différent du mode choisi : à vérifier, aucun email', async () => {
     seed({ paymentChoice: 'TWINT' }, { paymentChoice: 'TWINT' })
     mocks.readTransaction.mockResolvedValue(

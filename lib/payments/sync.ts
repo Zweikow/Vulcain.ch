@@ -33,8 +33,21 @@ export type SyncOrigin = 'webhook' | 'admin'
 
 export type SyncResult =
   | { outcome: 'ignoree'; detail: string }
-  | { outcome: 'payee'; orderId: string; numero: string; newlyPaid: boolean }
-  | { outcome: 'acceptee'; orderId: string; numero: string; newlyAccepted: boolean }
+  | {
+      outcome: 'payee'
+      orderId: string
+      numero: string
+      newlyPaid: boolean
+      /** Confirmation et notification parties (seulement à la première confirmation) */
+      emailsSent?: boolean
+    }
+  | {
+      outcome: 'acceptee'
+      orderId: string
+      numero: string
+      newlyAccepted: boolean
+      emailsSent?: boolean
+    }
   | { outcome: 'en_cours' | 'echouee'; orderId: string; numero: string; state: string }
   | { outcome: 'anomalie' | 'a_verifier'; orderId: string; numero: string; detail: string }
 
@@ -44,6 +57,29 @@ const INVOICE_ACCEPTED_STATES = ['AUTHORIZED', 'COMPLETED', 'FULFILL']
 
 const choiceLabel = (choice: PaymentChoiceValue | null | undefined) =>
   choice ? PAYMENT_CHOICE_LABELS[choice] : 'inconnu'
+
+/**
+ * Moyen de paiement affiché dans l'admin, les emails et la facture : le libellé
+ * français du mode réellement utilisé quand il est connu, sinon le nom renvoyé
+ * par PostFinance (« Credit / Debit Card » pour la carte, par exemple).
+ */
+function paymentMethodName(
+  usedChoice: PaymentChoiceValue | null,
+  remoteName: string | null
+): string | null {
+  if (usedChoice) return PAYMENT_CHOICE_LABELS[usedChoice]
+  return remoteName ? remoteName.slice(0, 60) : null
+}
+
+const onlinePaymentMethod = (name: string | null) =>
+  name ? `Paiement en ligne (${name})` : 'Paiement en ligne'
+
+/** Fin des messages de l'admin : n'annonce les emails que s'ils sont partis. */
+export function emailsNote(emailsSent: boolean | undefined): string {
+  return emailsSent
+    ? ', emails envoyés.'
+    : ". L'envoi des emails a échoué : voir l'historique des envois de la commande."
+}
 
 type AttemptToCheck = {
   amountCents: number
@@ -115,6 +151,7 @@ export async function syncPaymentTransaction(
   const { order } = attempt
   const status = paymentStatusOf(remote.state)
   const usedChoice = choiceOfConfiguration(remote.paymentMethodConfigurationId)
+  const methodName = paymentMethodName(usedChoice, remote.paymentMethod)
   const invoice = attempt.paymentChoice === 'FACTURE' || usedChoice === 'FACTURE'
   const settled = invoice ? INVOICE_ACCEPTED_STATES.includes(remote.state) : status === 'PAYE'
 
@@ -130,7 +167,7 @@ export async function syncPaymentTransaction(
     where: { id: attempt.id, state: { notIn: [...FINAL_TRANSACTION_STATES] } },
     data: {
       state: remote.state,
-      ...(remote.paymentMethod ? { paymentMethod: remote.paymentMethod.slice(0, 100) } : {}),
+      ...(methodName ? { paymentMethod: methodName } : {}),
       ...(remote.paymentMethodConfigurationId
         ? { paymentMethodConfigurationId: BigInt(remote.paymentMethodConfigurationId) }
         : {}),
@@ -222,13 +259,14 @@ export async function syncPaymentTransaction(
         paymentMethod: 'Facture (PowerPay)',
       },
     })
+    let emailsSent: boolean | undefined
     if (count === 1) {
       await audit(
         AuditAction.FACTURE_ACCEPTEE,
         `${formatCHF(order.totalCents)} - solvabilité acceptée par PowerPay - transaction ${id}`
       )
       // Confirmation au client et notification à la cidrerie : seulement maintenant
-      await notifyOrderPlaced(order.id)
+      emailsSent = await notifyOrderPlaced(order.id)
     }
     // Encaissée à l'expédition : la facture est réglée par MF Group
     if (remote.state === 'FULFILL') {
@@ -237,13 +275,11 @@ export async function syncPaymentTransaction(
         data: { paidAt: remote.completedOn ?? remote.decisionOn ?? new Date() },
       })
     }
-    return { outcome: 'acceptee', ...ref, newlyAccepted: count === 1 }
+    return { outcome: 'acceptee', ...ref, newlyAccepted: count === 1, emailsSent }
   }
 
   async function confirmPayment(): Promise<SyncResult> {
-    const paymentMethod = remote.paymentMethod
-      ? `Paiement en ligne (${remote.paymentMethod.slice(0, 60)})`
-      : 'Paiement en ligne'
+    const paymentMethod = onlinePaymentMethod(methodName)
     const { count } = await prisma.order.updateMany({
       where: { id: order.id, status: OrderStatus.EN_ATTENTE_PAIEMENT, paidAt: null },
       data: {
@@ -259,8 +295,8 @@ export async function syncPaymentTransaction(
         `${formatCHF(order.totalCents)} - ${paymentMethod} - transaction ${id}`
       )
       // Confirmation au client et notification à la cidrerie : seulement maintenant
-      await notifyOrderPlaced(order.id)
-      return { outcome: 'payee', ...ref, newlyPaid: true }
+      const emailsSent = await notifyOrderPlaced(order.id)
+      return { outcome: 'payee', ...ref, newlyPaid: true, emailsSent }
     }
 
     // Déjà payée : rejeu de la même notification, ou second paiement réussi
@@ -323,9 +359,7 @@ export async function acceptPaymentToVerify(orderId: string): Promise<AcceptPaym
 
     const paymentMethod = invoice
       ? 'Facture (PowerPay)'
-      : remote.paymentMethod
-        ? `Paiement en ligne (${remote.paymentMethod.slice(0, 60)})`
-        : 'Paiement en ligne'
+      : onlinePaymentMethod(paymentMethodName(usedChoice, remote.paymentMethod))
     const accepted = await prisma.$transaction(async (tx) => {
       const { count } = await tx.order.updateMany({
         where: { id: order.id, status: OrderStatus.A_VERIFIER },
@@ -362,10 +396,10 @@ export async function acceptPaymentToVerify(orderId: string): Promise<AcceptPaym
       { type: AuditTargetType.COMMANDE, id: order.id, label: order.numero },
       `Accepté après vérification - ${formatCHF(order.totalCents)} - ${paymentMethod} - transaction ${attempt.transactionId}`
     )
-    await notifyOrderPlaced(order.id)
+    const emailsSent = await notifyOrderPlaced(order.id)
     return {
       ok: true,
-      message: 'Paiement accepté : commande passée « À traiter », emails envoyés.',
+      message: `Paiement accepté : commande passée « À traiter »${emailsNote(emailsSent)}`,
     }
   }
 

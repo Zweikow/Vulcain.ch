@@ -341,8 +341,8 @@ function ViewHeader({
       title: 'Commande acceptée sur facture',
       text: (
         <>
-          Merci, votre commande {reference} est confirmée. La facture POWERPAY vous sera envoyée par
-          email avec l&apos;avis d&apos;expédition ; elle se règle auprès de MF Group.
+          Merci, votre commande {reference} est confirmée. MF Group vous enverra sa facture PowerPay
+          en fin de mois ; elle se règle auprès de MF Group.
         </>
       ),
     },
@@ -386,8 +386,8 @@ function ViewHeader({
           {invoiceFeeCents > 0 ? (
             <>
               {' '}
-              : le supplément de <span className="tabular">{formatCHF(invoiceFeeCents)}</span> est
-              retiré.
+              : le supplément de <span className="tabular">{formatCHF(invoiceFeeCents)}</span>{' '}
+              disparaît du total dès que vous l&apos;avez choisi.
             </>
           ) : (
             '.'

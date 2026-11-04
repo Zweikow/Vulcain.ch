@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getSettings } from '@/lib/settings'
-import { sendMail, type MailAttachment } from '@/lib/mail'
+import { sendMail } from '@/lib/mail'
 import { getSiteUrl } from '@/lib/site'
-import { describePostFinanceError, readInvoiceDocument } from '@/lib/payments/postfinance'
 import {
   orderConfirmation,
   shopNotification,
@@ -111,11 +110,14 @@ async function recordLog(
   }
 }
 
-/** Confirmation au client et notification à la cidrerie (info@drinkcider.ch). */
-export async function notifyOrderPlaced(orderId: string): Promise<void> {
+/**
+ * Confirmation au client et notification à la cidrerie (info@drinkcider.ch).
+ * Renvoie vrai si les deux emails sont partis.
+ */
+export async function notifyOrderPlaced(orderId: string): Promise<boolean> {
   try {
     const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])
-    if (!order) return
+    if (!order) return false
 
     const siteUrl = process.env.ADMIN_BASE_URL || getSiteUrl()
     const adminUrl = `${siteUrl}/admin/commandes/${orderId}`
@@ -142,62 +144,11 @@ export async function notifyOrderPlaced(orderId: string): Promise<void> {
       adminRes.success,
       adminRes.error
     )
+    return clientRes.success && adminRes.success
   } catch (error) {
     console.error('Notification de commande impossible', { orderId, error })
+    return false
   }
-}
-
-/**
- * Facture POWERPAY de la commande (livraison immédiate), pour l'avis
- * d'expédition. Si elle est indisponible, l'avis part quand même et l'échec est
- * journalisé : l'exploitant peut renvoyer l'avis depuis la fiche commande.
- */
-async function powerPayInvoiceAttachment(order: MailOrder): Promise<MailAttachment | null> {
-  if (!order.id || !order.invoiceAcceptedAt) return null
-  const active = await prisma.paymentTransaction.findFirst({
-    where: { orderId: order.id, supersededAt: null },
-    orderBy: { createdAt: 'desc' },
-    select: { transactionId: true },
-  })
-  let failure = 'Aucune transaction active'
-  if (active) {
-    // Juste après l'encaissement, le document peut mettre un instant à être prêt
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 2000))
-      try {
-        const document = await readInvoiceDocument(Number(active.transactionId))
-        return {
-          fileName: `Facture-POWERPAY-${order.numero}.pdf`,
-          contentType: document.mimeType ?? 'application/pdf',
-          data: document.data,
-        }
-      } catch (error) {
-        failure = await describePostFinanceError(error)
-      }
-    }
-  }
-  console.error('Facture POWERPAY indisponible', { commande: order.numero, erreur: failure })
-  await recordLog(
-    order.id,
-    'FACTURE_POWERPAY',
-    order.clientEmail,
-    'Facture POWERPAY non jointe à l’avis d’expédition',
-    false,
-    failure
-  )
-  return null
-}
-
-/** Avis d'expédition, avec la facture POWERPAY en pièce jointe s'il y a lieu. */
-async function buildShippingNotice(
-  order: MailOrder,
-  settings: Awaited<ReturnType<typeof getSettings>>
-) {
-  const attachment = await powerPayInvoiceAttachment(order)
-  const msg = shippingNotice(order, mailSettings(settings), {
-    powerPayInvoiceAttached: attachment !== null,
-  })
-  return attachment ? { ...msg, attachments: [attachment] } : msg
 }
 
 /** Avis d'expédition ou de mise à disposition pour retrait au domaine. */
@@ -206,7 +157,7 @@ export async function notifyOrderShipped(orderId: string): Promise<boolean> {
     const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])
     if (!order) return false
 
-    const msg = await buildShippingNotice(order, settings)
+    const msg = shippingNotice(order, mailSettings(settings))
     const res = await sendMail(msg)
     await recordLog(
       orderId,
@@ -286,7 +237,7 @@ export async function resendShippingNotice(
     const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])
     if (!order) return { success: false, error: 'Commande introuvable' }
 
-    const msg = await buildShippingNotice(order, settings)
+    const msg = shippingNotice(order, mailSettings(settings))
     const res = await sendMail(msg)
     await recordLog(
       orderId,
