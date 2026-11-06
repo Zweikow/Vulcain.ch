@@ -89,6 +89,9 @@ export function parseCamtXml(xmlString: string): ParsedCamtTransaction[] {
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
     trimValues: true,
+    // Tout reste du texte : lue comme un nombre, une référence QR de 27 chiffres
+    // perdrait ses zéros de tête et sa précision. Les montants sont convertis à part.
+    parseTagValue: false,
     isArray: (name) => ['Ntfctn', 'Stmt', 'Ntry', 'TxDtls', 'Ustrd'].includes(name),
   })
 
@@ -232,7 +235,10 @@ export async function analyzeCamtTransactions(
     orderBy: { createdAt: 'desc' },
   })
 
-  // Indexation pré-calculée pour recherche ultra-rapide
+  // Indexation pré-calculée pour recherche ultra-rapide. Les deux types de
+  // référence sont indexés quel que soit l'IBAN configuré : les factures déjà
+  // envoyées avec une référence RF restent payables après le passage au QR-IBAN.
+  // Le chiffre de série de la référence QR sépare CMD et FAC du même numéro.
   const orderByNumber = new Map<string, (typeof orders)[0]>()
   const orderByInvoice = new Map<string, (typeof orders)[0]>()
   const orderByScorRef = new Map<string, (typeof orders)[0]>()
@@ -329,10 +335,12 @@ export async function analyzeCamtTransactions(
 
     // 3. Recherche dans la communication libre (Ustrd)
     if (!matchedOrder && tx.unstructuredRemittance) {
-      const ustrd = tx.unstructuredRemittance.toUpperCase()
+      // Sans espaces : la référence RF recopiée telle qu'imprimée (RF59 FAC2 0260 001)
+      // redevient lisible, comme FAC 2026 0001.
+      const ustrd = tx.unstructuredRemittance.toUpperCase().replace(/\s+/g, '')
 
-      // Regex pour facture : FAC-AAAA-NNNN ou FAC AAAA NNNN
-      const facMatch = ustrd.match(/FAC[- ]?(\d{4})[- ]?(\d{4})/)
+      // Regex pour facture : FAC-AAAA-NNNN, FAC AAAA NNNN ou référence RF
+      const facMatch = ustrd.match(/FAC-?(\d{4})-?(\d{4})/)
       if (facMatch) {
         const invKey = `FAC-${facMatch[1]}-${facMatch[2]}`
         if (orderByInvoice.has(invKey)) {
@@ -341,8 +349,8 @@ export async function analyzeCamtTransactions(
         }
       }
 
-      // Regex pour commande : CMD-AAAA-NNNN ou CMD AAAA NNNN
-      const cmdMatch = ustrd.match(/CMD[- ]?(\d{4})[- ]?(\d{4})/)
+      // Regex pour commande : CMD-AAAA-NNNN, CMD AAAA NNNN ou référence RF
+      const cmdMatch = ustrd.match(/CMD-?(\d{4})-?(\d{4})/)
       if (!matchedOrder && cmdMatch) {
         const cmdKey = `CMD-${cmdMatch[1]}-${cmdMatch[2]}`
         if (orderByNumber.has(cmdKey)) {

@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
-import { creditorReference } from '@/lib/reference'
 
 /**
  * Émet la facture d'une commande : attribue le numéro de la série FAC et fige
@@ -26,9 +25,4 @@ export async function issueInvoice(orderId: string): Promise<string | null> {
     })
     return invoiceNumber
   })
-}
-
-/** Référence de paiement ISO 11649 d'une facture émise. */
-export function paymentReference(invoiceNumber: string): string {
-  return creditorReference(invoiceNumber)
 }

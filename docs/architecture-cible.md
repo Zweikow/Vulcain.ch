@@ -111,11 +111,12 @@ bulletins rouges et oranges) demande trois choses :
    de 62 mm, polices et tailles imposées. C'est une mise en page à part entière,
    pas une simple image ajoutée.
 
-Point à trancher avant : l'IBAN actuel (`CH57 0900 …`, PostFinance) est un IBAN
-classique → référence `NON`, le client paie sans numéro de référence. Pour un
-rapprochement automatique des paiements avec le numéro de commande, il faut
-demander un **QR-IBAN** à PostFinance et utiliser une référence `QRR` — c'est ce
-qui permettrait de pointer `CMD-2026-0002` avec le virement reçu.
+Point à trancher : l'IBAN actuel (`CH57 0900 …`, PostFinance) est un IBAN
+classique. Les factures portent alors une référence RF (`SCOR`, ISO 11649),
+admise par la QR-facture mais qui n'est pas la référence QR suisse. Le code gère
+les deux (`paymentReference` dans `lib/reference.ts`) : dès qu'un **QR-IBAN**
+PostFinance est saisi dans les paramètres, les factures passent à la référence
+`QRR`, et l'import camt continue de lire les références RF déjà envoyées.
 
 ## 5. Décisions notables (rappel)
 
