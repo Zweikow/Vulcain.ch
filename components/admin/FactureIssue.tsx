@@ -3,12 +3,13 @@
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { issueInvoiceForOrder } from '@/app/admin/(protected)/commandes/[id]/facture/actions'
-import { creditorReference, formatCreditorReference } from '@/lib/reference'
 
 interface FactureIssueProps {
   orderId: string
   invoiceNumber: string | null
   invoicedAt: Date | null
+  /** Référence de paiement imprimée (QR ou RF selon l'IBAN), calculée côté serveur. */
+  reference: string | null
 }
 
 const stamp = new Intl.DateTimeFormat('fr-CH', {
@@ -17,7 +18,7 @@ const stamp = new Intl.DateTimeFormat('fr-CH', {
   year: 'numeric',
 })
 
-export function FactureIssue({ orderId, invoiceNumber, invoicedAt }: FactureIssueProps) {
+export function FactureIssue({ orderId, invoiceNumber, invoicedAt, reference }: FactureIssueProps) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
@@ -31,8 +32,12 @@ export function FactureIssue({ orderId, invoiceNumber, invoicedAt }: FactureIssu
           {invoiceNumber}
         </span>
         <span className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
-          {invoicedAt && `Émise le ${stamp.format(invoicedAt)} · `}
-          Référence {formatCreditorReference(creditorReference(invoiceNumber))}
+          {[
+            invoicedAt && `Émise le ${stamp.format(invoicedAt)}`,
+            reference && `Référence ${reference}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </span>
       </div>
     )

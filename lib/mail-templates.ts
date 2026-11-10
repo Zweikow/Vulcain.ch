@@ -1,5 +1,5 @@
 import { formatCHF } from '@/lib/money'
-import { creditorReference, formatCreditorReference } from '@/lib/reference'
+import { paymentReference } from '@/lib/reference'
 import { getSiteUrl, SITE_CONFIG } from '@/lib/site'
 import type { MailMessage } from '@/lib/mail'
 
@@ -392,7 +392,7 @@ export function shippingNotice(order: MailOrder, settings: MailSettings): MailMe
   const due = new Date()
   due.setDate(due.getDate() + settings.paymentTermsDays)
   const reference = order.invoiceNumber
-    ? formatCreditorReference(creditorReference(order.invoiceNumber))
+    ? paymentReference(settings.iban, order.invoiceNumber).formatted
     : null
 
   // Cas 1 : Retrait à la cave
@@ -448,7 +448,7 @@ ${
       : `Règlement de votre commande :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
-Échéance : ${longDate.format(due)}`
+${reference ? `Référence : ${reference}\n` : ''}Échéance : ${longDate.format(due)}`
 }
 
 Cidricolement,
@@ -500,7 +500,7 @@ ${settings.contactName}`
       Montant total : <strong>${formatCHF(order.totalCents)}</strong><br>
       Compte IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
       Bénéficiaire : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (Bertrand Baeriswyl)<br>
-      ${reference ? `Référence structurée : <span style="font-family:monospace;">${reference}</span><br>` : ''}
+      ${reference ? `Référence : <span style="font-family:monospace;">${reference}</span><br>` : ''}
       Date limite de paiement : <strong>${longDate.format(due)}</strong> (30 jours)
     </div>`
 
@@ -527,7 +527,7 @@ ${
       : `Règlement :
 Montant : ${formatCHF(order.totalCents)}
 IBAN : ${settings.iban}
-Échéance : ${longDate.format(due)}`
+${reference ? `Référence : ${reference}\n` : ''}Échéance : ${longDate.format(due)}`
 }
 
 Bonne dégustation.
@@ -551,7 +551,7 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
   const due = new Date()
   due.setDate(due.getDate() + settings.paymentTermsDays)
   const reference = order.invoiceNumber
-    ? formatCreditorReference(creditorReference(order.invoiceNumber))
+    ? paymentReference(settings.iban, order.invoiceNumber).formatted
     : null
 
   const body = `
@@ -573,7 +573,7 @@ export function invoiceEmail(order: MailOrder, settings: MailSettings): MailMess
       Échéance : <strong>${longDate.format(due)}</strong> (Net 30 jours)<br>
       IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
       Créancier : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (Bertrand Baeriswyl)<br>
-      ${reference ? `Référence QR : <span style="font-family:monospace;">${reference}</span><br>` : ''}`
+      ${reference ? `Référence : <span style="font-family:monospace;">${reference}</span><br>` : ''}`
       }
     </div>
 
@@ -602,7 +602,7 @@ ${
       : `Montant : ${formatCHF(order.totalCents)}
 Échéance : ${longDate.format(due)}
 IBAN : ${settings.iban}
-Bénéficiaire : ${SITE_CONFIG.legalName}`
+${reference ? `Référence : ${reference}\n` : ''}Bénéficiaire : ${SITE_CONFIG.legalName}`
 }
 
 Lien de consultation : ${invoiceUrl}
@@ -634,7 +634,7 @@ export function paymentReminderEmail(
   const due = options?.dueDate || new Date()
   const count = options?.reminderCount ?? 1
   const reference = order.invoiceNumber
-    ? formatCreditorReference(creditorReference(order.invoiceNumber))
+    ? paymentReference(settings.iban, order.invoiceNumber).formatted
     : null
 
   const isSecondReminder = count >= 2
@@ -654,7 +654,7 @@ export function paymentReminderEmail(
       Date d'échéance : <strong>${longDate.format(due)}</strong><br>
       IBAN PostFinance : <strong style="font-family:monospace;">${escapeHtml(settings.iban)}</strong><br>
       Bénéficiaire : <strong>${escapeHtml(SITE_CONFIG.legalName)}</strong> (${escapeHtml(settings.contactName)})<br>
-      ${reference ? `Référence QR : <span style="font-family:monospace;">${reference}</span><br>` : ''}
+      ${reference ? `Référence : <span style="font-family:monospace;">${reference}</span><br>` : ''}
     </div>
 
     ${
@@ -687,7 +687,7 @@ Sauf erreur de notre part, la facture n° ${order.invoiceNumber || order.numero}
 Montant à régler : ${formatCHF(order.totalCents)}
 Échéance initiale : ${longDate.format(due)}
 IBAN : ${settings.iban}
-Bénéficiaire : ${SITE_CONFIG.legalName} (${settings.contactName})
+${reference ? `Référence : ${reference}\n` : ''}Bénéficiaire : ${SITE_CONFIG.legalName} (${settings.contactName})
 ${options?.customNote ? `\nMessage particulier :\n${options.customNote}\n` : ''}
 Si votre paiement a déjà été effectué, nous vous en remercions et vous prions de ne pas tenir compte de ce rappel.
 

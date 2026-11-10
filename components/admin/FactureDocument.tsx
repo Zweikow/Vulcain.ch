@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { ClientType, OrderStatus } from '@prisma/client'
 import { formatInvoiceAmount } from '@/lib/money'
+import { paymentReference } from '@/lib/reference'
 import { SwissQRBill } from '@/components/admin/SwissQRBill'
 import { CheckIcon } from '@/components/admin/AdminIcons'
 
@@ -206,6 +207,9 @@ export function FactureDocument({
   // Le délai de paiement court depuis l'émission de la facture, pas depuis la commande.
   const dueDate = new Date(order.invoicedAt ?? order.createdAt)
   dueDate.setDate(dueDate.getDate() + settings.paymentTermsDays)
+
+  // La même que celle du QR-code : facture émise, sinon numéro de commande.
+  const reference = paymentReference(settings.iban, order.invoiceNumber ?? order.numero)
 
   const cellBase = 'border border-[#D8DEE6] px-2 py-1 align-top'
   const handFill = 'border border-[#D8DEE6] px-2 py-1 bg-[#FCFCFA]'
@@ -676,9 +680,9 @@ export function FactureDocument({
                         <span className="font-mono font-semibold text-[#153243]">
                           {settings.iban}
                         </span>{' '}
-                        ({settings.bankName}), en indiquant en communication la référence{' '}
+                        ({settings.bankName}), en indiquant la référence de paiement{' '}
                         <span className="font-mono font-medium text-[#153243]">
-                          {order.invoiceNumber ?? order.numero}
+                          {reference.formatted}
                         </span>
                         .
                       </span>

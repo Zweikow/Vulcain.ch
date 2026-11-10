@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { SwissQRBill as SwissQRBillGenerator } from 'swissqrbill/svg'
-import { getBillReference } from '@/lib/reference'
+import { paymentReference } from '@/lib/reference'
 
 export interface SwissQRBillProps {
   order: {
@@ -55,11 +55,11 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
       try {
         const refTarget = order.invoiceNumber || order.numero
         if (refTarget) {
-          const res = getBillReference(cleanIban, refTarget)
-          reference = res.reference
+          reference = paymentReference(cleanIban, refTarget).reference
         }
       } catch {
-        // Fallback sans référence structurée si la cible est indisponible
+        // Sans référence si le numéro est illisible : avec un QR-IBAN, la
+        // bibliothèque refuse alors le bulletin plutôt que d'en produire un faux.
       }
 
       const bill = new SwissQRBillGenerator(
