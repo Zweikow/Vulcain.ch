@@ -8,6 +8,7 @@ variables:
       - "status_rds"
       - "snapshot_rds"
       - "teardown_sandbox"
+      - "migrate_dev"
     description: "Action FinOps / Maintenance manuelle à exécuter (laisser 'none' pour un pipeline normal)"
 
 stages:
@@ -184,30 +185,28 @@ verify_production:
 # ==============================================================================
 
 # 1. Éteindre l'instance RDS PostgreSQL (Économie immédiate de ~14$/mois)
+# Attention : cette instance porte aussi la base de production, que l'arrêt coupe.
+# Lancement seulement par un pipeline avec ACTION = stop_rds, et non plus par un
+# bouton des pipelines de develop ou de sandbox.
 rds:stop:
   stage: finops
   image: amazon/aws-cli:latest
   rules:
     - if: '$ACTION == "stop_rds"'
       when: on_success
-    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "sandbox"'
-      when: manual
-      allow_failure: true
   script:
-    - echo "Arrêt de l'instance RDS vulcain-db-dev..."
+    - echo "Arrêt de l'instance RDS vulcain-db-dev, base de production comprise..."
     - aws rds stop-db-instance --db-instance-identifier vulcain-db-dev --region eu-central-2
     - echo "Demande d'arrêt envoyée avec succès."
 
 # 2. Démarrer l'instance RDS PostgreSQL
+# Même instance que la production : lancement seulement par ACTION = start_rds.
 rds:start:
   stage: finops
   image: amazon/aws-cli:latest
   rules:
     - if: '$ACTION == "start_rds"'
       when: on_success
-    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "sandbox"'
-      when: manual
-      allow_failure: true
   script:
     - echo "Démarrage de l'instance RDS vulcain-db-dev..."
     - aws rds start-db-instance --db-instance-identifier vulcain-db-dev --region eu-central-2
@@ -260,4 +259,26 @@ sandbox:teardown:
     - echo "Nettoyage de l'infrastructure Sandbox sur AWS..."
     - npm ci
     - npx sst remove --stage sandbox
+
+# 6. Appliquer les migrations Prisma à la base de dev et sandbox, avec la
+# DATABASE_URL de l'environnement dev : personne n'a besoin de la connaître.
+# À lancer depuis la branche qui porte les migrations. La base de production
+# est refusée : elle se migre à la main, après une sauvegarde.
+db:migrate:dev:
+  stage: finops
+  image: node:20
+  rules:
+    - if: '$ACTION == "migrate_dev"'
+      when: on_success
+  environment:
+    name: dev
+    action: prepare
+  script:
+    - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est absente ou vide pour dev." >&2; exit 1; fi'
+    - 'DB_NAME=$(node -e "console.log(decodeURIComponent(new URL(process.env.DATABASE_URL).pathname.slice(1)))")'
+    - 'if [ "$DB_NAME" = "vulcain" ]; then echo "REFUS : vulcain est la base de production, qui se migre à la main." >&2; exit 1; fi'
+    - echo "Migrations Prisma sur la base $DB_NAME (environnement dev)..."
+    - npm ci
+    - npx prisma migrate deploy
+    - npx prisma migrate status
 
