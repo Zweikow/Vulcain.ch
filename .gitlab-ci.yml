@@ -8,6 +8,7 @@ variables:
       - "status_rds"
       - "snapshot_rds"
       - "teardown_sandbox"
+      - "migrate_dev"
     description: "Action FinOps / Maintenance manuelle à exécuter (laisser 'none' pour un pipeline normal)"
 
 stages:
@@ -260,4 +261,26 @@ sandbox:teardown:
     - echo "Nettoyage de l'infrastructure Sandbox sur AWS..."
     - npm ci
     - npx sst remove --stage sandbox
+
+# 6. Appliquer les migrations Prisma à la base de dev et sandbox, avec la
+# DATABASE_URL de l'environnement dev : personne n'a besoin de la connaître.
+# À lancer depuis la branche qui porte les migrations. La base de production
+# est refusée : elle se migre à la main, après une sauvegarde.
+db:migrate:dev:
+  stage: finops
+  image: node:20
+  rules:
+    - if: '$ACTION == "migrate_dev"'
+      when: on_success
+  environment:
+    name: dev
+    action: prepare
+  script:
+    - 'if [ -z "$DATABASE_URL" ]; then echo "ERREUR : DATABASE_URL est absente ou vide pour dev." >&2; exit 1; fi'
+    - 'DB_NAME=$(node -e "console.log(decodeURIComponent(new URL(process.env.DATABASE_URL).pathname.slice(1)))")'
+    - 'if [ "$DB_NAME" = "vulcain" ]; then echo "REFUS : vulcain est la base de production, qui se migre à la main." >&2; exit 1; fi'
+    - echo "Migrations Prisma sur la base $DB_NAME (environnement dev)..."
+    - npm ci
+    - npx prisma migrate deploy
+    - npx prisma migrate status
 
