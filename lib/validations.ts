@@ -43,6 +43,8 @@ export const orderSchema = z.object({
   items: z.array(orderItemSchema).min(1, 'Panier vide'),
   turnstileToken: z.string().min(1, 'Vérification requise'),
   promoCode: z.string().trim().max(50).optional(),
+  // Mode choisi sur le formulaire : la disponibilité est vérifiée par le serveur
+  paymentChoice: z.string().max(30).optional(),
   website: z.string().max(0).optional(),
 })
 

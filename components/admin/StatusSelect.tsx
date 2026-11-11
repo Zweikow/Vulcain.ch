@@ -27,7 +27,8 @@ export function StatusSelect({ orderId, currentStatus }: StatusSelectProps) {
     })
 
     if (!res.ok) {
-      setError('Erreur lors de la mise à jour du statut.')
+      const data = await res.json().catch(() => null)
+      setError(data?.error ?? 'Erreur lors de la mise à jour du statut.')
       return
     }
 

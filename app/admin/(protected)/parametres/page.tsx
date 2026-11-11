@@ -99,6 +99,29 @@ export default async function ParametresPage() {
           </p>
         </section>
 
+        {/* Paiement en ligne */}
+        <section className="card p-6">
+          <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">
+            Paiement en ligne
+          </h2>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
+              Supplément facture PowerPay (centimes)
+              <NumberField
+                name="invoiceFeeCents"
+                min={0}
+                max={10000}
+                defaultValue={s.invoiceFeeCents}
+                className="input-field mt-1 tabular"
+              />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+            Supplément actuel {formatCHF(s.invoiceFeeCents)}, ajouté au total quand le client
+            choisit la facture PowerPay. Les commandes déjà passées gardent leur montant.
+          </p>
+        </section>
+
         {/* Facturation */}
         <section className="card p-6">
           <h2 className="font-semibold text-[16px] text-text-primary dark:text-text-primary-dark">

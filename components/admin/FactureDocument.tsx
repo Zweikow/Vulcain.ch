@@ -32,6 +32,10 @@ type FactureOrder = {
   proRatePercent?: number | null
   paidAt?: Date | null
   paymentMethod?: string | null
+  /** Supplément facture PowerPay, compris dans le total */
+  invoiceFeeCents?: number
+  /** Acceptée sur facture PowerPay : le client règle MF Group, sans IBAN ni QR ici */
+  invoiceAcceptedAt?: Date | null
   customer?: {
     customerNumber?: number | null
   } | null
@@ -186,6 +190,7 @@ export function FactureDocument({
   forcedLayout?: 'auto' | 'single' | 'multipage'
 }) {
   const isPro = order.clientType === ClientType.PRO
+  const powerPay = Boolean(order.invoiceAcceptedAt)
   const effectiveProRate = order.proRatePercent ?? settings.proRatePercent
 
   // Si le mode est forcé, on le respecte, sinon seuil automatique à 3 articles
@@ -297,7 +302,12 @@ export function FactureDocument({
                   Tarif professionnel (−{effectiveProRate}%)
                 </span>
               )}
-              {order.paidAt && (
+              {powerPay && (
+                <span className="inline-flex items-center gap-1 font-semibold text-[#153243] bg-[#F7F6F0] px-2 py-0.5 rounded border border-[#D8DEE6]">
+                  Règlement via PowerPay
+                </span>
+              )}
+              {order.paidAt && !powerPay && (
                 <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
                   <CheckIcon className="w-3 h-3 text-green-700 inline" /> Facture acquittée{' '}
                   {order.paymentMethod ? `(${order.paymentMethod})` : ''}
@@ -413,6 +423,16 @@ export function FactureDocument({
                       : formatInvoiceAmount(order.shippingCents)}
                   </td>
                 </tr>
+                {order.invoiceFeeCents ? (
+                  <tr>
+                    <td className={`${cellBase} text-right`} colSpan={6}>
+                      Supplément facture
+                    </td>
+                    <td className={`${cellBase} text-right`}>
+                      {formatInvoiceAmount(order.invoiceFeeCents)}
+                    </td>
+                  </tr>
+                ) : null}
                 <tr className="bg-[#F7F6F0] font-bold">
                   <td className={`${cellBase} text-right`} colSpan={6}>
                     {settings.vatSubject ? 'Total TTC' : 'Total'}
@@ -438,25 +458,29 @@ export function FactureDocument({
 
             {/* Coordonnées bancaires & message */}
             <section className="mt-3 flex items-start justify-between gap-6 text-[11px] leading-relaxed">
-              <div>
-                <p className="font-semibold">Coordonnées bancaires</p>
-                <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
-                <p>{settings.bankName}</p>
-                {order.paidAt ? (
-                  <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
-                    <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
-                    <span>
-                      Facture acquittée le {longDate.format(new Date(order.paidAt))}
-                      {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
-                    </span>
-                  </p>
-                ) : (
-                  <p className="mt-1 font-medium">
-                    Facture payable à {settings.paymentTermsDays} jours net, au{' '}
-                    {longDate.format(dueDate)}.
-                  </p>
-                )}
-              </div>
+              {powerPay ? (
+                <PowerPayNotice companyName={settings.companyName} />
+              ) : (
+                <div>
+                  <p className="font-semibold">Coordonnées bancaires</p>
+                  <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
+                  <p>{settings.bankName}</p>
+                  {order.paidAt ? (
+                    <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
+                      <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
+                      <span>
+                        Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                        {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="mt-1 font-medium">
+                      Facture payable à {settings.paymentTermsDays} jours net, au{' '}
+                      {longDate.format(dueDate)}.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="text-right">
                 <p>Merci beaucoup pour votre commande.</p>
@@ -466,29 +490,31 @@ export function FactureDocument({
             </section>
 
             {/* Encart explicatif : le bulletin QR est sur la page suivante */}
-            <div className="mt-4 rounded border border-[#D8DEE6] bg-[#F7F6F0] px-3.5 py-2.5 text-[11px] text-[#153243] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-4 h-4 text-[#4A6278] shrink-0"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span className="font-semibold">
-                  Section de paiement : Bulletin QR-facture officiel sur la page suivante
+            {!powerPay && (
+              <div className="mt-4 rounded border border-[#D8DEE6] bg-[#F7F6F0] px-3.5 py-2.5 text-[11px] text-[#153243] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 text-[#4A6278] shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span className="font-semibold">
+                    Section de paiement : Bulletin QR-facture officiel sur la page suivante
+                  </span>
+                </div>
+                <span className="font-semibold text-[#4A6278] text-[10px] uppercase tracking-wider">
+                  Page 1 / 2 &rarr;
                 </span>
               </div>
-              <span className="font-semibold text-[#4A6278] text-[10px] uppercase tracking-wider">
-                Page 1 / 2 &rarr;
-              </span>
-            </div>
+            )}
 
             {/* Pied de page 1 */}
             <footer className="mt-auto border-t border-[#E2E8EF] pt-2 text-[9px] text-[#7A95A5]">
@@ -499,183 +525,199 @@ export function FactureDocument({
                   {settings.contactPhone && ` · ${settings.contactPhone}`}
                 </span>
                 <span className="font-medium text-[#153243]">
-                  La vente d&apos;alcool est interdite aux mineurs. · Page 1 / 2
+                  La vente d&apos;alcool est interdite aux mineurs. · Page 1 / {powerPay ? 1 : 2}
                 </span>
               </div>
             </footer>
           </div>
         </article>
 
-        {/* Séparateur visuel à l'écran entre les deux feuilles (non imprimé) */}
-        <div className="py-2.5 px-4 bg-[#F0F4F8] border-y border-[#D8DEE6] text-center text-[12px] font-medium text-[#4A6278] print:hidden flex items-center justify-center gap-2 select-none">
-          <span>Feuille 1 terminée</span>
-          <span className="text-[#A0AEC0]">·</span>
-          <span className="font-semibold text-[#153243]">Saut de page automatique</span>
-          <span className="text-[#A0AEC0]">·</span>
-          <span>Feuille 2 ci-dessous (Bulletin QR de paiement)</span>
-        </div>
+        {!powerPay && (
+          <>
+            {/* Séparateur visuel à l'écran entre les deux feuilles (non imprimé) */}
+            <div className="py-2.5 px-4 bg-[#F0F4F8] border-y border-[#D8DEE6] text-center text-[12px] font-medium text-[#4A6278] print:hidden flex items-center justify-center gap-2 select-none">
+              <span>Feuille 1 terminée</span>
+              <span className="text-[#A0AEC0]">·</span>
+              <span className="font-semibold text-[#153243]">Saut de page automatique</span>
+              <span className="text-[#A0AEC0]">·</span>
+              <span>Feuille 2 ci-dessous (Bulletin QR de paiement)</span>
+            </div>
 
-        {/* Page 2 : Annexe de paiement avec le QR-code suisse officiel complet en bas */}
-        <article
-          className="facture-page facture-page-2 bg-white text-[#153243]"
-          style={{ colorScheme: 'only light', forcedColorAdjust: 'none' } as React.CSSProperties}
-        >
-          <div className="facture-body facture-body-p2">
-            {/* En-tête Page 2 */}
-            <header className="flex items-start justify-between gap-8">
-              <div className="text-[12px] leading-relaxed">
-                <p className="font-bold text-[13px] tracking-tight">
-                  {settings.companyTagline || 'Drinkcider'}
-                </p>
-                <p className="font-medium text-[#4A6278]">{settings.contactName}</p>
-                <p className="text-[#7A95A5] text-[11px]">
-                  {settings.companyAddress}, {settings.companyZipCity}
-                </p>
-                {settings.contactPhone && (
-                  <p className="text-[#7A95A5] text-[11px]">Tél. {settings.contactPhone}</p>
-                )}
-                {settings.vatNumber && (
-                  <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">
-                    {settings.vatNumber}
-                  </p>
-                )}
-                <h2 className="mt-2.5 font-display text-[18px] font-bold tracking-tight text-[#153243]">
-                  Annexe de paiement — QR-facture suisse
-                </h2>
-                <p className="text-[11px] text-[#4A6278]">
-                  Bulletin de versement officiel lié à la{' '}
-                  {order.invoiceNumber
-                    ? `facture ${order.invoiceNumber}`
-                    : `commande ${order.numero}`}
-                </p>
-              </div>
-              <Image
-                src="/images/facture/logo-drinkcider.png"
-                alt="Drinkcider"
-                width={140}
-                height={67}
-                className="h-auto w-[120px] shrink-0"
-                priority
-                unoptimized
-              />
-            </header>
-
-            {/* Encadré récapitulatif débiteur / commande */}
-            <div className="mt-4 rounded border border-[#D8DEE6] bg-[#FCFCFA] p-3 text-[11px] leading-relaxed">
-              <div className="grid grid-cols-2 gap-4 pb-3 border-b border-[#E2E8EF]">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7A95A5]">
-                    Références facture
-                  </p>
-                  <p className="mt-1 font-semibold text-[#153243]">
-                    {order.invoiceNumber
-                      ? `Facture N° ${order.invoiceNumber}`
-                      : 'Projet de facture'}
-                  </p>
-                  <p className="text-[#4A6278]">
-                    Commande : <span className="font-mono">{order.numero}</span>
-                  </p>
-                  <p className="text-[#4A6278]">
-                    Date d&apos;émission : {longDate.format(order.createdAt)}
-                  </p>
-                  {order.customer?.customerNumber && (
-                    <p className="text-[#4A6278]">
-                      Client N° <span className="font-mono">{order.customer.customerNumber}</span>
+            {/* Page 2 : Annexe de paiement avec le QR-code suisse officiel complet en bas */}
+            <article
+              className="facture-page facture-page-2 bg-white text-[#153243]"
+              style={
+                { colorScheme: 'only light', forcedColorAdjust: 'none' } as React.CSSProperties
+              }
+            >
+              <div className="facture-body facture-body-p2">
+                {/* En-tête Page 2 */}
+                <header className="flex items-start justify-between gap-8">
+                  <div className="text-[12px] leading-relaxed">
+                    <p className="font-bold text-[13px] tracking-tight">
+                      {settings.companyTagline || 'Drinkcider'}
                     </p>
+                    <p className="font-medium text-[#4A6278]">{settings.contactName}</p>
+                    <p className="text-[#7A95A5] text-[11px]">
+                      {settings.companyAddress}, {settings.companyZipCity}
+                    </p>
+                    {settings.contactPhone && (
+                      <p className="text-[#7A95A5] text-[11px]">Tél. {settings.contactPhone}</p>
+                    )}
+                    {settings.vatNumber && (
+                      <p className="mt-0.5 font-mono text-[10px] text-[#4A6278]">
+                        {settings.vatNumber}
+                      </p>
+                    )}
+                    <h2 className="mt-2.5 font-display text-[18px] font-bold tracking-tight text-[#153243]">
+                      Annexe de paiement — QR-facture suisse
+                    </h2>
+                    <p className="text-[11px] text-[#4A6278]">
+                      Bulletin de versement officiel lié à la{' '}
+                      {order.invoiceNumber
+                        ? `facture ${order.invoiceNumber}`
+                        : `commande ${order.numero}`}
+                    </p>
+                  </div>
+                  <Image
+                    src="/images/facture/logo-drinkcider.png"
+                    alt="Drinkcider"
+                    width={140}
+                    height={67}
+                    className="h-auto w-[120px] shrink-0"
+                    priority
+                    unoptimized
+                  />
+                </header>
+
+                {/* Encadré récapitulatif débiteur / commande */}
+                <div className="mt-4 rounded border border-[#D8DEE6] bg-[#FCFCFA] p-3 text-[11px] leading-relaxed">
+                  <div className="grid grid-cols-2 gap-4 pb-3 border-b border-[#E2E8EF]">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7A95A5]">
+                        Références facture
+                      </p>
+                      <p className="mt-1 font-semibold text-[#153243]">
+                        {order.invoiceNumber
+                          ? `Facture N° ${order.invoiceNumber}`
+                          : 'Projet de facture'}
+                      </p>
+                      <p className="text-[#4A6278]">
+                        Commande : <span className="font-mono">{order.numero}</span>
+                      </p>
+                      <p className="text-[#4A6278]">
+                        Date d&apos;émission : {longDate.format(order.createdAt)}
+                      </p>
+                      {order.customer?.customerNumber && (
+                        <p className="text-[#4A6278]">
+                          Client N°{' '}
+                          <span className="font-mono">{order.customer.customerNumber}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7A95A5]">
+                        Débiteur (client)
+                      </p>
+                      <p className="mt-1 font-semibold text-[#153243]">{order.clientName}</p>
+                      <p className="text-[#4A6278]">{order.address}</p>
+                      <p className="text-[#4A6278]">
+                        {order.npa} {order.city}
+                      </p>
+                      {order.clientPhone && (
+                        <p className="text-[#4A6278]">Tél. {order.clientPhone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2.5 flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="text-[#4A6278]">Délai de règlement : </span>
+                      <span className="font-medium text-[#153243]">
+                        {settings.paymentTermsDays} jours net (échéance au{' '}
+                        {longDate.format(dueDate)})
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[12px] font-medium text-[#4A6278]">
+                        Total à régler :
+                      </span>
+                      <span className="font-mono text-[17px] font-bold text-[#153243]">
+                        CHF {formatInvoiceAmount(order.totalCents)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Instructions de paiement */}
+                <div className="mt-3 rounded border border-[#E2E8EF] bg-white p-3 text-[11px] leading-relaxed text-[#4A6278]">
+                  <p className="font-semibold text-[#153243] mb-1">Modes de règlement acceptés</p>
+                  <ul className="space-y-1 text-[10.5px]">
+                    <li className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#153243]">•</span>
+                      <span>
+                        <strong className="text-[#153243]">
+                          Application bancaire mobile & e-banking :
+                        </strong>{' '}
+                        Scannez directement le QR-code ci-dessous avec l&apos;application de votre
+                        banque suisse.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#153243]">•</span>
+                      <span>
+                        <strong className="text-[#153243]">Guichet postal ou bancaire :</strong> Si
+                        vous utilisez du papier pré-perforé ou imprimez ce document, détachez le
+                        bulletin le long des lignes de découpe ci-dessous.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="font-bold text-[#153243]">•</span>
+                      <span>
+                        <strong className="text-[#153243]">Virement bancaire classique :</strong>{' '}
+                        IBAN{' '}
+                        <span className="font-mono font-semibold text-[#153243]">
+                          {settings.iban}
+                        </span>{' '}
+                        ({settings.bankName}), en indiquant la référence de paiement{' '}
+                        <span className="font-mono font-medium text-[#153243]">
+                          {reference.formatted}
+                        </span>
+                        .
+                      </span>
+                    </li>
+                  </ul>
+
+                  {order.paidAt && (
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded border border-green-200 text-[11px]">
+                      <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
+                      <span>
+                        Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                        {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Ce bulletin est
+                        fourni pour votre comptabilité.
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7A95A5]">
-                    Débiteur (client)
-                  </p>
-                  <p className="mt-1 font-semibold text-[#153243]">{order.clientName}</p>
-                  <p className="text-[#4A6278]">{order.address}</p>
-                  <p className="text-[#4A6278]">
-                    {order.npa} {order.city}
-                  </p>
-                  {order.clientPhone && <p className="text-[#4A6278]">Tél. {order.clientPhone}</p>}
-                </div>
+                {/* Pied supérieur de la page 2 */}
+                <footer className="mt-auto border-t border-[#E2E8EF] pt-1.5 pb-1 text-[9px] text-[#7A95A5] flex justify-between items-center">
+                  <span>
+                    Annexe de paiement conforme à la norme suisse des QR-factures (SIX Payment
+                    Services)
+                  </span>
+                  <span className="font-semibold text-[#153243]">Page 2 / 2</span>
+                </footer>
               </div>
 
-              <div className="pt-2.5 flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <span className="text-[#4A6278]">Délai de règlement : </span>
-                  <span className="font-medium text-[#153243]">
-                    {settings.paymentTermsDays} jours net (échéance au {longDate.format(dueDate)})
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[12px] font-medium text-[#4A6278]">Total à régler :</span>
-                  <span className="font-mono text-[17px] font-bold text-[#153243]">
-                    CHF {formatInvoiceAmount(order.totalCents)}
-                  </span>
-                </div>
+              {/* Section QR-facture suisse officielle (norme SIX, 210 x 105 mm) */}
+              <div className="facture-qr">
+                <SwissQRBill order={order} settings={settings} />
               </div>
-            </div>
-
-            {/* Instructions de paiement */}
-            <div className="mt-3 rounded border border-[#E2E8EF] bg-white p-3 text-[11px] leading-relaxed text-[#4A6278]">
-              <p className="font-semibold text-[#153243] mb-1">Modes de règlement acceptés</p>
-              <ul className="space-y-1 text-[10.5px]">
-                <li className="flex items-start gap-1.5">
-                  <span className="font-bold text-[#153243]">•</span>
-                  <span>
-                    <strong className="text-[#153243]">
-                      Application bancaire mobile & e-banking :
-                    </strong>{' '}
-                    Scannez directement le QR-code ci-dessous avec l&apos;application de votre
-                    banque suisse.
-                  </span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="font-bold text-[#153243]">•</span>
-                  <span>
-                    <strong className="text-[#153243]">Guichet postal ou bancaire :</strong> Si vous
-                    utilisez du papier pré-perforé ou imprimez ce document, détachez le bulletin le
-                    long des lignes de découpe ci-dessous.
-                  </span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="font-bold text-[#153243]">•</span>
-                  <span>
-                    <strong className="text-[#153243]">Virement bancaire classique :</strong> IBAN{' '}
-                    <span className="font-mono font-semibold text-[#153243]">{settings.iban}</span>{' '}
-                    ({settings.bankName}), en indiquant la référence de paiement{' '}
-                    <span className="font-mono font-medium text-[#153243]">
-                      {reference.formatted}
-                    </span>
-                    .
-                  </span>
-                </li>
-              </ul>
-
-              {order.paidAt && (
-                <div className="mt-2.5 inline-flex items-center gap-1.5 font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded border border-green-200 text-[11px]">
-                  <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
-                  <span>
-                    Facture acquittée le {longDate.format(new Date(order.paidAt))}
-                    {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Ce bulletin est fourni
-                    pour votre comptabilité.
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Pied supérieur de la page 2 */}
-            <footer className="mt-auto border-t border-[#E2E8EF] pt-1.5 pb-1 text-[9px] text-[#7A95A5] flex justify-between items-center">
-              <span>
-                Annexe de paiement conforme à la norme suisse des QR-factures (SIX Payment Services)
-              </span>
-              <span className="font-semibold text-[#153243]">Page 2 / 2</span>
-            </footer>
-          </div>
-
-          {/* Section QR-facture suisse officielle (norme SIX, 210 x 105 mm) */}
-          <div className="facture-qr">
-            <SwissQRBill order={order} settings={settings} />
-          </div>
-        </article>
+            </article>
+          </>
+        )}
       </div>
     )
   }
@@ -763,7 +805,12 @@ export function FactureDocument({
               Tarif professionnel (−{effectiveProRate}%)
             </span>
           )}
-          {order.paidAt && (
+          {powerPay && (
+            <span className="inline-flex items-center gap-1 font-semibold text-[#153243] bg-[#F7F6F0] px-2 py-0.5 rounded border border-[#D8DEE6]">
+              Règlement via PowerPay
+            </span>
+          )}
+          {order.paidAt && !powerPay && (
             <span className="inline-flex items-center gap-1 font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
               <CheckIcon className="w-3 h-3 text-green-700 inline" /> Facture acquittée{' '}
               {order.paymentMethod ? `(${order.paymentMethod})` : ''}
@@ -883,6 +930,16 @@ export function FactureDocument({
                 {order.shippingCents === 0 ? 'Offerts' : formatInvoiceAmount(order.shippingCents)}
               </td>
             </tr>
+            {order.invoiceFeeCents ? (
+              <tr>
+                <td className={`${cellBase} text-right`} colSpan={6}>
+                  Supplément facture
+                </td>
+                <td className={`${cellBase} text-right`}>
+                  {formatInvoiceAmount(order.invoiceFeeCents)}
+                </td>
+              </tr>
+            ) : null}
             <tr className="bg-[#F7F6F0] font-bold">
               <td className={`${cellBase} text-right`} colSpan={6}>
                 {settings.vatSubject ? 'Total TTC' : 'Total'}
@@ -906,25 +963,29 @@ export function FactureDocument({
 
         {/* Coordonnées bancaires & message */}
         <section className="mt-2.5 flex items-start justify-between gap-6 text-[11px] leading-relaxed print:mt-1.5">
-          <div>
-            <p className="font-semibold">Coordonnées bancaires</p>
-            <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
-            <p>{settings.bankName}</p>
-            {order.paidAt ? (
-              <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
-                <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
-                <span>
-                  Facture acquittée le {longDate.format(new Date(order.paidAt))}
-                  {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
-                </span>
-              </p>
-            ) : (
-              <p className="mt-1 font-medium">
-                Facture payable à {settings.paymentTermsDays} jours net, au{' '}
-                {longDate.format(dueDate)}.
-              </p>
-            )}
-          </div>
+          {powerPay ? (
+            <PowerPayNotice companyName={settings.companyName} />
+          ) : (
+            <div>
+              <p className="font-semibold">Coordonnées bancaires</p>
+              <p className="mt-0.5 font-mono">IBAN : {settings.iban}</p>
+              <p>{settings.bankName}</p>
+              {order.paidAt ? (
+                <p className="mt-1 font-semibold text-green-700 flex items-center gap-1">
+                  <CheckIcon className="w-3.5 h-3.5 text-green-700 inline shrink-0" />
+                  <span>
+                    Facture acquittée le {longDate.format(new Date(order.paidAt))}
+                    {order.paymentMethod ? ` (${order.paymentMethod})` : ''}. Merci !
+                  </span>
+                </p>
+              ) : (
+                <p className="mt-1 font-medium">
+                  Facture payable à {settings.paymentTermsDays} jours net, au{' '}
+                  {longDate.format(dueDate)}.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="text-right">
             <p>Merci beaucoup pour votre commande.</p>
@@ -949,9 +1010,24 @@ export function FactureDocument({
       </div>
 
       {/* Section QR-facture suisse officielle (norme SIX, 210 x 105 mm) */}
-      <div className="facture-qr">
-        <SwissQRBill order={order} settings={settings} />
-      </div>
+      {!powerPay && (
+        <div className="facture-qr">
+          <SwissQRBill order={order} settings={settings} />
+        </div>
+      )}
     </article>
+  )
+}
+
+/** Commande PowerPay : le client règle MF Group, jamais la cidrerie. */
+function PowerPayNotice({ companyName }: { companyName: string }) {
+  return (
+    <div>
+      <p className="font-semibold">Règlement via PowerPay</p>
+      <p className="mt-0.5">
+        Ce montant se règle auprès de MF Group, qui vous enverra sa facture PowerPay en fin de mois.
+        Merci de ne rien verser à {companyName}.
+      </p>
+    </div>
   )
 }

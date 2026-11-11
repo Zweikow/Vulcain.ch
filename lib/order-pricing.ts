@@ -1,4 +1,4 @@
-import { ClientType, AuditAction, AuditTargetType, Prisma } from '@prisma/client'
+import { ClientType, AuditAction, AuditTargetType, PaymentMode, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getSettings } from '@/lib/settings'
 import { proUnitPriceCents, shippingCentsFor, orderVatCents } from '@/lib/money'
@@ -44,6 +44,13 @@ export async function recalculateOrderPricing(
 
     if (!order) {
       throw new Error(`Commande introuvable : ${orderId}`)
+    }
+    // Le montant d'une commande en ligne est celui de la transaction PostFinance :
+    // le changer après coup créerait un écart avec ce que le client a payé.
+    if (order.paymentMode === PaymentMode.EN_LIGNE) {
+      throw new Error(
+        'Commande payable en ligne : son montant ne peut plus être recalculé. Pour un geste commercial, passez par un remboursement PostFinance.'
+      )
     }
 
     const isPro = options.targetType === ClientType.PRO

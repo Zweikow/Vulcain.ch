@@ -3,6 +3,8 @@ import { getInvoicePaymentStatus } from '@/lib/money'
 interface PaymentStatusBadgeProps {
   paidAt: Date | string | null
   paymentMethod?: string | null
+  /** Acceptée sur facture PowerPay : ni payée, ni en retard, MF Group encaisse */
+  invoiceAcceptedAt?: Date | string | null
   invoicedAt?: Date | string | null
   createdAt: Date | string
   reminderCount?: number
@@ -13,6 +15,7 @@ interface PaymentStatusBadgeProps {
 export function PaymentStatusBadge({
   paidAt,
   paymentMethod,
+  invoiceAcceptedAt,
   invoicedAt,
   createdAt,
   reminderCount = 0,
@@ -38,6 +41,15 @@ export function PaymentStatusBadge({
           </span>
         )}
       </div>
+    )
+  }
+
+  if (invoiceAcceptedAt) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/80 dark:border-sky-800/50">
+        <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+        Acceptée sur facture
+      </span>
     )
   }
 

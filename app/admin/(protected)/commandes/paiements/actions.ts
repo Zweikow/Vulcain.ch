@@ -5,9 +5,21 @@ import { prisma } from '@/lib/prisma'
 import { assertCapability } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { recordAudit } from '@/lib/audit'
-import { AuditAction } from '@prisma/client'
+import { AuditAction, PaymentMode } from '@prisma/client'
 import { sendPaymentReminderNotification } from '@/lib/notifications'
 import { parseCamtXml, analyzeCamtTransactions, CamtAnalysisResult } from '@/lib/camt'
+
+const ONLINE_PAYMENT_ERROR =
+  "Commande payable en ligne : son paiement est confirmé par PostFinance. Pour l'annuler, remboursez depuis le back-office PostFinance."
+
+/** Le paiement d'une commande en ligne ne se saisit ni ne s'efface à la main. */
+async function isOnlineOrder(orderId: string): Promise<boolean> {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { paymentMode: true },
+  })
+  return order?.paymentMode === PaymentMode.EN_LIGNE
+}
 
 function revalidateOrder(orderId: string) {
   revalidatePath(`/admin/commandes/${orderId}`)
@@ -28,6 +40,7 @@ export async function markOrderAsPaidAction(
   if (!guard.ok) return { success: false, error: guard.error }
 
   try {
+    if (await isOnlineOrder(orderId)) return { success: false, error: ONLINE_PAYMENT_ERROR }
     const paidAt = paidAtDate ? new Date(paidAtDate) : new Date()
     const method = paymentMethod?.trim() || 'Virement bancaire'
 
@@ -69,6 +82,7 @@ export async function markOrderAsUnpaidAction(
   if (!guard.ok) return { success: false, error: guard.error }
 
   try {
+    if (await isOnlineOrder(orderId)) return { success: false, error: ONLINE_PAYMENT_ERROR }
     const order = await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -107,6 +121,7 @@ export async function sendPaymentReminderAction(
   const guard = await assertCapability(can.manageInvoices)
   if (!guard.ok) return { success: false, error: guard.error }
 
+  if (await isOnlineOrder(orderId)) return { success: false, error: ONLINE_PAYMENT_ERROR }
   const result = await sendPaymentReminderNotification(orderId, customNote)
 
   if (result.success) {

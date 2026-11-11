@@ -10,6 +10,7 @@ const settingsSchema = z.object({
   proRatePercent: z.coerce.number().int().min(0).max(90),
   shippingCents: z.coerce.number().int().min(0),
   francoCents: z.coerce.number().int().min(0),
+  invoiceFeeCents: z.coerce.number().int().min(0).max(10000),
   prepDays: z.coerce.number().int().min(0).max(60),
   companyName: z.string().min(1).max(200),
   companyAddress: z.string().max(300),

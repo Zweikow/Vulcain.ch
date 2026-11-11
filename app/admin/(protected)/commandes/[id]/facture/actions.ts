@@ -50,9 +50,10 @@ export async function toggleClientType(orderId: string) {
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { clientType: true },
+    select: { clientType: true, paymentMode: true },
   })
-  if (!order) return
+  // Commande payable en ligne : montant figé par la transaction PostFinance
+  if (!order || order.paymentMode === 'EN_LIGNE') return
 
   const targetType = order.clientType === ClientType.PRO ? ClientType.PRIVE : ClientType.PRO
   await recalculateOrderPricing(orderId, { targetType, updateCustomer: true })

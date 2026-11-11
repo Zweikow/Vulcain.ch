@@ -1,5 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import { prisma } from '@/lib/prisma'
+import { countedOrderWhere } from '@/lib/order-status'
 import { creditorReference, qrReference } from '@/lib/reference'
 
 export interface ParsedCamtTransaction {
@@ -217,11 +218,9 @@ export async function analyzeCamtTransactions(
   transactions: ParsedCamtTransaction[],
   fileName?: string
 ): Promise<CamtAnalysisResult> {
-  // Récupérer toutes les commandes actives (non annulées)
+  // Récupérer toutes les commandes actives (ni annulées, ni en attente d'un paiement en ligne)
   const orders = await prisma.order.findMany({
-    where: {
-      status: { not: 'ANNULEE' },
-    },
+    where: countedOrderWhere,
     select: {
       id: true,
       numero: true,
