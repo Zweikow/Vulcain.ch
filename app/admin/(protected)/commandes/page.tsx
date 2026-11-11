@@ -7,6 +7,7 @@ import { can } from '@/lib/permissions'
 import { SearchCommandes } from '@/components/admin/SearchCommandes'
 import { Suspense } from 'react'
 import { CommandesTableWithSelection } from '@/components/admin/CommandesTableWithSelection'
+import { countedOrderWhere, unpaidOrderWhere } from '@/lib/order-status'
 
 type FilterValue = 'TOUTES' | OrderStatus | 'IMPAYEES' | 'EN_RETARD'
 
@@ -22,6 +23,8 @@ export default async function CommandesPage({
     'EN_PREPARATION',
     'EXPEDIEE',
     'ANNULEE',
+    'EN_ATTENTE_PAIEMENT',
+    'A_VERIFIER',
     'IMPAYEES',
     'EN_RETARD',
   ]
@@ -39,11 +42,11 @@ export default async function CommandesPage({
   const andConditions: any[] = []
 
   if (statut === 'IMPAYEES') {
-    andConditions.push({ paidAt: null, status: { not: 'ANNULEE' } })
+    andConditions.push({ ...unpaidOrderWhere, ...countedOrderWhere })
   } else if (statut === 'EN_RETARD') {
     andConditions.push({
-      paidAt: null,
-      status: { not: 'ANNULEE' },
+      ...unpaidOrderWhere,
+      ...countedOrderWhere,
       OR: [
         { invoicedAt: { lte: thirtyDaysAgo } },
         { invoicedAt: null, createdAt: { lte: thirtyDaysAgo } },
@@ -84,6 +87,9 @@ export default async function CommandesPage({
         status: true,
         paidAt: true,
         paymentMethod: true,
+        paymentMode: true,
+        paymentChoice: true,
+        invoiceAcceptedAt: true,
         invoicedAt: true,
         reminderCount: true,
         createdAt: true,
@@ -95,11 +101,11 @@ export default async function CommandesPage({
       by: ['status'],
       _count: { _all: true },
     }),
-    prisma.order.count({ where: { paidAt: null, status: { not: 'ANNULEE' } } }),
+    prisma.order.count({ where: { ...unpaidOrderWhere, ...countedOrderWhere } }),
     prisma.order.count({
       where: {
-        paidAt: null,
-        status: { not: 'ANNULEE' },
+        ...unpaidOrderWhere,
+        ...countedOrderWhere,
         OR: [
           { invoicedAt: { lte: thirtyDaysAgo } },
           { invoicedAt: null, createdAt: { lte: thirtyDaysAgo } },
@@ -110,6 +116,8 @@ export default async function CommandesPage({
   ])
 
   const countMap: Record<OrderStatus, number> = {
+    EN_ATTENTE_PAIEMENT: 0,
+    A_VERIFIER: 0,
     A_TRAITER: 0,
     EN_PREPARATION: 0,
     EXPEDIEE: 0,
@@ -127,6 +135,27 @@ export default async function CommandesPage({
     { label: 'En préparation', value: 'EN_PREPARATION', count: countMap['EN_PREPARATION'] },
     { label: 'Expédiées', value: 'EXPEDIEE', count: countMap['EXPEDIEE'] },
     { label: 'Annulées', value: 'ANNULEE', count: countMap['ANNULEE'] },
+    // Commandes payables en ligne dont le paiement n'est pas encore confirmé
+    ...(countMap['EN_ATTENTE_PAIEMENT'] > 0 || statut === 'EN_ATTENTE_PAIEMENT'
+      ? [
+          {
+            label: 'Paiement en attente',
+            value: 'EN_ATTENTE_PAIEMENT' as const,
+            count: countMap['EN_ATTENTE_PAIEMENT'],
+          },
+        ]
+      : []),
+    // Paiement reçu mais incohérent : à trancher avant toute préparation
+    ...(countMap['A_VERIFIER'] > 0 || statut === 'A_VERIFIER'
+      ? [
+          {
+            label: 'À vérifier',
+            value: 'A_VERIFIER' as const,
+            count: countMap['A_VERIFIER'],
+            alert: countMap['A_VERIFIER'] > 0,
+          },
+        ]
+      : []),
     ...(showMoney
       ? [
           { label: 'Impayées', value: 'IMPAYEES' as const, count: unpaidTotal },

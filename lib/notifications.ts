@@ -58,6 +58,11 @@ async function loadOrder(orderId: string): Promise<MailOrder | null> {
     trackingNumber: order.trackingNumber,
     carrier: order.carrier,
     isPickup: order.isPickup,
+    paidAt: order.paidAt,
+    paymentMethod: order.paymentMethod,
+    paymentMode: order.paymentMode,
+    invoiceFeeCents: order.invoiceFeeCents,
+    invoiceAcceptedAt: order.invoiceAcceptedAt,
     items: order.items.map((i) => ({
       productName: i.productName,
       quantity: i.quantity,
@@ -105,11 +110,14 @@ async function recordLog(
   }
 }
 
-/** Confirmation au client et notification à la cidrerie (info@drinkcider.ch). */
-export async function notifyOrderPlaced(orderId: string): Promise<void> {
+/**
+ * Confirmation au client et notification à la cidrerie (info@drinkcider.ch).
+ * Renvoie vrai si les deux emails sont partis.
+ */
+export async function notifyOrderPlaced(orderId: string): Promise<boolean> {
   try {
     const [order, settings] = await Promise.all([loadOrder(orderId), getSettings()])
-    if (!order) return
+    if (!order) return false
 
     const siteUrl = process.env.ADMIN_BASE_URL || getSiteUrl()
     const adminUrl = `${siteUrl}/admin/commandes/${orderId}`
@@ -136,8 +144,10 @@ export async function notifyOrderPlaced(orderId: string): Promise<void> {
       adminRes.success,
       adminRes.error
     )
+    return clientRes.success && adminRes.success
   } catch (error) {
     console.error('Notification de commande impossible', { orderId, error })
+    return false
   }
 }
 

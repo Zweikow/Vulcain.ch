@@ -1,15 +1,40 @@
-import { calculateQRReferenceChecksum, isQRIBAN } from 'swissqrbill/utils'
+import { isQRIBAN } from 'swissqrbill/utils'
+import type { Series } from '@/lib/numbering'
 
 /**
- * Référence créancier ISO 11649 — la « référence RF » (SCOR).
+ * Référence de paiement des factures. Son type suit le compte configuré dans
+ * les paramètres :
+ * - QR-IBAN : référence QR suisse (QRR), 27 chiffres avec contrôle modulo 10
+ *   récursif. C'est la seule référence qu'une banque accepte sur un QR-IBAN.
+ * - IBAN classique : référence créancier ISO 11649, la « référence RF » (SCOR).
  *
- * C'est le standard international pour référencer une facture dans un virement.
- * Elle fonctionne avec un IBAN classique (type SCOR de la QR-facture suisse),
- * contrairement à la référence QRR qui exige un QR-IBAN et 27 chiffres.
- *
- * Format : RF + 2 chiffres de contrôle + jusqu'à 21 caractères alphanumériques.
- * Les chiffres de contrôle suivent ISO 7064 MOD 97-10, comme un IBAN.
+ * `paymentReference` est la seule fonction à appeler pour afficher ou encoder
+ * une référence : QR-code, facture imprimée, admin, emails et rappels.
  */
+
+export type PaymentReferenceType = 'QRR' | 'SCOR'
+
+export interface PaymentReference {
+  type: PaymentReferenceType
+  /** Sans espaces : la valeur du QR-code et des relevés camt. */
+  reference: string
+  /** Groupée pour l'impression et les emails. */
+  formatted: string
+}
+
+/** Référence de paiement d'un document (FAC-2026-0001), selon le type d'IBAN configuré. */
+export function paymentReference(iban: string, documentNumber: string): PaymentReference {
+  if (isQRIBAN(iban.replace(/\s+/g, '').toUpperCase())) {
+    const reference = qrReference(documentNumber)
+    return { type: 'QRR', reference, formatted: formatQrReference(reference) }
+  }
+  const reference = creditorReference(documentNumber)
+  return { type: 'SCOR', reference, formatted: formatCreditorReference(reference) }
+}
+
+// --- Référence RF (ISO 11649, type SCOR) ------------------------------------
+// Format : RF + 2 chiffres de contrôle + jusqu'à 21 caractères alphanumériques.
+// Les chiffres de contrôle suivent ISO 7064 MOD 97-10, comme un IBAN.
 
 const MAX_REFERENCE_LENGTH = 21
 
@@ -52,39 +77,66 @@ export function formatCreditorReference(reference: string): string {
   return reference.replace(/(.{4})/g, '$1 ').trim()
 }
 
+// --- Référence QR (QRR, norme SIX) ------------------------------------------
+
 /**
- * Construit une référence structurée suisse QRR (27 chiffres numériques, norme SIX).
- * Utilisé lorsqu'un QR-IBAN est configuré.
+ * Chiffre de série en tête de la partie utile : sans lui, CMD-2026-0001 et
+ * FAC-2026-0001 donneraient la même référence. Un chiffre attribué est
+ * définitif, les références déjà envoyées en dépendent.
  */
-export function qrReference(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-  if (!digits) {
-    throw new Error(`Impossible de générer une référence QRR à partir de « ${raw} »`)
+const QR_SERIES_DIGIT: Record<Series, string> = {
+  FAC: '1',
+  CMD: '2',
+  AV: '3',
+}
+
+/** Chiffres de la référence QR avant son chiffre de contrôle. */
+const QR_BODY_LENGTH = 26
+
+/** Table de report du modulo 10 récursif (norme SIX). */
+const MOD10_TABLE = [0, 9, 4, 6, 8, 2, 7, 1, 3, 5]
+
+/** Chiffre de contrôle modulo 10 récursif d'une suite de chiffres. */
+export function qrCheckDigit(digits: string): string {
+  let carry = 0
+  for (const digit of digits) {
+    carry = MOD10_TABLE[(carry + Number(digit)) % 10]
   }
-  // Base sur 26 chiffres, complétée à gauche par des zéros
-  const base = digits.slice(-26).padStart(26, '0')
-  const checksum = calculateQRReferenceChecksum(base)
-  return `${base}${checksum}`
+  return String((10 - carry) % 10)
 }
 
 /**
- * Détermine et génère la référence appropriée selon le type d'IBAN configuré :
- * - QR-IBAN -> référence QRR (27 chiffres)
- * - IBAN classique -> référence SCOR (ISO 11649 RF...)
+ * Référence QR d'un document : 26 chiffres puis le chiffre de contrôle.
+ * La partie utile, alignée à droite et précédée de zéros, est le chiffre de
+ * série, l'année puis le numéro sur 4 chiffres au moins :
+ * FAC-2026-0001 → 00 00000 00000 00000 12026 00014
  */
-export function getBillReference(
-  iban: string,
-  rawInvoiceOrOrder: string
-): { reference: string; type: 'QRR' | 'SCOR' } {
-  const cleanIban = iban.replace(/\s+/g, '').toUpperCase()
-  if (isQRIBAN(cleanIban)) {
-    return {
-      reference: qrReference(rawInvoiceOrOrder),
-      type: 'QRR',
-    }
+export function qrReference(documentNumber: string): string {
+  const match = /^([A-Z]+)-(\d{4})-(\d+)$/.exec(documentNumber.trim().toUpperCase())
+  const seriesDigit = match ? QR_SERIES_DIGIT[match[1] as Series] : undefined
+  if (!match || !seriesDigit) {
+    throw new Error(
+      `Référence QR impossible pour « ${documentNumber} » (attendu : FAC, CMD ou AV-AAAA-NNNN)`
+    )
   }
-  return {
-    reference: creditorReference(rawInvoiceOrOrder),
-    type: 'SCOR',
+  // Zéros de tête ramenés à 4 chiffres : un numéro ne donne qu'une référence.
+  const sequence = match[3].replace(/^0+/, '').padStart(4, '0')
+  const body = `${seriesDigit}${match[2]}${sequence}`
+  if (body.length > QR_BODY_LENGTH) {
+    throw new Error(`Référence QR impossible pour « ${documentNumber} » (numéro trop long)`)
   }
+  const padded = body.padStart(QR_BODY_LENGTH, '0')
+  return `${padded}${qrCheckDigit(padded)}`
+}
+
+/** Vérifie une référence QR complète : 27 chiffres dont le dernier est le contrôle. */
+export function isValidQrReference(reference: string): boolean {
+  const clean = reference.replace(/\s+/g, '')
+  return /^\d{27}$/.test(clean) && qrCheckDigit(clean.slice(0, QR_BODY_LENGTH)) === clean[26]
+}
+
+/** Groupes d'impression de la norme : 2 chiffres puis groupes de 5. */
+export function formatQrReference(reference: string): string {
+  const clean = reference.replace(/\s+/g, '')
+  return `${clean.slice(0, 2)} ${clean.slice(2).replace(/(\d{5})(?=\d)/g, '$1 ')}`
 }

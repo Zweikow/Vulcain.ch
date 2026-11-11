@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { AuditAction, ClientType, StockMovementReason } from '@prisma/client'
+import {
+  AuditAction,
+  ClientType,
+  OrderStatus,
+  PaymentMode,
+  StockMovementReason,
+} from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { nextNumber, SERIES } from '@/lib/numbering'
 import { notifyOrderPlaced } from '@/lib/notifications'
@@ -8,9 +14,13 @@ import { verifyTurnstileToken } from '@/lib/turnstile'
 import { getOrderRatelimit } from '@/lib/ratelimit'
 import { orderSchema } from '@/lib/validations'
 import { getSettings, isMaintenanceMode } from '@/lib/settings'
-import { proUnitPriceCents, shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
+import { proUnitPriceCents, shippingCentsFor, orderTotalsFor, formatCHF } from '@/lib/money'
 import { recordCustomerAudit } from '@/lib/audit'
 import { findAndValidateDiscountCode } from '@/lib/discount-codes'
+import { isOnlinePaymentEnabled } from '@/lib/payments/config'
+import { checkPaymentChoice, isModeChoiceEnabled } from '@/lib/payments/modes'
+import { PAYMENT_CHOICE_LABELS, type PaymentChoiceValue } from '@/lib/payments/choices'
+import { newPaymentToken, paymentPagePath, startOnlinePayment } from '@/lib/payments/checkout'
 
 class OrderConflictError extends Error {}
 
@@ -73,6 +83,26 @@ export async function POST(request: NextRequest) {
   // stock conditionnel, numérotation atomique par année.
   const data = result.data
   const settings = await getSettings()
+  // Paiement en ligne derrière le drapeau PFC_ENABLED : désactivé, la commande
+  // sur facture reste exactement celle d'avant.
+  const onlinePayment = isOnlinePaymentEnabled()
+  // Choix du mode sur le formulaire (PFC_MODE_CHOICE_ENABLED) : le mode reçu est
+  // validé ici, jamais cru sur parole. Un mode inconnu ou coupé est refusé.
+  const modeChoice = onlinePayment && isModeChoiceEnabled()
+  if (modeChoice) {
+    const check = checkPaymentChoice(data.paymentChoice)
+    if (!check.ok) {
+      return NextResponse.json(
+        {
+          error:
+            check.reason === 'inconnu'
+              ? 'Choisissez un mode de paiement.'
+              : "Ce mode de paiement n'est pas disponible. Choisissez-en un autre.",
+        },
+        { status: 422 }
+      )
+    }
+  }
 
   try {
     const order = await prisma.$transaction(async (tx) => {
@@ -101,6 +131,10 @@ export async function POST(request: NextRequest) {
       })
       const isPro = customer.isPro
       const effectiveProRate = isPro ? (customer.proRatePercent ?? settings.proRatePercent) : null
+      // Les professionnels restent sur facture à 30 jours, sans choix de mode
+      const payOnline = onlinePayment && !isPro
+      const paymentChoice =
+        payOnline && modeChoice ? (data.paymentChoice as PaymentChoiceValue) : null
 
       const products = await tx.product.findMany({
         where: {
@@ -253,8 +287,12 @@ export async function POST(request: NextRequest) {
       }
 
       const shippingCents = shippingCentsFor(subtotalCents, isPro, settings)
-      const totalCents = subtotalCents + shippingCents
-      const vatCents = orderVatCents(totalCents, settings)
+      // Supplément facture PowerPay compris, même TVA que la commande
+      const { invoiceFeeCents, totalCents, vatCents } = orderTotalsFor(
+        { subtotalCents, shippingCents },
+        paymentChoice,
+        settings
+      )
 
       // Décrément conditionnel : échoue si une commande concurrente a vidé le stock.
       for (const item of data.items) {
@@ -274,6 +312,14 @@ export async function POST(request: NextRequest) {
       const created = await tx.order.create({
         data: {
           numero,
+          ...(payOnline
+            ? {
+                status: OrderStatus.EN_ATTENTE_PAIEMENT,
+                paymentMode: PaymentMode.EN_LIGNE,
+                paymentToken: newPaymentToken(),
+                paymentChoice,
+              }
+            : {}),
           customerId: customer.id,
           clientType: isPro ? ClientType.PRO : ClientType.PRIVE,
           proRatePercent: effectiveProRate,
@@ -288,6 +334,7 @@ export async function POST(request: NextRequest) {
           promoCode: promoCodeToSave,
           promoDiscountCents,
           shippingCents,
+          invoiceFeeCents,
           totalCents,
           vatCents,
           deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
@@ -296,7 +343,14 @@ export async function POST(request: NextRequest) {
             create: orderItemsToCreate,
           },
         },
-        select: { id: true, numero: true, totalCents: true },
+        select: {
+          id: true,
+          numero: true,
+          totalCents: true,
+          paymentMode: true,
+          paymentToken: true,
+          paymentChoice: true,
+        },
       })
 
       await tx.stockMovement.createMany({
@@ -311,16 +365,31 @@ export async function POST(request: NextRequest) {
       return created
     })
 
+    const awaitingPayment =
+      order.paymentMode === PaymentMode.EN_LIGNE && order.paymentToken !== null
+
     await recordCustomerAudit(
       AuditAction.COMMANDE_CREEE,
       { type: 'COMMANDE', id: order.id, label: order.numero },
-      formatCHF(order.totalCents)
+      awaitingPayment
+        ? `${formatCHF(order.totalCents)} - paiement en ligne en attente${order.paymentChoice ? ` (${PAYMENT_CHOICE_LABELS[order.paymentChoice]})` : ''}`
+        : formatCHF(order.totalCents)
     )
 
-    // Confirmation au client et notification à la cidrerie. N'échoue jamais :
-    // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
-    // est indisponible.
-    await notifyOrderPlaced(order.id)
+    // Paiement en ligne : redirection vers la Payment Page PostFinance. Les
+    // emails ne partiront qu'une fois le paiement confirmé par le webhook. Si
+    // PostFinance ne répond pas, le client atterrit sur la page de sa commande
+    // et peut relancer le paiement sans la recréer.
+    let redirectUrl: string | null = null
+    if (awaitingPayment) {
+      const payment = await startOnlinePayment(order.id)
+      redirectUrl = payment.ok ? payment.paymentPageUrl : paymentPagePath(order.paymentToken!)
+    } else {
+      // Confirmation au client et notification à la cidrerie. N'échoue jamais :
+      // la commande est déjà enregistrée, elle ne doit pas être perdue si SES
+      // est indisponible.
+      await notifyOrderPlaced(order.id)
+    }
 
     // Revalidation des fiches produits commandees et de la boutique
     try {
@@ -339,7 +408,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { orderId: order.numero, totalCents: order.totalCents },
+      { orderId: order.numero, totalCents: order.totalCents, redirectUrl },
       { status: 201 }
     )
   } catch (e) {

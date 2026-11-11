@@ -8,7 +8,7 @@ import { OrderStatus } from '@prisma/client'
 import { formatCHF } from '@/lib/money'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { calculateOrderPackages, getDefaultPlanzerDates } from '@/lib/planzer'
-import { advanceStatus } from '@/app/admin/(protected)/preparation/actions'
+import { AdvanceStatusButton } from '@/components/admin/AdvanceStatusButton'
 import { TruckIcon } from '@/components/admin/AdminIcons'
 
 export interface PreparationOrder {
@@ -463,11 +463,7 @@ export function PreparationOrdersList({
                   {showMoney ? 'Voir la facture' : 'Voir le détail'}
                 </Link>
                 {nextActionLabels[order.status] && (
-                  <form action={advanceStatus.bind(null, order.id)}>
-                    <button className="btn-primary text-sm">
-                      {nextActionLabels[order.status]}
-                    </button>
-                  </form>
+                  <AdvanceStatusButton orderId={order.id} label={nextActionLabels[order.status]!} />
                 )}
               </div>
             </div>

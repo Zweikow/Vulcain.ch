@@ -60,10 +60,16 @@ le back-office Next.js sur mesure (catalogue, commandes, paramètres).
   - `AV-AAAA-NNNN` — les avoirs, série réservée, pas encore implémentée.
     Un numéro émis est définitif. L'émission est idempotente et se déclenche
     automatiquement à l'expédition si l'exploitant ne l'a pas faite avant.
-- **Référence de paiement ISO 11649** (« référence RF ») dérivée du numéro de
-  facture, dans `lib/reference.ts` — validée contre l'exemple officiel de la
-  norme. Elle fonctionne avec un IBAN classique ; ne pas la confondre avec la
-  référence QRR, qui exige un QR-IBAN et 27 chiffres.
+- **Référence de paiement** : une seule fonction, `paymentReference` dans
+  `lib/reference.ts`, appelée partout (QR-code, facture, admin, emails,
+  rappels). Son type suit l'IBAN configuré ; l'import camt lit les deux types,
+  pour les factures envoyées avant un changement d'IBAN.
+  - QR-IBAN : référence QR suisse (QRR), 27 chiffres, contrôle modulo 10
+    récursif validé contre l'exemple SIX. Partie utile : chiffre de série
+    (1 FAC, 2 CMD, 3 AV, définitifs), année, numéro. Imprimée en 2 chiffres
+    puis groupes de 5.
+  - IBAN classique : référence ISO 11649 (« référence RF », SCOR) dérivée du
+    numéro, validée contre l'exemple de la norme, imprimée par groupes de 4.
 - **Un produit cité dans une commande ne se supprime pas** : archivage.
 - **Vente d'alcool** : case « 18 ans révolus » bloquante, mention d'interdiction
   aux mineurs en pied de boutique et sur la facture.

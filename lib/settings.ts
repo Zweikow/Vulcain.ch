@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: Setting = {
   bankName: 'PostFinance AG',
   paymentTermsDays: 30,
   maintenanceMode: false,
+  invoiceFeeCents: 500,
 }
 
 /** Reglages globaux - cree la ligne par defaut au premier acces. */
@@ -44,6 +45,7 @@ export const DEFAULT_PUBLIC_SETTINGS = {
   francoCents: 12000,
   prepDays: 3,
   vatRatePermille: 81,
+  invoiceFeeCents: 500,
 }
 
 export type PublicSettings = typeof DEFAULT_PUBLIC_SETTINGS
@@ -60,6 +62,7 @@ export async function getPublicSettings(): Promise<PublicSettings> {
       francoCents: s.francoCents,
       prepDays: s.prepDays,
       vatRatePermille: s.vatRatePermille,
+      invoiceFeeCents: s.invoiceFeeCents,
     }
   } catch (err) {
     if (!hasDatabaseUrl()) {

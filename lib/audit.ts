@@ -57,6 +57,31 @@ export async function recordCustomerAudit(
   }
 }
 
+/** Enregistrement sans session pour un système tiers, par exemple un webhook PostFinance. */
+export async function recordSystemAudit(
+  action: AuditAction,
+  target: { type: AuditTargetType; id: string; label: string },
+  detail: string | undefined,
+  actorLabel: string,
+  client?: Prisma.TransactionClient
+): Promise<void> {
+  try {
+    await (client ?? prisma).auditLog.create({
+      data: {
+        action,
+        targetType: target.type,
+        targetLabel: target.label,
+        targetId: target.id,
+        detail: detail ?? null,
+        userId: null,
+        actorLabel,
+      },
+    })
+  } catch (error) {
+    console.error('Écriture du journal impossible', { action, target, error })
+  }
+}
+
 export const ACTION_LABELS: Record<AuditAction, string> = {
   COMMANDE_CREEE: 'Commande passée',
   STATUT_MODIFIE: 'Statut modifié',
@@ -68,4 +93,11 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
   STOCK_AJUSTE: 'Stock ajusté',
   PRODUIT_CREE: 'Produit créé',
   PRODUIT_ARCHIVE: 'Produit archivé',
+  PAIEMENT_CONFIRME: 'Paiement en ligne confirmé',
+  PAIEMENT_ECHOUE: 'Paiement en ligne échoué',
+  PAIEMENT_ANOMALIE: 'Paiement en ligne à vérifier',
+  PAIEMENT_A_VERIFIER: 'Commande à vérifier',
+  MODE_PAIEMENT_CHANGE: 'Mode de paiement changé',
+  FACTURE_ACCEPTEE: 'Acceptée sur facture PowerPay',
+  FACTURE_ENCAISSEE: 'Facture PowerPay encaissée',
 }

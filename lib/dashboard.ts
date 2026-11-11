@@ -1,5 +1,6 @@
 import { ClientType, OrderStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { countedOrderWhere, unpaidOrderWhere } from '@/lib/order-status'
 import { getSettings } from '@/lib/settings'
 import { getInvoicePaymentStatus } from '@/lib/money'
 
@@ -76,6 +77,8 @@ export type DashboardData = {
   productCount: number
   buckets: ChartBucket[]
   alerts: { id: string; name: string; stock: number; threshold: number }[]
+  /** Paiement reçu mais incohérent : à trancher avant toute préparation */
+  ordersToVerify: { id: string; numero: string; clientName: string; totalCents: number }[]
   topSales: {
     productName: string
     categoryName: string
@@ -134,7 +137,8 @@ function buildBuckets(periode: Periode, since: Date): { start: Date; end: Date; 
 export async function getDashboard(periode: Periode): Promise<DashboardData> {
   const since = periodStart(periode)
   const previousSince = periodStart(periode, since) // période précédente de même longueur
-  const notCancelled = { status: { not: OrderStatus.ANNULEE } }
+  // Ni annulées, ni en attente d'un paiement en ligne pas encore reçu
+  const notCancelled = countedOrderWhere
   const urgentBefore = new Date(Date.now() + 2 * 24 * 3600 * 1000)
 
   const [
@@ -201,7 +205,7 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
       where: {
         ...notCancelled,
         invoicedAt: { not: null },
-        paidAt: null,
+        ...unpaidOrderWhere,
       },
       select: {
         id: true,
@@ -358,6 +362,13 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
       }
     })
 
+  const ordersToVerify = await prisma.order.findMany({
+    where: { status: OrderStatus.A_VERIFIER },
+    select: { id: true, numero: true, clientName: true, totalCents: true },
+    orderBy: { createdAt: 'asc' },
+    take: 10,
+  })
+
   return {
     revenueCents,
     previousRevenueCents,
@@ -382,6 +393,7 @@ export async function getDashboard(periode: Periode): Promise<DashboardData> {
     averageBasketCents,
     productCount,
     buckets,
+    ordersToVerify,
     alerts: alerts
       .filter((p) => p.stock <= p.stockSeuil)
       .map((p) => ({ id: p.id, name: p.name, stock: p.stock, threshold: p.stockSeuil })),
