@@ -5,7 +5,7 @@ import { CustomerInfo, CartItem, AppliedPromoCode } from '@/types'
 import { TurnstileWidget } from '@/components/TurnstileWidget'
 import { shippingCentsFor, formatCHF } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
-import { User, Check, ShieldCheck, Mail, MapPin, Phone, Tag } from 'lucide-react'
+import { User, Check, ShieldCheck, Mail, MapPin, Phone, Tag, Building2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
   const [form, setForm] = useState<CustomerInfo>({
     firstName: '',
     lastName: '',
+    company: '',
     address: '',
     npa: '',
     lieu: '',
@@ -116,6 +117,7 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
     const payload = {
       firstName: form.firstName,
       lastName: form.lastName,
+      company: form.company || undefined,
       email: form.email,
       phone: form.phone.trim(),
       address: form.address,
@@ -210,6 +212,21 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
                 <span className="text-xs text-destructive">{errors.lastName}</span>
               )}
             </div>
+          </div>
+
+          {/* Raison sociale */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>Raison sociale (optionnel)</span>
+            </label>
+            <Input
+              autoComplete="organization"
+              maxLength={70} // COMPANY_MAX_LENGTH de lib/validations.ts, vérifié par le serveur
+              placeholder="Ex. Verger Exemple SA"
+              value={form.company}
+              onChange={(e) => update('company', e.target.value)}
+            />
           </div>
 
           {/* Adresse postale */}

@@ -9,6 +9,7 @@ import { getSettings } from '@/lib/settings'
 import { shippingCentsFor, orderVatCents, formatCHF } from '@/lib/money'
 import { recordAudit } from '@/lib/audit'
 import { notifyOrderPlaced } from '@/lib/notifications'
+import { companySchema } from '@/lib/validations'
 import { AuditAction, ClientType, OrderStatus, StockMovementReason } from '@prisma/client'
 
 export interface CreateManualOrderInput {
@@ -16,6 +17,7 @@ export interface CreateManualOrderInput {
     id?: string
     firstName: string
     lastName: string
+    company?: string
     email: string
     phone?: string
     address: string
@@ -51,6 +53,12 @@ export async function createManualOrder(input: CreateManualOrderInput) {
     return { success: false, error: 'Les coordonnées du client sont incomplètes.' }
   }
 
+  const companyResult = companySchema.safeParse(input.customer.company)
+  if (!companyResult.success) {
+    return { success: false, error: companyResult.error.issues[0].message }
+  }
+  const company = companyResult.data ?? null
+
   try {
     const order = await prisma.$transaction(async (tx) => {
       // 1. Client : création ou mise à jour de la fiche
@@ -66,6 +74,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           firstName: input.customer.firstName,
           lastName: input.customer.lastName,
           phone: input.customer.phone || null,
+          company,
           address: input.customer.address,
           npa: input.customer.npa,
           city: input.customer.city,
@@ -77,6 +86,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
           firstName: input.customer.firstName,
           lastName: input.customer.lastName,
           phone: input.customer.phone || null,
+          company,
           address: input.customer.address,
           npa: input.customer.npa,
           city: input.customer.city,
@@ -180,6 +190,7 @@ export async function createManualOrder(input: CreateManualOrderInput) {
             ? (input.customer.proRatePercent ?? customer.proRatePercent ?? settings.proRatePercent)
             : null,
           clientName: `${input.customer.firstName} ${input.customer.lastName}`.trim(),
+          clientCompany: company,
           clientEmail: input.customer.email,
           clientPhone: input.customer.phone || null,
           address: input.customer.address,

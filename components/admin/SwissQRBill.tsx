@@ -7,6 +7,7 @@ export interface SwissQRBillProps {
     numero: string
     invoiceNumber: string | null
     clientName: string
+    clientCompany?: string | null
     address: string
     npa: string
     city: string
@@ -39,10 +40,12 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
       const { zip, city } = parseZipCity(settings.companyZipCity)
       const cleanIban = settings.iban.replace(/\s+/g, '')
 
+      // Norme SIX : le débiteur est la personne ou la raison sociale (70 caractères
+      // au plus). Une raison sociale saisie prend la place du nom.
+      const debtorName = order.clientCompany?.trim() || order.clientName?.trim()
+
       const hasDebtor =
-        Boolean(order.clientName?.trim()) &&
-        Boolean(order.address?.trim()) &&
-        Boolean(order.city?.trim())
+        Boolean(debtorName) && Boolean(order.address?.trim()) && Boolean(order.city?.trim())
 
       const amountInChf =
         order.totalCents > 0 ? Number((order.totalCents / 100).toFixed(2)) : undefined
@@ -76,7 +79,7 @@ export function SwissQRBill({ order, settings }: SwissQRBillProps) {
           },
           debtor: hasDebtor
             ? {
-                name: order.clientName.trim(),
+                name: debtorName,
                 address: order.address.trim(),
                 zip: order.npa?.trim() || '',
                 city: order.city.trim(),

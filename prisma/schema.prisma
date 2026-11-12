@@ -139,6 +139,7 @@ model Customer {
   firstName        String
   lastName         String
   phone            String?
+  company          String? // raison sociale du client (pas le vendeur : voir Setting.companyName)
   address          String
   npa              String
   city             String
@@ -176,6 +177,7 @@ model Order {
   customerId     String?
   // Instantané des coordonnées : la commande reste lisible même si la fiche client change
   clientName     String
+  clientCompany  String? // raison sociale, facultative
   clientEmail    String
   clientPhone    String?
   address        String

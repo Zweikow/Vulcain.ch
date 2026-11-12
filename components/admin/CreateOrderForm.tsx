@@ -44,6 +44,7 @@ interface CustomerOption {
   customerNumber?: number | null
   firstName: string
   lastName: string
+  company: string | null
   email: string
   phone: string | null
   address: string
@@ -94,6 +95,7 @@ export function CreateOrderForm({
   const [customProRate, setCustomProRate] = useState<number | null>(null)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [company, setCompany] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
@@ -232,6 +234,7 @@ export function CreateOrderForm({
         [
           c.lastName,
           c.firstName,
+          c.company || '',
           c.email,
           c.city || '',
           c.npa || '',
@@ -287,6 +290,7 @@ export function CreateOrderForm({
     if (cust) {
       setFirstName(cust.firstName)
       setLastName(cust.lastName)
+      setCompany(cust.company || '')
       setEmail(cust.email)
       setPhone(cust.phone || '')
       setAddress(cust.address)
@@ -556,6 +560,7 @@ export function CreateOrderForm({
           id: customerMode === 'EXISTING' ? selectedCustomerId : undefined,
           firstName,
           lastName,
+          company,
           email,
           phone,
           address,
@@ -778,6 +783,7 @@ export function CreateOrderForm({
                     setCustomerSearch('')
                     setFirstName('')
                     setLastName('')
+                    setCompany('')
                     setEmail('')
                     setPhone('')
                     setAddress('')
@@ -823,6 +829,20 @@ export function CreateOrderForm({
               onChange={(e) => setLastName(e.target.value)}
               className="input-field w-full text-sm"
               placeholder="ex: Baeriswyl"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+              Raison sociale
+            </label>
+            <input
+              type="text"
+              maxLength={70}
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              className="input-field w-full text-sm"
+              placeholder="ex: Verger Exemple SA"
             />
           </div>
 

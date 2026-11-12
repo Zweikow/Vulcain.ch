@@ -36,6 +36,7 @@ export default async function NouvelleCommandePage() {
         id: true,
         firstName: true,
         lastName: true,
+        company: true,
         email: true,
         phone: true,
         address: true,

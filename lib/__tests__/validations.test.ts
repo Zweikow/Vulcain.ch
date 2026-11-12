@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { loginSchema, orderItemSchema, orderSchema } from '@/lib/validations'
+import {
+  COMPANY_MAX_LENGTH,
+  companySchema,
+  loginSchema,
+  orderItemSchema,
+  orderSchema,
+} from '@/lib/validations'
 
 describe('lib/validations', () => {
   describe('loginSchema', () => {
@@ -113,6 +119,40 @@ describe('lib/validations', () => {
         items: [],
       })
       expect(res.success).toBe(false)
+    })
+
+    it('accepte une commande sans raison sociale (champ facultatif)', () => {
+      const res = orderSchema.safeParse(validOrderData)
+      expect(res.success).toBe(true)
+      if (res.success) expect(res.data.company).toBeUndefined()
+    })
+
+    it('retire les espaces autour de la raison sociale', () => {
+      const res = orderSchema.safeParse({ ...validOrderData, company: '  Verger Exemple SA  ' })
+      expect(res.success).toBe(true)
+      if (res.success) expect(res.data.company).toBe('Verger Exemple SA')
+    })
+
+    it('traite une raison sociale vide ou faite d espaces comme absente', () => {
+      for (const company of ['', '   ']) {
+        const res = orderSchema.safeParse({ ...validOrderData, company })
+        expect(res.success).toBe(true)
+        if (res.success) expect(res.data.company).toBeUndefined()
+      }
+    })
+
+    it('limite la raison sociale a 70 caracteres, espaces retires', () => {
+      const max = 'V'.repeat(COMPANY_MAX_LENGTH)
+      expect(COMPANY_MAX_LENGTH).toBe(70)
+      expect(orderSchema.safeParse({ ...validOrderData, company: max }).success).toBe(true)
+      expect(orderSchema.safeParse({ ...validOrderData, company: ` ${max} ` }).success).toBe(true)
+      expect(orderSchema.safeParse({ ...validOrderData, company: `${max}V` }).success).toBe(false)
+    })
+
+    it('applique la meme regle a la saisie manuelle (companySchema)', () => {
+      expect(companySchema.parse(undefined)).toBeUndefined()
+      expect(companySchema.parse(' Verger Exemple SA ')).toBe('Verger Exemple SA')
+      expect(companySchema.safeParse('V'.repeat(71)).success).toBe(false)
     })
 
     it('rejette un NPA qui ne fait pas exactement 4 chiffres', () => {

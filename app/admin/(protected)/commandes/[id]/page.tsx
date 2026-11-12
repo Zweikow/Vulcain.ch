@@ -160,6 +160,15 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
             )}
           </dd>
 
+          {order.clientCompany && (
+            <>
+              <dt className="text-text-secondary dark:text-text-secondary-dark">Raison sociale</dt>
+              <dd className="text-text-primary dark:text-text-primary-dark">
+                {order.clientCompany}
+              </dd>
+            </>
+          )}
+
           <dt className="text-text-secondary dark:text-text-secondary-dark">Statut tarifaire</dt>
           <dd className="text-text-primary dark:text-text-primary-dark">
             <OrderProToggle

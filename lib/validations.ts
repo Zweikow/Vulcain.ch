@@ -7,6 +7,18 @@ export const loginSchema = z.object({
   password: z.string().min(8, 'Minimum 8 caractères'),
 })
 
+// Raison sociale du client, facultative. 70 caractères : la longueur maximale du
+// nom du débiteur sur la QR-facture (norme SIX), où elle est imprimée seule.
+export const COMPANY_MAX_LENGTH = 70
+
+// Espaces retirés ; une chaîne vide vaut absence (enregistrée nulle en base).
+export const companySchema = z
+  .string()
+  .trim()
+  .max(COMPANY_MAX_LENGTH, `Raison sociale : ${COMPANY_MAX_LENGTH} caractères au maximum`)
+  .optional()
+  .transform((value) => value || undefined)
+
 export const orderItemSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().positive().max(999),
@@ -17,6 +29,7 @@ export const orderItemSchema = z.object({
 export const orderSchema = z.object({
   firstName: z.string().min(1, 'Requis'),
   lastName: z.string().min(1, 'Requis'),
+  company: companySchema,
   email: z.string().email('Email invalide'),
   phone: z
     .string()
