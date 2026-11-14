@@ -14,6 +14,7 @@ export type MailOrder = {
   numero: string
   invoiceNumber: string | null
   clientName: string
+  clientCompany?: string | null
   clientEmail: string
   clientPhone?: string | null
   address: string
@@ -200,7 +201,7 @@ export function orderConfirmation(order: MailOrder, settings: MailSettings): Mai
        </div>`
     : `<div style="background:#F7F9FA;padding:12px;border-radius:6px;margin:16px 0;border:1px solid #EAE7DC;">
          <strong>Adresse de livraison :</strong><br>
-         ${escapeHtml(order.clientName)}<br>
+         ${order.clientCompany ? `${escapeHtml(order.clientCompany)}<br>` : ''}${escapeHtml(order.clientName)}<br>
          ${escapeHtml(order.address)}<br>
          ${escapeHtml(order.npa)} ${escapeHtml(order.city)}
          ${order.deliveryDate ? `<br><em>Date souhaitée : ${longDate.format(order.deliveryDate)}</em>` : ''}
@@ -231,7 +232,7 @@ Nous vous remercions pour votre commande ${order.numero}.
 Récapitulatif :
 ${itemsText(order)}
 
-${order.isPickup ? 'Retrait convenu à la cave (Les Paccots).' : `Livraison à :\n${order.clientName}\n${order.address}\n${order.npa} ${order.city}`}
+${order.isPickup ? 'Retrait convenu à la cave (Les Paccots).' : `Livraison à :\n${order.clientCompany ? `${order.clientCompany}\n` : ''}${order.clientName}\n${order.address}\n${order.npa} ${order.city}`}
 
 Votre commande est préparée sous ${settings.prepDays} jours ouvrés.
 Le paiement se fait sur facture à 30 jours (bulletin QR officiel).
@@ -257,6 +258,9 @@ export function shopNotification(
 ): MailMessage {
   const details = [
     `<strong>Client :</strong> ${escapeHtml(order.clientName)}`,
+    order.clientCompany
+      ? `<strong>Raison sociale :</strong> ${escapeHtml(order.clientCompany)}`
+      : null,
     `<strong>Email :</strong> <a href="mailto:${escapeHtml(order.clientEmail)}" style="color:#153243;">${escapeHtml(order.clientEmail)}</a>`,
     order.clientPhone
       ? `<strong>Téléphone :</strong> <a href="tel:${escapeHtml(order.clientPhone)}" style="color:#153243;">${escapeHtml(order.clientPhone)}</a>`
@@ -301,7 +305,7 @@ export function shopNotification(
   const text = `Nouvelle commande ${order.numero} reçue !
 Montant total : ${formatCHF(order.totalCents)}
 
-Client : ${order.clientName}
+Client : ${order.clientName}${order.clientCompany ? `\nRaison sociale : ${order.clientCompany}` : ''}
 Email : ${order.clientEmail}
 Téléphone : ${order.clientPhone || 'Non renseigné'}
 Adresse : ${order.address}, ${order.npa} ${order.city}

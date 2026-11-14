@@ -133,6 +133,7 @@ export interface PlanzerOrderData {
   id: string
   numero: string
   clientName: string
+  clientCompany?: string | null
   clientEmail: string
   clientPhone?: string | null
   clientType?: string | null
@@ -319,8 +320,10 @@ export function generatePlanzerCsv(
     let destFirstName = ''
     let destLastName = ''
     let destCompany = ''
+    const company = sanitizePlanzerText(order.clientCompany, 100)
 
-    if (order.clientType === 'PRO') {
+    // Sans raison sociale, un pro voit son nom recopié dans le champ entreprise.
+    if (order.clientType === 'PRO' && !company) {
       destCompany = sanitizePlanzerText(order.clientName, 100)
       destLastName = sanitizePlanzerText(order.clientName, 100)
     } else if (nameParts.length > 1) {
@@ -329,6 +332,7 @@ export function generatePlanzerCsv(
     } else {
       destLastName = sanitizePlanzerText(order.clientName, 100)
     }
+    if (company) destCompany = company
 
     const destPhone = sanitizePlanzerText(order.clientPhone || '', 20)
     const destEmail = sanitizePlanzerText(order.clientEmail || '', 255)

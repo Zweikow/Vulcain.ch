@@ -43,6 +43,7 @@ export interface CartItem {
 export interface CustomerInfo {
   firstName: string
   lastName: string
+  company?: string // raison sociale, facultative
   address: string
   npa: string
   lieu: string

@@ -13,6 +13,7 @@ type FactureOrder = {
   clientType: ClientType
   status: OrderStatus
   clientName: string
+  clientCompany?: string | null
   address: string
   npa: string
   city: string
@@ -252,6 +253,7 @@ export function FactureDocument({
             {/* Destinataire (fenêtre à droite) */}
             <div className="mt-2 flex justify-end">
               <div className="w-64 text-[12px] leading-relaxed">
+                {order.clientCompany && <p className="font-semibold">{order.clientCompany}</p>}
                 <p className="font-semibold">{order.clientName}</p>
                 <p>{order.address}</p>
                 <p>
@@ -585,7 +587,14 @@ export function FactureDocument({
                   <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7A95A5]">
                     Débiteur (client)
                   </p>
-                  <p className="mt-1 font-semibold text-[#153243]">{order.clientName}</p>
+                  {order.clientCompany && (
+                    <p className="mt-1 font-semibold text-[#153243]">{order.clientCompany}</p>
+                  )}
+                  <p
+                    className={`${order.clientCompany ? '' : 'mt-1 '}font-semibold text-[#153243]`}
+                  >
+                    {order.clientName}
+                  </p>
                   <p className="text-[#4A6278]">{order.address}</p>
                   <p className="text-[#4A6278]">
                     {order.npa} {order.city}
@@ -718,6 +727,7 @@ export function FactureDocument({
         {/* Destinataire (fenêtre à droite) */}
         <div className="mt-1.5 flex justify-end print:mt-1">
           <div className="w-64 text-[12px] leading-relaxed">
+            {order.clientCompany && <p className="font-semibold">{order.clientCompany}</p>}
             <p className="font-semibold">{order.clientName}</p>
             <p>{order.address}</p>
             <p>

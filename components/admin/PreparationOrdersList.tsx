@@ -16,6 +16,7 @@ export interface PreparationOrder {
   numero: string
   status: OrderStatus
   clientName: string
+  clientCompany?: string | null
   clientEmail: string
   clientPhone?: string | null
   clientType?: string | null
@@ -399,6 +400,7 @@ export function PreparationOrdersList({
             </div>
 
             <p className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
+              {order.clientCompany && <>{order.clientCompany} · </>}
               {order.clientName} · {order.address}, {order.npa} {order.city}
               {order.deliveryDate && (
                 <>
