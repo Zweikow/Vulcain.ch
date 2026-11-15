@@ -166,7 +166,7 @@ export default async function ParametresPage() {
                 Assujettie à la TVA
                 <span className="block font-normal text-text-tertiary dark:text-text-tertiary-dark">
                   À cocher seulement à partir de 100 000 CHF de chiffre d&apos;affaires annuel.
-                  Décochée, aucune TVA n&apos;est facturée ni mentionnée sur les documents — faire
+                  Décochée, aucune TVA n&apos;est facturée ni mentionnée sur les documents : faire
                   état d&apos;une TVA qu&apos;on ne perçoit pas n&apos;est pas permis.
                 </span>
               </span>

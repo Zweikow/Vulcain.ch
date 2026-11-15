@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS: Setting = {
   vatSubject: false,
   vatNumber: '',
   vatRatePermille: 81,
-  iban: 'CH57 0900 0000 1703 3189 6',
+  iban: '',
   contactName: 'Bertrand Baeriswyl',
   companyTagline: 'Drinkcider',
   companyZipCity: '1619 Les Paccots',
