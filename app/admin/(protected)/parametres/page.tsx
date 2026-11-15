@@ -7,7 +7,7 @@ import { PasswordChange } from '@/components/admin/PasswordChange'
 import { NumberField } from '@/components/admin/NumberField'
 import { TestEmailCard } from '@/components/admin/TestEmailCard'
 import { MaintenanceToggle } from '@/components/admin/MaintenanceToggle'
-import { saveSettings } from './actions'
+import { IbanField, SettingsForm } from '@/components/admin/SettingsForm'
 
 const EXAMPLE_PRICE_CENTS = 2400
 
@@ -33,7 +33,7 @@ export default async function ParametresPage() {
         </p>
       </div>
 
-      <form action={saveSettings} className="flex flex-col gap-4">
+      <SettingsForm>
         {/* Tarifs professionnels */}
         <section className="card p-6">
           <h2 className="font-semibold text-[16px] text-accent-mauve-dark dark:text-accent-mauve">
@@ -166,7 +166,7 @@ export default async function ParametresPage() {
                 Assujettie à la TVA
                 <span className="block font-normal text-text-tertiary dark:text-text-tertiary-dark">
                   À cocher seulement à partir de 100 000 CHF de chiffre d&apos;affaires annuel.
-                  Décochée, aucune TVA n&apos;est facturée ni mentionnée sur les documents — faire
+                  Décochée, aucune TVA n&apos;est facturée ni mentionnée sur les documents : faire
                   état d&apos;une TVA qu&apos;on ne perçoit pas n&apos;est pas permis.
                 </span>
               </span>
@@ -191,10 +191,7 @@ export default async function ParametresPage() {
                 className="input-field mt-1 tabular"
               />
             </label>
-            <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark">
-              IBAN
-              <input name="iban" defaultValue={s.iban} className="input-field mt-1 font-mono" />
-            </label>
+            <IbanField defaultValue={s.iban} />
             <label className="text-xs font-medium text-text-secondary dark:text-text-secondary-dark sm:col-span-2">
               Adresse
               <input
@@ -221,11 +218,7 @@ export default async function ParametresPage() {
             </label>
           </div>
         </section>
-
-        <div className="flex justify-end">
-          <button className="btn-primary">Enregistrer les paramètres</button>
-        </div>
-      </form>
+      </SettingsForm>
 
       {/* Test de notification SES */}
       <TestEmailCard defaultEmail={s.contactEmail} />

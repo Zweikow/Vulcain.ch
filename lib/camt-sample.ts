@@ -22,7 +22,7 @@ export function generateSampleCamtXml(): string {
       <CreDtTm>2026-09-25T07:15:00Z</CreDtTm>
       <Acct>
         <Id>
-          <IBAN>CH5709000000170331896</IBAN>
+          <IBAN>CH93 0076 2011 6238 5295 7</IBAN>
         </Id>
         <Ccy>CHF</Ccy>
       </Acct>
