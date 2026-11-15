@@ -16,6 +16,8 @@ import {
   CheckIcon,
   SearchIcon,
 } from '@/components/admin/AdminIcons'
+import { Combobox } from '@/components/ui/combobox'
+import { localiteKey, renderLocalite, useNpaAutocomplete } from '@/components/useNpaAutocomplete'
 
 interface ProductOption {
   id: string
@@ -101,6 +103,12 @@ export function CreateOrderForm({
   const [address, setAddress] = useState('')
   const [npa, setNpa] = useState('')
   const [city, setCity] = useState('')
+  const npaAutocomplete = useNpaAutocomplete({
+    npa,
+    localite: city,
+    onNpaChange: setNpa,
+    onLocaliteChange: setCity,
+  })
   const [isPro, setIsPro] = useState(false)
 
   // Recherche et sélection de client existant
@@ -294,6 +302,7 @@ export function CreateOrderForm({
       setEmail(cust.email)
       setPhone(cust.phone || '')
       setAddress(cust.address)
+      npaAutocomplete.forget()
       setNpa(cust.npa)
       setCity(cust.city)
       setIsPro(cust.isPro)
@@ -787,6 +796,7 @@ export function CreateOrderForm({
                     setEmail('')
                     setPhone('')
                     setAddress('')
+                    npaAutocomplete.forget()
                     setNpa('')
                     setCity('')
                     setIsPro(false)
@@ -887,26 +897,47 @@ export function CreateOrderForm({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+            <label
+              htmlFor="saisie-npa"
+              className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1"
+            >
               NPA
             </label>
-            <input
-              type="text"
+            <Combobox
+              id="saisie-npa"
+              inputMode="numeric"
+              autoComplete="off"
               value={npa}
-              onChange={(e) => setNpa(e.target.value)}
+              onValueChange={setNpa}
+              onFocus={npaAutocomplete.ensureLoaded}
+              options={npaAutocomplete.npaOptions}
+              onOptionSelect={npaAutocomplete.select}
+              getOptionKey={localiteKey}
+              renderOption={renderLocalite}
+              listLabel="Localités du NPA"
               className="input-field w-full text-sm"
               placeholder="1170"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1">
+            <label
+              htmlFor="saisie-localite"
+              className="block text-xs font-medium text-text-secondary dark:text-text-secondary-dark mb-1"
+            >
               Localité / Ville
             </label>
-            <input
-              type="text"
+            <Combobox
+              id="saisie-localite"
+              autoComplete="off"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onValueChange={setCity}
+              onFocus={npaAutocomplete.ensureLoaded}
+              options={npaAutocomplete.localiteOptions}
+              onOptionSelect={npaAutocomplete.select}
+              getOptionKey={localiteKey}
+              renderOption={renderLocalite}
+              listLabel="Suggestions de localités"
               className="input-field w-full text-sm"
               placeholder="Aubonne"
             />

@@ -1,0 +1,17 @@
+{
+  "source": "Répertoire officiel des localités (Amtliches Ortschaftenverzeichnis mit Postleitzahl und Perimeter)",
+  "producteur": "Office fédéral de topographie swisstopo",
+  "mentionSource": "Office fédéral de topographie swisstopo",
+  "licence": "Conditions d’utilisation des géodonnées gratuites de swisstopo (OGD) : utilisation libre, y compris commerciale, mention de la source obligatoire",
+  "licenceUrl": "https://www.swisstopo.admin.ch/ogd-conditions",
+  "page": "https://www.swisstopo.admin.ch/fr/repertoire-officiel-des-localites",
+  "fichier": "https://data.geo.admin.ch/ch.swisstopo-vd.ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz/ortschaftenverzeichnis_plz_2056.csv.zip",
+  "sha256Fichier": "f7a99833d11e773916a57baebe7374040f4fbde0c8821250c77fa7197a176978",
+  "dateDonnees": "2026-11-01",
+  "dateGeneration": "2026-11-15",
+  "lignesSource": 5717,
+  "entrees": 4060,
+  "npa": 3177,
+  "exclusions": "Liechtenstein (20 lignes) : livraison en Suisse uniquement",
+  "generePar": "scripts/generate-npa-localites.ts"
+}
