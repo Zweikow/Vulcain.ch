@@ -14,6 +14,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:sync": "node scripts/db-sync.js",
     "db:studio": "npx prisma studio",
+    "data:npa": "npx tsx scripts/generate-npa-localites.ts",
     "admin:password": "npx tsx scripts/set-admin-password.ts",
     "prepare": "husky"
   },

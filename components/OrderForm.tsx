@@ -7,8 +7,11 @@ import { shippingCentsFor, formatCHF } from '@/lib/money'
 import { PublicSettings } from '@/lib/settings'
 import { User, Check, ShieldCheck, Mail, MapPin, Phone, Tag, Building2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Input, inputClassName } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Combobox } from '@/components/ui/combobox'
+import { localiteKey, renderLocalite, useNpaAutocomplete } from '@/components/useNpaAutocomplete'
+import { cn } from '@/lib/utils'
 
 interface OrderFormProps {
   items: CartItem[]
@@ -156,10 +159,19 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
     }
   }
 
-  const update = (field: keyof CustomerInfo, value: string | boolean) => {
+  const update = useCallback((field: keyof CustomerInfo, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }))
     setErrors((prev) => ({ ...prev, [field]: undefined }))
-  }
+  }, [])
+
+  const setNpa = useCallback((v: string) => update('npa', v), [update])
+  const setLieu = useCallback((v: string) => update('lieu', v), [update])
+  const npaAutocomplete = useNpaAutocomplete({
+    npa: form.npa,
+    localite: form.lieu,
+    onNpaChange: setNpa,
+    onLocaliteChange: setLieu,
+  })
 
   return (
     <Card className="border border-border/80 bg-card shadow-sm">
@@ -249,27 +261,44 @@ export default function OrderForm({ items, settings, appliedPromo, onSubmit }: O
           {/* NPA + Ville */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5 sm:col-span-1">
-              <label className="text-xs font-semibold text-foreground">
+              <label htmlFor="commande-npa" className="text-xs font-semibold text-foreground">
                 NPA <span className="text-primary-text">*</span>
               </label>
-              <Input
-                className={errors.npa ? 'border-destructive' : ''}
+              <Combobox
+                id="commande-npa"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                className={cn(inputClassName, errors.npa && 'border-destructive')}
                 placeholder="Ex. 1700"
                 value={form.npa}
-                onChange={(e) => update('npa', e.target.value)}
+                onValueChange={setNpa}
+                onFocus={npaAutocomplete.ensureLoaded}
+                options={npaAutocomplete.npaOptions}
+                onOptionSelect={npaAutocomplete.select}
+                getOptionKey={localiteKey}
+                renderOption={renderLocalite}
+                listLabel="Localités du NPA"
               />
               {errors.npa && <span className="text-xs text-destructive">{errors.npa}</span>}
             </div>
 
             <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className="text-xs font-semibold text-foreground">
+              <label htmlFor="commande-localite" className="text-xs font-semibold text-foreground">
                 Localité (Suisse) <span className="text-primary-text">*</span>
               </label>
-              <Input
-                className={errors.lieu ? 'border-destructive' : ''}
+              <Combobox
+                id="commande-localite"
+                autoComplete="address-level2"
+                className={cn(inputClassName, errors.lieu && 'border-destructive')}
                 placeholder="Ex. Fribourg"
                 value={form.lieu}
-                onChange={(e) => update('lieu', e.target.value)}
+                onValueChange={setLieu}
+                onFocus={npaAutocomplete.ensureLoaded}
+                options={npaAutocomplete.localiteOptions}
+                onOptionSelect={npaAutocomplete.select}
+                getOptionKey={localiteKey}
+                renderOption={renderLocalite}
+                listLabel="Suggestions de localités"
               />
               {errors.lieu && <span className="text-xs text-destructive">{errors.lieu}</span>}
             </div>

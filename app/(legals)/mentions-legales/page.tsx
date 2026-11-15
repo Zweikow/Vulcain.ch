@@ -7,7 +7,7 @@ export default function MentionsLegalesPage() {
   return (
     <>
       <h1>Mentions Légales</h1>
-      <p className="text-sm text-text-tertiary">Dernière mise à jour : 14 août 2026</p>
+      <p className="text-sm text-text-tertiary">Dernière mise à jour : 15 novembre 2026</p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary-light dark:bg-secondary text-secondary dark:text-text-primary-dark text-sm font-bold shrink-0">
@@ -67,6 +67,7 @@ export default function MentionsLegalesPage() {
         copie, modification, distribution ou utilisation à des fins commerciales sans l&apos;accord
         écrit préalable de Drinkcider est strictement interdite.
       </p>
+      <p>Répertoire des NPA et localités : © Office fédéral de topographie swisstopo.</p>
 
       <h2 className="not-prose flex items-center gap-3 mt-12 mb-6 text-2xl font-display font-semibold text-text-primary dark:text-text-primary-dark pb-2 border-b border-border dark:border-border-dark">
         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary-light dark:bg-secondary text-secondary dark:text-text-primary-dark text-sm font-bold shrink-0">
