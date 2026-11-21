@@ -10,7 +10,11 @@ import { SITE_CONFIG } from '@/lib/site'
 // Catalogue lu en base a chaque requete - un produit desactive disparait aussitot.
 export const dynamic = 'force-dynamic'
 
-export default async function Home() {
+interface HomeProps {
+  searchParams: Promise<{ q?: string | string[] }>
+}
+
+export default async function Home({ searchParams }: HomeProps) {
   // Boutique fermée depuis l'admin : avis de maintenance à la place du catalogue
   const shopSettings = await getSettings().catch(() => null)
   if (shopSettings?.maintenanceMode) {
@@ -35,6 +39,10 @@ export default async function Home() {
     }),
     getPublicSettings(),
   ])
+
+  // `/?q=Heftig` ouvre la boutique déjà filtrée (lien depuis /producteurs)
+  const { q } = await searchParams
+  const initialSearch = (Array.isArray(q) ? q[0] : q)?.trim().slice(0, 80) ?? ''
 
   const promoByProductId = new Map(dbPromotions.map((pr) => [pr.productId, pr]))
   const newSince = Date.now() - 60 * 24 * 3600 * 1000
@@ -86,6 +94,7 @@ export default async function Home() {
         products={products}
         settings={settings}
         categories={dbCategories.map((c) => c.name)}
+        initialSearch={initialSearch}
       />
     </>
   )
