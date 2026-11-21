@@ -22,6 +22,8 @@ interface BoutiqueClientProps {
   products: Product[]
   settings: PublicSettings
   categories?: string[]
+  /** Recherche déjà saisie à l'arrivée, depuis `/?q=` (ex. les cuvées d'un producteur). */
+  initialSearch?: string
 }
 
 function normalizeText(text: string): string {
@@ -36,12 +38,13 @@ export default function BoutiqueClient({
   products,
   settings,
   categories: propCategories,
+  initialSearch = '',
 }: BoutiqueClientProps) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromoCode | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch)
   const [confirmation, setConfirmation] = useState<{
     orderId: string
     totalCents: number

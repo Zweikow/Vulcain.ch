@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { getSiteUrl } from '@/lib/site'
 import { formatCHF } from '@/lib/money'
 import { getCuveeGallery } from '@/lib/cuvees-gallery'
-import { getProducerProfile } from '@/lib/producers-data'
+import { getProducerProfile, HEFTIG_FEATURE } from '@/lib/producers-data'
+import { ProducerFeature } from '@/components/ProducerFeature'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { OriginBadge } from '@/components/OriginBadge'
@@ -31,7 +32,7 @@ const siteUrl = getSiteUrl()
 export const metadata: Metadata = {
   title: 'Nos Producteurs & Artisans Cidriers | Drinkcider',
   description:
-    'Découvrez les artisans d’exception sélectionnés par Drinkcider : Jacques Perritaz (Cidrerie du Vulcain, Fribourg) et nos partenaires indépendants de cidres et poirés pur jus en Suisse.',
+    'Découvrez les artisans d’exception sélectionnés par Drinkcider : Jacques Perritaz (Cidrerie du Vulcain, Fribourg), la Cidrerie A. Heftig (Berne) et nos partenaires indépendants de cidres et poirés pur jus en Suisse.',
   alternates: {
     canonical: `${siteUrl}/producteurs`,
   },
@@ -75,6 +76,8 @@ export default async function ProducteursPage() {
     },
   })
 
+  const heftig = dbProducers.find((p) => p.slug === HEFTIG_FEATURE.slug)
+
   // Préparation du balisage Schema.org JSON-LD pour le SEO
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -103,6 +106,20 @@ export default async function ProducteursPage() {
           'Sélection de cidriers et artisans indépendants élaborant des cidres et poirés pur jus de terroir en Suisse.',
         itemListElement: dbProducers.map((prod, index) => {
           const profile = getProducerProfile(prod.name)
+          if (!profile && prod.slug === HEFTIG_FEATURE.slug) {
+            return {
+              '@type': 'Winery',
+              position: index + 1,
+              name: HEFTIG_FEATURE.name,
+              description: HEFTIG_FEATURE.intro[0],
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: HEFTIG_FEATURE.place,
+                addressCountry: 'CH',
+              },
+              url: `${siteUrl}/producteurs#${HEFTIG_FEATURE.slug}`,
+            }
+          }
           return {
             '@type': 'Winery',
             position: index + 1,
@@ -183,6 +200,9 @@ export default async function ProducteursPage() {
             </div>
           </div>
         </section>
+
+        {/* Producteur partenaire mis en avant : Heftig (Berne) */}
+        {heftig && <ProducerFeature feature={HEFTIG_FEATURE} products={heftig.products} />}
 
         {/* Fiche Producteur : Jacques Perritaz (Cidrerie du Vulcain) */}
         {dbProducers.map((producer) => {

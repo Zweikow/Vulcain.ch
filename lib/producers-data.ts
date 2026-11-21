@@ -102,6 +102,88 @@ export const PRODUCERS_PROFILES: Record<string, ProducerProfile> = {
 }
 
 /**
+ * Producteur partenaire mis en avant sur /producteurs par un bloc court
+ * (texte, packshots, liens), sans la fiche complète réservée au profil ci-dessus.
+ */
+export interface FeaturedProducer {
+  /** Slug de la fiche `Producer` en base : le bloc ne s'affiche que si elle existe. */
+  slug: string
+  name: string
+  place: string
+  /** Terme de recherche qui filtre ses cuvées dans la boutique (`/?q=`). */
+  shopQuery: string
+  intro: string[]
+  cuvees: {
+    name: string
+    origin: string
+    image: string
+  }[]
+}
+
+// Faits repris du site officiel heftigcidre.ch (accueil et fiches des cuvées, 15.11.2026).
+// Le site ne nomme ni les cidriers ni l'année de création : rien n'est ajouté ici.
+export const HEFTIG_FEATURE: FeaturedProducer = {
+  slug: 'heftig',
+  name: 'Cidrerie A. Heftig',
+  place: 'Berne',
+  shopQuery: 'Heftig',
+  intro: [
+    'À Berne, la Cidrerie A. Heftig élabore des cidres et des vins de fruits à partir de 100 % de fruits, fermentés avec leurs levures naturelles, sans additifs ni soufre.',
+    'Les fruits viennent de vergers haute-tige de la région de Berne et, pour certaines cuvées, de Thurgovie, de Saint-Gall et de Lucerne. Chaque variété fermente séparément trois à quatre mois, puis elle est mise en bouteille seule ou en assemblage, en méthode ancestrale.',
+  ],
+  cuvees: [
+    {
+      name: 'Engishofer',
+      origin: 'Stehrenberg (Thurgovie)',
+      image: '/packshots/heftig/engishofer.jpg',
+    },
+    {
+      name: 'Schöner von Boskoop',
+      origin: 'Steinach (Saint-Gall)',
+      image: '/packshots/heftig/schoner-von-boskoop.jpg',
+    },
+    {
+      name: 'Cuvée Heftig',
+      origin: 'Région de Berne',
+      image: '/packshots/heftig/cuvee-heftig.jpg',
+    },
+    {
+      name: 'Poiré',
+      origin: 'Région de Berne et Richenthal (Lucerne)',
+      image: '/packshots/heftig/poire.jpg',
+    },
+  ],
+}
+
+function normalizeName(text: string): string {
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
+}
+
+/**
+ * Associe chaque cuvée mise en avant à la fiche produit en vente qui lui
+ * correspond : d'abord le packshot choisi dans l'admin, sinon le nom.
+ * Une cuvée sans produit en vente reste affichée, sans lien.
+ */
+export function matchFeaturedCuvees<P extends { name: string; imageUrl: string | null }>(
+  cuvees: FeaturedProducer['cuvees'],
+  products: P[]
+): { cuvee: FeaturedProducer['cuvees'][number]; product: P | null }[] {
+  const used = new Set<P>()
+  const byImage = cuvees.map((c) => products.find((p) => p.imageUrl === c.image) ?? null)
+  byImage.forEach((p) => p && used.add(p))
+
+  return cuvees.map((cuvee, i) => {
+    let product = byImage[i]
+    if (!product) {
+      const wanted = normalizeName(cuvee.name)
+      product = products.find((p) => !used.has(p) && normalizeName(p.name).includes(wanted)) ?? null
+      if (product) used.add(product)
+    }
+    return { cuvee, product }
+  })
+}
+
+/**
  * Retrouve le profil d'un producteur par son nom (insensible à la casse) ou son slug.
  */
 export function getProducerProfile(nameOrSlug: string): ProducerProfile | null {
