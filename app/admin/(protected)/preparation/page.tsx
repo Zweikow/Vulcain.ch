@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 import { PreparationOrdersList } from '@/components/admin/PreparationOrdersList'
+import { PrintDeliveryNotesLink } from '@/components/admin/PrintDeliveryNotesLink'
 
 const NEXT_ACTION: Partial<Record<OrderStatus, string>> = {
   A_TRAITER: 'Passer en préparation',
@@ -38,18 +39,22 @@ export default async function PreparationPage() {
   }
   const pickingList = [...picking.entries()].sort((a, b) => b[1].bottles - a[1].bottles)
   const totalBottles = pickingList.reduce((n, [, data]) => n + data.bottles, 0)
+  const preparingCount = orders.filter((o) => o.status === OrderStatus.EN_PREPARATION).length
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
-          Préparation
-        </h1>
-        <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
-          {orders.length} commande{orders.length > 1 ? 's' : ''} ouverte
-          {orders.length > 1 ? 's' : ''} · {totalBottles} bouteille
-          {totalBottles > 1 ? 's' : ''} à sortir
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display font-semibold text-[26px] text-text-primary dark:text-text-primary-dark">
+            Préparation
+          </h1>
+          <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-1">
+            {orders.length} commande{orders.length > 1 ? 's' : ''} ouverte
+            {orders.length > 1 ? 's' : ''} · {totalBottles} bouteille
+            {totalBottles > 1 ? 's' : ''} à sortir
+          </p>
+        </div>
+        <PrintDeliveryNotesLink count={preparingCount} />
       </div>
 
       {orders.length === 0 ? (

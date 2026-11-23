@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/admin/StatusBadge'
 import { calculateOrderPackages, getDefaultPlanzerDates } from '@/lib/planzer'
 import { advanceStatus } from '@/app/admin/(protected)/preparation/actions'
 import { TruckIcon } from '@/components/admin/AdminIcons'
+import { DeliveryNoteLink } from '@/components/admin/DeliveryNoteLink'
 
 export interface PreparationOrder {
   id: string
@@ -453,7 +454,8 @@ export function PreparationOrdersList({
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <DeliveryNoteLink orderId={order.id} status={order.status} />
                 <Link
                   href={
                     showMoney
