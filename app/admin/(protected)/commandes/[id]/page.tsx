@@ -13,6 +13,7 @@ import OrderEmailActions from '@/components/admin/OrderEmailActions'
 import { OrderPaymentPanel } from '@/components/admin/OrderPaymentPanel'
 import { OrderProToggle } from '@/components/admin/OrderProToggle'
 import { OrderDeliveryDateControl } from '@/components/admin/OrderDeliveryDateControl'
+import { DeliveryNoteLink } from '@/components/admin/DeliveryNoteLink'
 import { currentUser } from '@/lib/guards'
 import { can } from '@/lib/permissions'
 
@@ -92,6 +93,7 @@ export default async function TicketPage({ params }: { params: Promise<{ id: str
           <Link href={`/admin/commandes/${order.id}/facture`} className="btn-primary text-sm">
             Voir la facture
           </Link>
+          <DeliveryNoteLink orderId={order.id} status={order.status} />
           <PrintButton />
         </div>
       </div>

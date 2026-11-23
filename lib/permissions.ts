@@ -24,6 +24,9 @@ export const can = {
   /** Faire avancer une commande dans le flux de préparation. */
   advanceOrders: () => true,
 
+  /** Bon de livraison : contenu du carton, sans aucun montant. Tous ceux qui préparent. */
+  printDeliveryNotes: () => true,
+
   /** Annuler, supprimer, basculer le tarif : conséquences comptables. */
   manageOrders: (role: Role) => role !== Role.PREPARATEUR,
 
